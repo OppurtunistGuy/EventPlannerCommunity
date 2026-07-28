@@ -30,6 +30,7 @@ model MenuItem {
   order       Int           @default(0)
   category    MenuCategory  @relation(fields: [categoryId], references: [id])
   categoryId  String
+  orderItems  OrderItem[]
 }
 
 model Event {
@@ -55,4 +56,38 @@ model Reservation {
   message   String?
   status    String   @default("pending") // "pending", "confirmed", "cancelled"
   createdAt DateTime @default(now())
+}
+
+model Table {
+  id       String  @id @default(cuid())
+  number   Int     @unique
+  capacity Int     @default(4)
+  area     String? // "indoor", "outdoor", "bar", "vip"
+  status   String  @default("available") // "available", "occupied", "reserved"
+  orders   Order[]
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  tableId   String
+  table     Table       @relation(fields: [tableId], references: [id])
+  status    String      @default("pending") // "pending", "preparing", "ready", "served", "billed", "cancelled"
+  type      String      @default("dine-in") // "dine-in", "waiter"
+  notes     String?
+  total     Int         @default(0)
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         String    @id @default(cuid())
+  orderId    String
+  order      Order     @relation(fields: [orderId], references: [id])
+  menuItemId String
+  menuItem   MenuItem  @relation(fields: [menuItemId], references: [id])
+  quantity   Int       @default(1)
+  price      Int       // price at time of order
+  notes      String?   // special instructions
+  status     String    @default("pending") // "pending", "preparing", "ready", "served", "cancelled"
 }

@@ -330,10 +330,39 @@ async function seed() {
     await db.event.create({ data: event });
   }
 
+  // TABLES
+  const tables = [
+    { number: 1, capacity: 2, area: 'indoor' },
+    { number: 2, capacity: 2, area: 'indoor' },
+    { number: 3, capacity: 4, area: 'indoor' },
+    { number: 4, capacity: 4, area: 'indoor' },
+    { number: 5, capacity: 4, area: 'indoor' },
+    { number: 6, capacity: 6, area: 'indoor' },
+    { number: 7, capacity: 6, area: 'indoor' },
+    { number: 8, capacity: 4, area: 'outdoor' },
+    { number: 9, capacity: 4, area: 'outdoor' },
+    { number: 10, capacity: 6, area: 'outdoor' },
+    { number: 11, capacity: 6, area: 'outdoor' },
+    { number: 12, capacity: 8, area: 'outdoor' },
+    { number: 13, capacity: 4, area: 'bar' },
+    { number: 14, capacity: 4, area: 'bar' },
+    { number: 15, capacity: 2, area: 'bar' },
+    { number: 16, capacity: 2, area: 'bar' },
+    { number: 17, capacity: 8, area: 'vip' },
+    { number: 18, capacity: 10, area: 'vip' },
+    { number: 19, capacity: 4, area: 'indoor' },
+    { number: 20, capacity: 4, area: 'indoor' },
+  ];
+
+  for (const table of tables) {
+    await db.table.create({ data: table });
+  }
+
   console.log('✅ Seeding complete!');
   console.log(`  - Menu categories: ${await db.menuCategory.count()}`);
   console.log(`  - Menu items: ${await db.menuItem.count()}`);
   console.log(`  - Events: ${await db.event.count()}`);
+  console.log(`  - Tables: ${await db.table.count()}`);
 }
 
 seed().catch((e) => {
