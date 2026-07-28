@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./custom.db"
+}
+
+model MenuCategory {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  icon        String?
+  description String?
+  tab         String     // "coffee", "offers", "food", "bar", "vintage"
+  order       Int        @default(0)
+  items       MenuItem[]
+}
+
+model MenuItem {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  price       Int
+  isVeg       Boolean       @default(true)
+  isBestseller Boolean      @default(false)
+  isNew       Boolean       @default(false)
+  tags        String?       // comma-separated tags
+  order       Int           @default(0)
+  category    MenuCategory  @relation(fields: [categoryId], references: [id])
+  categoryId  String
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  date        String
+  time        String
+  type        String   // "live", "dj", "themed", "open-mic"
+  image       String?
+  isFeatured  Boolean  @default(false)
+}
+
+model Reservation {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  date      String
+  time      String
+  guests    Int
+  occasion  String?  // "birthday", "anniversary", "corporate", "casual"
+  message   String?
+  status    String   @default("pending") // "pending", "confirmed", "cancelled"
+  createdAt DateTime @default(now())
+}
