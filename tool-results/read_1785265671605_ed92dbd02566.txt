@@ -1,0 +1,1082 @@
+     1→'use client';
+     2→
+     3→import { useState, useEffect, useCallback } from 'react';
+     4→import {
+     5→  Search, Phone, MapPin, Clock, ChevronDown, ChevronUp,
+     6→  Star, Flame, Leaf, Drumstick, X, Menu as MenuIcon,
+     7→  CalendarDays, Music, Mic, PartyPopper, Sun, Send,
+     8→  Instagram, Mail, ChevronRight, ArrowUp, Check
+     9→} from 'lucide-react';
+    10→
+    11→// ==========================================
+    12→// TYPES
+    13→// ==========================================
+    14→interface MenuItem {
+    15→  id: string;
+    16→  name: string;
+    17→  description?: string;
+    18→  price: number;
+    19→  isVeg: boolean;
+    20→  isBestseller: boolean;
+    21→  isNew: boolean;
+    22→  order: number;
+    23→}
+    24→
+    25→interface MenuCategory {
+    26→  id: string;
+    27→  name: string;
+    28→  slug: string;
+    29→  icon: string;
+    30→  description?: string;
+    31→  tab: string;
+    32→  order: number;
+    33→  items: MenuItem[];
+    34→}
+    35→
+    36→interface Event {
+    37→  id: string;
+    38→  title: string;
+    39→  description: string;
+    40→  date: string;
+    41→  time: string;
+    42→  type: string;
+    43→  isFeatured: boolean;
+    44→}
+    45→
+    46→interface ReservationForm {
+    47→  name: string;
+    48→  phone: string;
+    49→  email: string;
+    50→  date: string;
+    51→  time: string;
+    52→  guests: string;
+    53→  occasion: string;
+    54→  message: string;
+    55→}
+    56→
+    57→// ==========================================
+    58→// CONSTANTS
+    59→// ==========================================
+    60→const PHONE = '+91 97654 00484';
+    61→const PHONE_TEL = 'tel:+919765400484';
+    62→const WHATSAPP = 'https://wa.me/919765400484?text=Hi!%20I%20would%20like%20to%20place%20an%20order%20from%20High%20Spirits%20Cafe';
+    63→const ADDRESS = '35A/1, Near ABC Farm, Behind Burger King, Koregaon Park, Pune - 411001';
+    64→const EMAIL = 'highspiritscafe@gmail.com';
+    65→const INSTAGRAM = 'https://instagram.com/highspiritscafe/';
+    66→const GOOGLE_MAPS = 'https://maps.google.com/?q=High+Spirits+Cafe+Koregaon+Park+Pune';
+    67→
+    68→const TABS = [
+    69→  { key: 'offers', label: 'Offers', icon: '🎉', sublabel: '12–6 PM' },
+    70→  { key: 'food', label: 'Food', icon: '🍽️' },
+    71→  { key: 'bar', label: 'Bar', icon: '🍸' },
+    72→  { key: 'coffee', label: 'Coffee', icon: '☕' },
+    73→  { key: 'vintage', label: 'Vintage', icon: '🏷️', sublabel: 'Tue & Thu' },
+    74→];
+    75→
+    76→const EVENT_ICONS: Record<string, React.ReactNode> = {
+    77→  'live': <Music className="w-5 h-5" />,
+    78→  'open-mic': <Mic className="w-5 h-5" />,
+    79→  'themed': <PartyPopper className="w-5 h-5" />,
+    80→  'dj': <Sun className="w-5 h-5" />,
+    81→};
+    82→
+    83→const EVENT_COLORS: Record<string, string> = {
+    84→  'live': 'from-red-50 to-orange-50 border-red-200',
+    85→  'open-mic': 'from-purple-50 to-pink-50 border-purple-200',
+    86→  'themed': 'from-amber-50 to-yellow-50 border-amber-200',
+    87→  'dj': 'from-cyan-50 to-sky-50 border-cyan-200',
+    88→};
+    89→
+    90→// ==========================================
+    91→// HELPER: Happy Hour Timer
+    92→// ==========================================
+    93→function getHappyHourStatus() {
+    94→  const now = new Date();
+    95→  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    96→  const hour = ist.getHours();
+    97→  const minute = ist.getMinutes();
+    98→  const currentMinutes = hour * 60 + minute;
+    99→  const startMinutes = 12 * 60; // 12 PM
+   100→  const endMinutes = 18 * 60; // 6 PM
+   101→
+   102→  if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+   103→    const remaining = endMinutes - currentMinutes;
+   104→    const hoursLeft = Math.floor(remaining / 60);
+   105→    const minsLeft = remaining % 60;
+   106→    return {
+   107→      isActive: true,
+   108→      message: `Happy Hour LIVE! Ends in ${hoursLeft}h ${minsLeft}m`,
+   109→      timeLeft: remaining,
+   110→    };
+   111→  }
+   112→
+   113→  if (currentMinutes < startMinutes) {
+   114→    const until = startMinutes - currentMinutes;
+   115→    const hoursUntil = Math.floor(until / 60);
+   116→    const minsUntil = until % 60;
+   117→    return {
+   118→      isActive: false,
+   119→      message: `Happy Hour starts in ${hoursUntil}h ${minsUntil}m`,
+   120→      timeLeft: 0,
+   121→    };
+   122→  }
+   123→
+   124→  return {
+   125→    isActive: false,
+   126→    message: 'Happy Hour starts tomorrow at 12 PM',
+   127→    timeLeft: 0,
+   128→  };
+   129→}
+   130→
+   131→// ==========================================
+   132→// MAIN COMPONENT
+   133→// ==========================================
+   134→export default function Home() {
+   135→  const [menuData, setMenuData] = useState<Record<string, MenuCategory[]>>({});
+   136→  const [events, setEvents] = useState<Event[]>([]);
+   137→  const [activeTab, setActiveTab] = useState('offers');
+   138→  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+   139→  const [searchQuery, setSearchQuery] = useState('');
+   140→  const [vegFilter, setVegFilter] = useState<'all' | 'veg' | 'nonveg'>('all');
+   141→  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+   142→  const [showReservation, setShowReservation] = useState(false);
+   143→  const [reservationForm, setReservationForm] = useState<ReservationForm>({
+   144→    name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '',
+   145→  });
+   146→  const [reservationSubmitted, setReservationSubmitted] = useState(false);
+   147→  const [happyHour, setHappyHour] = useState(getHappyHourStatus());
+   148→  const [showScrollTop, setShowScrollTop] = useState(false);
+   149→  const [orderItems, setOrderItems] = useState<{ name: string; price: number }[]>([]);
+   150→
+   151→  // Fetch data
+   152→  useEffect(() => {
+   153→    fetch('/api/menu').then(r => r.json()).then(setMenuData).catch(console.error);
+   154→    fetch('/api/events').then(r => r.json()).then(setEvents).catch(console.error);
+   155→  }, []);
+   156→
+   157→  // Happy hour timer
+   158→  useEffect(() => {
+   159→    const interval = setInterval(() => {
+   160→      setHappyHour(getHappyHourStatus());
+   161→    }, 60000);
+   162→    return () => clearInterval(interval);
+   163→  }, []);
+   164→
+   165→  // Scroll listener
+   166→  useEffect(() => {
+   167→    const handler = () => setShowScrollTop(window.scrollY > 600);
+   168→    window.addEventListener('scroll', handler);
+   169→    return () => window.removeEventListener('scroll', handler);
+   170→  }, []);
+   171→
+   172→  // Handle tab change - expand first category
+   173→  const handleTabChange = (tab: string) => {
+   174→    setActiveTab(tab);
+   175→    if (menuData[tab]?.length) {
+   176→      setExpandedCategories(new Set([menuData[tab][0].id]));
+   177→    }
+   178→  };
+   179→
+   180→  const toggleCategory = (id: string) => {
+   181→    setExpandedCategories(prev => {
+   182→      const next = new Set(prev);
+   183→      if (next.has(id)) next.delete(id);
+   184→      else next.add(id);
+   185→      return next;
+   186→    });
+   187→  };
+   188→
+   189→  // Filter menu items
+   190→  const getFilteredItems = useCallback((items: MenuItem[]) => {
+   191→    let filtered = items;
+   192→    if (searchQuery) {
+   193→      const q = searchQuery.toLowerCase();
+   194→      filtered = filtered.filter(item =>
+   195→        item.name.toLowerCase().includes(q) ||
+   196→        (item.description && item.description.toLowerCase().includes(q))
+   197→      );
+   198→    }
+   199→    if (vegFilter === 'veg') filtered = filtered.filter(i => i.isVeg);
+   200→    if (vegFilter === 'nonveg') filtered = filtered.filter(i => !i.isVeg);
+   201→    return filtered;
+   202→  }, [searchQuery, vegFilter]);
+   203→
+   204→  // Add to order
+   205→  const addToOrder = (name: string, price: number) => {
+   206→    setOrderItems(prev => [...prev, { name, price }]);
+   207→  };
+   208→
+   209→  const removeFromOrder = (index: number) => {
+   210→    setOrderItems(prev => prev.filter((_, i) => i !== index));
+   211→  };
+   212→
+   213→  const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
+   214→
+   215→  // WhatsApp order
+   216→  const sendWhatsAppOrder = () => {
+   217→    if (orderItems.length === 0) {
+   218→      window.open(WHATSAPP, '_blank');
+   219→      return;
+   220→    }
+   221→    const itemsList = orderItems.map(i => `${i.name} — ₹${i.price}`).join('\n');
+   222→    const total = `Total: ₹${orderTotal}`;
+   223→    const message = encodeURIComponent(`Hi! I'd like to order from High Spirits Cafe:\n\n${itemsList}\n\n${total}`);
+   224→    window.open(`https://wa.me/919765400484?text=${message}`, '_blank');
+   225→  };
+   226→
+   227→  // Reservation submit
+   228→  const handleReservation = async (e: React.FormEvent) => {
+   229→    e.preventDefault();
+   230→    try {
+   231→      await fetch('/api/reservations', {
+   232→        method: 'POST',
+   233→        headers: { 'Content-Type': 'application/json' },
+   234→        body: JSON.stringify(reservationForm),
+   235→      });
+   236→      setReservationSubmitted(true);
+   237→    } catch (err) {
+   238→      console.error(err);
+   239→    }
+   240→  };
+   241→
+   242→  // Scroll to section
+   243→  const scrollTo = (id: string) => {
+   244→    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+   245→    setMobileMenuOpen(false);
+   246→  };
+   247→
+   248→  return (
+   249→    <div className="min-h-screen flex flex-col bg-background text-foreground">
+   250→      {/* ===== NAVBAR ===== */}
+   251→      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border shadow-sm">
+   252→        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+   253→          <div className="flex items-center justify-between h-16">
+   254→            {/* Logo */}
+   255→            <button onClick={() => scrollTo('hero')} className="flex items-center gap-2 group">
+   256→              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:bg-primary/30 transition">
+   257→                <span className="text-primary font-bold text-lg">H</span>
+   258→              </div>
+   259→              <div className="hidden sm:block">
+   260→                <span className="text-primary font-bold text-lg tracking-wide">HIGH SPIRITS</span>
+   261→                <span className="text-muted-foreground text-xs block -mt-1 tracking-widest">CAFE</span>
+   262→              </div>
+   263→            </button>
+   264→
+   265→            {/* Desktop Nav */}
+   266→            <div className="hidden md:flex items-center gap-1">
+   267→              {[
+   268→                { id: 'menu', label: 'Menu' },
+   269→                { id: 'events', label: 'Events' },
+   270→                { id: 'gallery', label: 'Gallery' },
+   271→                { id: 'about', label: 'About' },
+   272→                { id: 'contact', label: 'Contact' },
+   273→              ].map(item => (
+   274→                <button
+   275→                  key={item.id}
+   276→                  onClick={() => scrollTo(item.id)}
+   277→                  className="px-4 py-2 text-sm text-muted-foreground hover:text-primary transition rounded-lg hover:bg-primary/10"
+   278→                >
+   279→                  {item.label}
+   280→                </button>
+   281→              ))}
+   282→              <button
+   283→                onClick={() => setShowReservation(true)}
+   284→                className="ml-2 px-5 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition"
+   285→              >
+   286→                Reserve a Table
+   287→              </button>
+   288→            </div>
+   289→
+   290→            {/* Mobile hamburger */}
+   291→            <button
+   292→              className="md:hidden p-2 text-muted-foreground hover:text-primary"
+   293→              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+   294→            >
+   295→              {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+   296→            </button>
+   297→          </div>
+   298→        </div>
+   299→
+   300→        {/* Mobile menu */}
+   301→        {mobileMenuOpen && (
+   302→          <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-border shadow-lg">
+   303→            <div className="px-4 py-3 space-y-1">
+   304→              {[
+   305→                { id: 'menu', label: 'Menu' },
+   306→                { id: 'events', label: 'Events' },
+   307→                { id: 'gallery', label: 'Gallery' },
+   308→                { id: 'about', label: 'About' },
+   309→                { id: 'contact', label: 'Contact' },
+   310→              ].map(item => (
+   311→                <button
+   312→                  key={item.id}
+   313→                  onClick={() => scrollTo(item.id)}
+   314→                  className="block w-full text-left px-4 py-3 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition"
+   315→                >
+   316→                  {item.label}
+   317→                </button>
+   318→              ))}
+   319→              <button
+   320→                onClick={() => { setShowReservation(true); setMobileMenuOpen(false); }}
+   321→                className="w-full mt-2 px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-lg text-center"
+   322→              >
+   323→                Reserve a Table
+   324→              </button>
+   325→            </div>
+   326→          </div>
+   327→        )}
+   328→      </nav>
+   329→
+   330→      {/* ===== HERO SECTION ===== */}
+   331→      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+   332→        {/* Background */}
+   333→        <div className="absolute inset-0 bg-gradient-to-br from-[#faf7f2] via-[#fef3c7] to-[#faf7f2]" />
+   334→        <div className="absolute inset-0 opacity-30" style={{
+   335→          backgroundImage: 'radial-gradient(circle at 20% 80%, #b45309 0%, transparent 40%), radial-gradient(circle at 80% 20%, #92400e 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 60%)',
+   336→        }} />
+   337→
+   338→        {/* Floating decorative elements */}
+   339→        <div className="absolute top-20 left-10 w-2 h-2 bg-primary/40 rounded-full animate-pulse" />
+   340→        <div className="absolute top-40 right-20 w-3 h-3 bg-accent/30 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+   341→        <div className="absolute bottom-40 left-20 w-1.5 h-1.5 bg-primary/50 rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+   342→
+   343→        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+   344→          {/* Neon sign effect */}
+   345→          <div className="mb-6">
+   346→            <span className="text-primary/80 text-sm tracking-[0.3em] uppercase font-medium">Welcome to</span>
+   347→          </div>
+   348→          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight mb-4">
+   349→            <span className="text-primary">HIGH</span>
+   350→            <br />
+   351→            <span className="text-foreground">SPIRITS</span>
+   352→          </h1>
+   353→          <p className="text-lg sm:text-xl text-primary mb-2 tracking-widest uppercase font-semibold">
+   354→            Cafe &amp; Bar
+   355→          </p>
+   356→          <p className="text-muted-foreground max-w-lg mx-auto mb-8">
+   357→            Pune&apos;s favourite nightlife destination. Live music, signature cocktails, great food, and unforgettable vibes since over a decade.
+   358→          </p>
+   359→
+   360→          {/* Happy Hour Status */}
+   361→          <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full border mb-8 ${
+   362→            happyHour.isActive
+   363→              ? 'bg-green-500/10 border-green-500/30 text-green-400'
+   364→              : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+   365→          }`}>
+   366→            <Clock className="w-4 h-4" />
+   367→            <span className="text-sm font-medium">{happyHour.message}</span>
+   368→            {happyHour.isActive && (
+   369→              <span className="w-2 h-2 bg-green-400 rounded-full countdown-pulse" />
+   370→            )}
+   371→          </div>
+   372→
+   373→          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+   374→            <button
+   375→              onClick={() => scrollTo('menu')}
+   376→              className="px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition text-lg shadow-lg shadow-primary/20"
+   377→            >
+   378→              See Menu &amp; Order
+   379→            </button>
+   380→            <a
+   381→              href={PHONE_TEL}
+   382→              className="px-8 py-3.5 border-2 border-primary/40 text-primary font-bold rounded-xl hover:bg-primary/10 transition text-lg"
+   383→            >
+   384→              <Phone className="w-5 h-5 inline mr-2" />
+   385→              Call Us
+   386→            </a>
+   387→          </div>
+   388→
+   389→          {/* Scroll indicator */}
+   390→          <div className="mt-16 animate-bounce">
+   391→            <ChevronDown className="w-6 h-6 mx-auto text-primary/60" />
+   392→          </div>
+   393→        </div>
+   394→      </section>
+   395→
+   396→      {/* ===== MENU SECTION ===== */}
+   397→      <section id="menu" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+   398→        <div className="text-center mb-12">
+   399→          <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">Our Menu</span>
+   400→          <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">What We Serve</h2>
+   401→          <div className="section-divider max-w-xs mx-auto mb-6" />
+   402→          <p className="text-muted-foreground max-w-lg mx-auto">
+   403→            From craft cocktails to hearty meals — explore our menu, find your favourites, and order directly on WhatsApp.
+   404→          </p>
+   405→        </div>
+   406→
+   407→        {/* Search & Filter Bar */}
+   408→        <div className="flex flex-col sm:flex-row gap-3 mb-6 sticky top-16 z-30 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 shadow-sm">
+   409→          <div className="relative flex-1">
+   410→            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+   411→            <input
+   412→              type="text"
+   413→              placeholder="Search menu — try 'paneer', 'cocktail', 'pizza'..."
+   414→              value={searchQuery}
+   415→              onChange={(e) => setSearchQuery(e.target.value)}
+   416→              className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+   417→            />
+   418→            {searchQuery && (
+   419→              <button
+   420→                onClick={() => setSearchQuery('')}
+   421→                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+   422→              >
+   423→                <X className="w-4 h-4" />
+   424→              </button>
+   425→            )}
+   426→          </div>
+   427→          <div className="flex gap-2">
+   428→            {[
+   429→              { key: 'all', label: 'All', icon: null },
+   430→              { key: 'veg', label: 'Veg', icon: <Leaf className="w-3.5 h-3.5" /> },
+   431→              { key: 'nonveg', label: 'Non-Veg', icon: <Drumstick className="w-3.5 h-3.5" /> },
+   432→            ].map(f => (
+   433→              <button
+   434→                key={f.key}
+   435→                onClick={() => setVegFilter(f.key as 'all' | 'veg' | 'nonveg')}
+   436→                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition border ${
+   437→                  vegFilter === f.key
+   438→                    ? 'bg-primary/20 border-primary/40 text-primary'
+   439→                    : 'bg-card border-border text-muted-foreground hover:border-primary/20'
+   440→                }`}
+   441→              >
+   442→                {f.icon}
+   443→                {f.label}
+   444→              </button>
+   445→            ))}
+   446→          </div>
+   447→        </div>
+   448→
+   449→        {/* Menu Tabs */}
+   450→        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+   451→          {TABS.map(tab => (
+   452→            <button
+   453→              key={tab.key}
+   454→              onClick={() => handleTabChange(tab.key)}
+   455→              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold whitespace-nowrap transition border ${
+   456→                activeTab === tab.key
+   457→                  ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
+   458→                  : 'bg-card border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
+   459→              }`}
+   460→            >
+   461→              <span className="text-lg">{tab.icon}</span>
+   462→              <span>{tab.label}</span>
+   463→              {tab.sublabel && (
+   464→                <span className={`text-xs px-2 py-0.5 rounded-full ${
+   465→                  activeTab === tab.key ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/10 text-primary'
+   466→                }`}>
+   467→                  {tab.sublabel}
+   468→                </span>
+   469→              )}
+   470→            </button>
+   471→          ))}
+   472→        </div>
+   473→
+   474→        {/* Menu Categories */}
+   475→        <div className="space-y-3">
+   476→          {menuData[activeTab]?.map(category => {
+   477→            const isExpanded = expandedCategories.has(category.id);
+   478→            const filteredItems = getFilteredItems(category.items);
+   479→            if (searchQuery && filteredItems.length === 0) return null;
+   480→
+   481→            return (
+   482→              <div key={category.id} className="border border-border rounded-xl overflow-hidden bg-card">
+   483→                {/* Category Header */}
+   484→                <button
+   485→                  onClick={() => toggleCategory(category.id)}
+   486→                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-secondary/50 transition"
+   487→                >
+   488→                  <div className="flex items-center gap-3">
+   489→                    <span className="text-2xl">{category.icon}</span>
+   490→                    <div className="text-left">
+   491→                      <h3 className="font-bold text-foreground">{category.name}</h3>
+   492→                      {category.description && (
+   493→                        <p className="text-xs text-muted-foreground">{category.description}</p>
+   494→                      )}
+   495→                    </div>
+   496→                  </div>
+   497→                  <div className="flex items-center gap-2">
+   498→                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+   499→                      {filteredItems.length} items
+   500→                    </span>
+   501→                    {isExpanded ? (
+   502→                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
+   503→                    ) : (
+   504→                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+   505→                    )}
+   506→                  </div>
+   507→                </button>
+   508→
+   509→                {/* Category Items */}
+   510→                {isExpanded && (
+   511→                  <div className="border-t border-border">
+   512→                    {filteredItems.map(item => (
+   513→                      <div
+   514→                        key={item.id}
+   515→                        className="flex items-center justify-between px-5 py-3.5 border-b border-border/50 last:border-0 hover:bg-secondary/30 transition menu-item-hover"
+   516→                      >
+   517→                        <div className="flex-1 min-w-0 pr-4">
+   518→                          <div className="flex items-center gap-2 flex-wrap">
+   519→                            {/* Veg/Non-veg indicator */}
+   520→                            <span className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center flex-shrink-0 ${
+   521→                              item.isVeg ? 'border-green-500' : 'border-red-500'
+   522→                            }`}>
+   523→                              <span className={`w-2 h-2 rounded-full ${
+   524→                                item.isVeg ? 'bg-green-500' : 'bg-red-500'
+   525→                              }`} />
+   526→                            </span>
+   527→                            <span className="font-semibold text-foreground text-sm">{item.name}</span>
+   528→                            {item.isBestseller && (
+   529→                              <span className="flex items-center gap-0.5 text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
+   530→                                <Flame className="w-3 h-3" /> Bestseller
+   531→                              </span>
+   532→                            )}
+   533→                            {item.isNew && (
+   534→                              <span className="text-xs bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20">
+   535→                                New
+   536→                              </span>
+   537→                            )}
+   538→                          </div>
+   539→                          {item.description && (
+   540→                            <p className="text-xs text-muted-foreground mt-1 ml-6">{item.description}</p>
+   541→                          )}
+   542→                        </div>
+   543→                        <div className="flex items-center gap-3 flex-shrink-0">
+   544→                          <span className="font-bold text-primary">₹{item.price}</span>
+   545→                          <button
+   546→                            onClick={() => addToOrder(item.name, item.price)}
+   547→                            className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/20 flex items-center justify-center text-primary transition"
+   548→                            title="Add to order"
+   549→                          >
+   550→                            <span className="text-lg leading-none">+</span>
+   551→                          </button>
+   552→                        </div>
+   553→                      </div>
+   554→                    ))}
+   555→                  </div>
+   556→                )}
+   557→              </div>
+   558→            );
+   559→          })}
+   560→        </div>
+   561→
+   562→        {/* No results */}
+   563→        {searchQuery && !Object.values(menuData).flat().some(cat => getFilteredItems(cat.items).length > 0) && (
+   564→          <div className="text-center py-12 text-muted-foreground">
+   565→            <Search className="w-12 h-12 mx-auto mb-4 opacity-30" />
+   566→            <p className="text-lg font-medium">No items found for &quot;{searchQuery}&quot;</p>
+   567→            <p className="text-sm mt-1">Try a different search term or clear the filter</p>
+   568→          </div>
+   569→        )}
+   570→      </section>
+   571→
+   572→      {/* ===== EVENTS SECTION ===== */}
+   573→      <section id="events" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted">
+   574→        <div className="max-w-7xl mx-auto">
+   575→          <div className="text-center mb-12">
+   576→            <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">What&apos;s On</span>
+   577→            <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">Events &amp; Nights</h2>
+   578→            <div className="section-divider max-w-xs mx-auto mb-6" />
+   579→            <p className="text-muted-foreground max-w-lg mx-auto">
+   580→              From live gigs to open mic nights — there&apos;s always something happening at High Spirits.
+   581→            </p>
+   582→          </div>
+   583→
+   584→          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+   585→            {events.map(event => (
+   586→              <div
+   587→                key={event.id}
+   588→                className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${EVENT_COLORS[event.type] || 'from-primary/10 to-accent/10 border-border'} p-6 card-hover`}
+   589→              >
+   590→                {event.isFeatured && (
+   591→                  <div className="absolute top-3 right-3">
+   592→                    <span className="flex items-center gap-1 text-xs bg-primary/20 text-primary px-2 py-1 rounded-full border border-primary/30">
+   593→                      <Star className="w-3 h-3" /> Featured
+   594→                    </span>
+   595→                  </div>
+   596→                )}
+   597→                <div className="flex items-center gap-3 mb-4">
+   598→                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+   599→                    {EVENT_ICONS[event.type] || <Music className="w-5 h-5" />}
+   600→                  </div>
+   601→                  <div>
+   602→                    <span className="text-xs text-muted-foreground uppercase tracking-wider">{event.type.replace('-', ' ')}</span>
+   603→                  </div>
+   604→                </div>
+   605→                <h3 className="font-bold text-lg mb-2 text-foreground">{event.title}</h3>
+   606→                <p className="text-sm text-muted-foreground mb-4">{event.description}</p>
+   607→                <div className="flex items-center gap-4 text-sm">
+   608→                  <span className="flex items-center gap-1.5 text-primary">
+   609→                    <CalendarDays className="w-4 h-4" /> {event.date}
+   610→                  </span>
+   611→                  <span className="flex items-center gap-1.5 text-muted-foreground">
+   612→                    <Clock className="w-4 h-4" /> {event.time}
+   613→                  </span>
+   614→                </div>
+   615→              </div>
+   616→            ))}
+   617→          </div>
+   618→        </div>
+   619→      </section>
+   620→
+   621→      {/* ===== GALLERY SECTION ===== */}
+   622→      <section id="gallery" className="py-20 px-4 sm:px-6 lg:px-8">
+   623→        <div className="max-w-7xl mx-auto">
+   624→          <div className="text-center mb-12">
+   625→            <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">The Vibe</span>
+   626→            <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">Gallery</h2>
+   627→            <div className="section-divider max-w-xs mx-auto mb-6" />
+   628→          </div>
+   629→
+   630→          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+   631→            {[
+   632→              { label: 'Live Gigs', color: 'from-red-50 to-orange-50' },
+   633→              { label: 'The Stage', color: 'from-purple-50 to-pink-50' },
+   634→              { label: 'Inside Vibe', color: 'from-amber-50 to-yellow-50' },
+   635→              { label: 'Cocktails', color: 'from-cyan-50 to-teal-50' },
+   636→              { label: 'DA HIGH Neon', color: 'from-amber-50 to-orange-50' },
+   637→              { label: 'Fairy Lights', color: 'from-green-50 to-emerald-50' },
+   638→            ].map((item, i) => (
+   639→              <div
+   640→                key={i}
+   641→                className={`relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br ${item.color} border border-border card-hover group cursor-pointer`}
+   642→              >
+   643→                <div className="absolute inset-0 flex items-center justify-center">
+   644→                  <div className="text-center">
+   645→                    <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-background/20 backdrop-blur-sm flex items-center justify-center border border-border/50 group-hover:scale-110 transition">
+   646→                      <Camera className="w-8 h-8 text-primary/60" />
+   647→                    </div>
+   648→                    <span className="text-sm font-medium text-foreground/80">{item.label}</span>
+   649→                  </div>
+   650→                </div>
+   651→                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition" />
+   652→              </div>
+   653→            ))}
+   654→          </div>
+   655→
+   656→          <div className="text-center mt-8">
+   657→            <a
+   658→              href={INSTAGRAM}
+   659→              target="_blank"
+   660→              rel="noopener noreferrer"
+   661→              className="inline-flex items-center gap-2 px-6 py-3 bg-card border border-border rounded-xl text-muted-foreground hover:text-primary hover:border-primary/30 transition"
+   662→            >
+   663→              <Instagram className="w-5 h-5" />
+   664→              See more on Instagram
+   665→              <ChevronRight className="w-4 h-4" />
+   666→            </a>
+   667→          </div>
+   668→        </div>
+   669→      </section>
+   670→
+   671→      {/* ===== ABOUT SECTION ===== */}
+   672→      <section id="about" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted">
+   673→        <div className="max-w-7xl mx-auto">
+   674→          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+   675→            <div>
+   676→              <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">Our Story</span>
+   677→              <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-6">More Than a Bar</h2>
+   678→              <div className="section-divider max-w-xs mb-6" />
+   679→              <p className="text-muted-foreground mb-4 leading-relaxed">
+   680→                High Spirits Cafe in Pune, India, is a beloved nightlife hotspot that has been a fixture in Koregaon Park for over a decade. With its inviting open-air setting, adorned with fairy lights, it&apos;s a gathering place for both locals and visitors.
+   681→              </p>
+   682→              <p className="text-muted-foreground mb-4 leading-relaxed">
+   683→                The venue&apos;s eclectic music scene, ranging from live bands to DJ sets, ensures there&apos;s always something for every music lover. Coupled with a delectable menu of bar snacks and heartier fare, along with an impressive drinks selection, High Spirits offers a complete experience for a memorable night out.
+   684→              </p>
+   685→              <p className="text-muted-foreground mb-6 leading-relaxed">
+   686→                What truly sets High Spirits apart is its dedication to building a sense of community. Through events like themed parties, live gigs, and open mic nights, it creates a space where creativity and camaraderie flourish. This spirit of inclusivity has made High Spirits Cafe a cherished institution in Pune&apos;s cultural landscape.
+   687→              </p>
+   688→              <div className="flex flex-wrap gap-4">
+   689→                <div className="text-center">
+   690→                  <span className="text-3xl font-black text-primary">10+</span>
+   691→                  <p className="text-xs text-muted-foreground mt-1">Years in Pune</p>
+   692→                </div>
+   693→                <div className="w-px h-12 bg-border" />
+   694→                <div className="text-center">
+   695→                  <span className="text-3xl font-black text-primary">100+</span>
+   696→                  <p className="text-xs text-muted-foreground mt-1">Drinks &amp; Cocktails</p>
+   697→                </div>
+   698→                <div className="w-px h-12 bg-border" />
+   699→                <div className="text-center">
+   700→                  <span className="text-3xl font-black text-primary">Live</span>
+   701→                  <p className="text-xs text-muted-foreground mt-1">Music Every Week</p>
+   702→                </div>
+   703→                <div className="w-px h-12 bg-border" />
+   704→                <div className="text-center">
+   705→                  <span className="text-3xl font-black text-primary">₹100</span>
+   706→                  <p className="text-xs text-muted-foreground mt-1">Happy Hour Beer</p>
+   707→                </div>
+   708→              </div>
+   709→            </div>
+   710→
+   711→            <div className="grid grid-cols-2 gap-4">
+   712→              {[
+   713→                { label: 'Open-Air Seating', desc: 'Fairy lights under the stars', color: 'from-amber-50 to-orange-50' },
+   714→                { label: 'Live Music Stage', desc: 'Bands, DJs, and open mic', color: 'from-red-50 to-purple-50' },
+   715→                { label: 'Signature Cocktails', desc: 'Crafted by our expert bar team', color: 'from-cyan-50 to-teal-50' },
+   716→                { label: 'Community Vibes', desc: 'Where everyone belongs', color: 'from-green-50 to-emerald-50' },
+   717→              ].map((item, i) => (
+   718→                <div
+   719→                  key={i}
+   720→                  className={`p-6 rounded-2xl bg-gradient-to-br ${item.color} border border-border card-hover`}
+   721→                >
+   722→                  <h4 className="font-bold text-foreground mb-1">{item.label}</h4>
+   723→                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+   724→                </div>
+   725→              ))}
+   726→            </div>
+   727→          </div>
+   728→        </div>
+   729→      </section>
+   730→
+   731→      {/* ===== CONTACT SECTION ===== */}
+   732→      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8">
+   733→        <div className="max-w-7xl mx-auto">
+   734→          <div className="text-center mb-12">
+   735→            <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">Find Us</span>
+   736→            <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">Contact Us</h2>
+   737→            <div className="section-divider max-w-xs mx-auto mb-6" />
+   738→          </div>
+   739→
+   740→          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+   741→            {/* Phone */}
+   742→            <a
+   743→              href={PHONE_TEL}
+   744→              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
+   745→            >
+   746→              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary/20 transition">
+   747→                <Phone className="w-6 h-6" />
+   748→              </div>
+   749→              <div>
+   750→                <h3 className="font-bold text-foreground mb-1">Call Us</h3>
+   751→                <p className="text-primary font-medium">{PHONE}</p>
+   752→                <p className="text-xs text-muted-foreground mt-1">Tap to call directly</p>
+   753→              </div>
+   754→            </a>
+   755→
+   756→            {/* WhatsApp */}
+   757→            <button
+   758→              onClick={sendWhatsAppOrder}
+   759→              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group text-left"
+   760→            >
+   761→              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400 flex-shrink-0 group-hover:bg-green-500/20 transition">
+   762→                <Send className="w-6 h-6" />
+   763→              </div>
+   764→              <div>
+   765→                <h3 className="font-bold text-foreground mb-1">WhatsApp Order</h3>
+   766→                <p className="text-green-400 font-medium">Chat &amp; Order</p>
+   767→                <p className="text-xs text-muted-foreground mt-1">Quick, easy, no app needed</p>
+   768→              </div>
+   769→            </button>
+   770→
+   771→            {/* Location */}
+   772→            <a
+   773→              href={GOOGLE_MAPS}
+   774→              target="_blank"
+   775→              rel="noopener noreferrer"
+   776→              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
+   777→            >
+   778→              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary/20 transition">
+   779→                <MapPin className="w-6 h-6" />
+   780→              </div>
+   781→              <div>
+   782→                <h3 className="font-bold text-foreground mb-1">Visit Us</h3>
+   783→                <p className="text-sm text-muted-foreground">{ADDRESS}</p>
+   784→                <p className="text-xs text-primary mt-1">Get Directions →</p>
+   785→              </div>
+   786→            </a>
+   787→
+   788→            {/* Email */}
+   789→            <a
+   790→              href={`mailto:${EMAIL}`}
+   791→              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
+   792→            >
+   793→              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary/20 transition">
+   794→                <Mail className="w-6 h-6" />
+   795→              </div>
+   796→              <div>
+   797→                <h3 className="font-bold text-foreground mb-1">Email Us</h3>
+   798→                <p className="text-primary font-medium">{EMAIL}</p>
+   799→                <p className="text-xs text-muted-foreground mt-1">For inquiries &amp; events</p>
+   800→              </div>
+   801→            </a>
+   802→
+   803→            {/* Instagram */}
+   804→            <a
+   805→              href={INSTAGRAM}
+   806→              target="_blank"
+   807→              rel="noopener noreferrer"
+   808→              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
+   809→            >
+   810→              <div className="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 flex-shrink-0 group-hover:bg-pink-500/20 transition">
+   811→                <Instagram className="w-6 h-6" />
+   812→              </div>
+   813→              <div>
+   814→                <h3 className="font-bold text-foreground mb-1">Instagram</h3>
+   815→                <p className="text-pink-400 font-medium">@highspiritscafe</p>
+   816→                <p className="text-xs text-muted-foreground mt-1">Live updates &amp; photos</p>
+   817→              </div>
+   818→            </a>
+   819→
+   820→            {/* Hours */}
+   821→            <div className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border">
+   822→              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+   823→                <Clock className="w-6 h-6" />
+   824→              </div>
+   825→              <div>
+   826→                <h3 className="font-bold text-foreground mb-1">Hours</h3>
+   827→                <p className="text-sm text-muted-foreground">Open Daily: 12 PM – 12:30 AM</p>
+   828→                <p className="text-xs text-amber-400 mt-1">Happy Hour: 12 PM – 6 PM</p>
+   829→              </div>
+   830→            </div>
+   831→          </div>
+   832→
+   833→          {/* Map Embed */}
+   834→          <div className="mt-8 rounded-2xl overflow-hidden border border-border h-64 sm:h-80">
+   835→            <iframe
+   836→              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3782.9!2d73.89!3d18.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sHigh+Spirits+Cafe+Koregaon+Park+Pune!5e0!3m2!1sen!2sin!4v1"
+   837→              width="100%"
+   838→              height="100%"
+   839→              style={{ border: 0 }}
+   840→              allowFullScreen
+   841→              loading="lazy"
+   842→              referrerPolicy="no-referrer-when-downgrade"
+   843→              title="High Spirits Cafe Location"
+   844→            />
+   845→          </div>
+   846→        </div>
+   847→      </section>
+   848→
+   849→      {/* ===== FOOTER ===== */}
+   850→      <footer className="bg-muted border-t border-border py-8 px-4 sm:px-6 lg:px-8 mt-auto">
+   851→        <div className="max-w-7xl mx-auto">
+   852→          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+   853→            <div className="flex items-center gap-2">
+   854→              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
+   855→                <span className="text-primary font-bold">H</span>
+   856→              </div>
+   857→              <div>
+   858→                <span className="text-primary font-bold tracking-wide">HIGH SPIRITS CAFE</span>
+   859→              </div>
+   860→            </div>
+   861→            <div className="text-center text-xs text-muted-foreground">
+   862→              <p>{ADDRESS}</p>
+   863→              <p className="mt-1">GST No: 27AAIPI0115J1Z0</p>
+   864→            </div>
+   865→            <div className="flex items-center gap-3">
+   866→              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-pink-400 hover:border-pink-400/30 transition">
+   867→                <Instagram className="w-4 h-4" />
+   868→              </a>
+   869→              <a href={PHONE_TEL} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition">
+   870→                <Phone className="w-4 h-4" />
+   871→              </a>
+   872→              <a href={`mailto:${EMAIL}`} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition">
+   873→                <Mail className="w-4 h-4" />
+   874→              </a>
+   875→            </div>
+   876→          </div>
+   877→          <div className="mt-6 text-center text-xs text-muted-foreground">
+   878→            © 2026 High Spirits Cafe, Pune. All rights reserved.
+   879→          </div>
+   880→        </div>
+   881→      </footer>
+   882→
+   883→      {/* ===== FLOATING WHATSAPP BUTTON ===== */}
+   884→      <button
+   885→        onClick={sendWhatsAppOrder}
+   886→        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-green-500/30 transition whatsapp-pulse"
+   887→        title="Order on WhatsApp"
+   888→      >
+   889→        <Send className="w-6 h-6" />
+   890→      </button>
+   891→
+   892→      {/* ===== ORDER FLOATING BAR ===== */}
+   893→      {orderItems.length > 0 && (
+   894→        <div className="fixed bottom-6 left-6 right-24 z-40 sm:left-auto sm:right-24 sm:w-80">
+   895→          <div className="bg-card border border-primary/30 rounded-2xl p-4 shadow-xl shadow-primary/10">
+   896→            <div className="flex items-center justify-between mb-2">
+   897→              <span className="text-sm font-bold text-primary">Your Order</span>
+   898→              <button
+   899→                onClick={() => setOrderItems([])}
+   900→                className="text-xs text-muted-foreground hover:text-destructive"
+   901→              >
+   902→                Clear all
+   903→              </button>
+   904→            </div>
+   905→            <div className="max-h-32 overflow-y-auto space-y-1 mb-2">
+   906→              {orderItems.map((item, i) => (
+   907→                <div key={i} className="flex items-center justify-between text-sm">
+   908→                  <span className="text-muted-foreground truncate flex-1">{item.name}</span>
+   909→                  <div className="flex items-center gap-2 flex-shrink-0">
+   910→                    <span className="text-primary">₹{item.price}</span>
+   911→                    <button
+   912→                      onClick={() => removeFromOrder(i)}
+   913→                      className="text-muted-foreground hover:text-destructive"
+   914→                    >
+   915→                      <X className="w-3.5 h-3.5" />
+   916→                    </button>
+   917→                  </div>
+   918→                </div>
+   919→              ))}
+   920→            </div>
+   921→            <div className="flex items-center justify-between pt-2 border-t border-border">
+   922→              <span className="font-bold text-foreground">Total: ₹{orderTotal}</span>
+   923→              <button
+   924→                onClick={sendWhatsAppOrder}
+   925→                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-xl transition flex items-center gap-1.5"
+   926→              >
+   927→                <Send className="w-3.5 h-3.5" />
+   928→                WhatsApp Order
+   929→              </button>
+   930→            </div>
+   931→          </div>
+   932→        </div>
+   933→      )}
+   934→
+   935→      {/* ===== RESERVATION MODAL ===== */}
+   936→      {showReservation && (
+   937→        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/5 backdrop-blur-sm">
+   938→          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+   939→            <div className="flex items-center justify-between mb-6">
+   940→              <h2 className="text-2xl font-black text-foreground">Reserve a Table</h2>
+   941→              <button
+   942→                onClick={() => { setShowReservation(false); setReservationSubmitted(false); }}
+   943→                className="text-muted-foreground hover:text-foreground"
+   944→              >
+   945→                <X className="w-6 h-6" />
+   946→              </button>
+   947→            </div>
+   948→
+   949→            {reservationSubmitted ? (
+   950→              <div className="text-center py-8">
+   951→                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center">
+   952→                  <Check className="w-8 h-8 text-green-400" />
+   953→                </div>
+   954→                <h3 className="text-xl font-bold text-foreground mb-2">Reservation Requested!</h3>
+   955→                <p className="text-muted-foreground text-sm">
+   956→                  We&apos;ll confirm your booking via WhatsApp or phone call shortly.
+   957→                </p>
+   958→                <button
+   959→                  onClick={() => { setShowReservation(false); setReservationSubmitted(false); }}
+   960→                  className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold"
+   961→                >
+   962→                  Done
+   963→                </button>
+   964→              </div>
+   965→            ) : (
+   966→              <form onSubmit={handleReservation} className="space-y-4">
+   967→                <div>
+   968→                  <label className="block text-sm font-medium text-muted-foreground mb-1">Name *</label>
+   969→                  <input
+   970→                    type="text"
+   971→                    required
+   972→                    value={reservationForm.name}
+   973→                    onChange={(e) => setReservationForm(prev => ({ ...prev, name: e.target.value }))}
+   974→                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+   975→                    placeholder="Your name"
+   976→                  />
+   977→                </div>
+   978→                <div>
+   979→                  <label className="block text-sm font-medium text-muted-foreground mb-1">Phone *</label>
+   980→                  <input
+   981→                    type="tel"
+   982→                    required
+   983→                    value={reservationForm.phone}
+   984→                    onChange={(e) => setReservationForm(prev => ({ ...prev, phone: e.target.value }))}
+   985→                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+   986→                    placeholder="+91 98765 43210"
+   987→                  />
+   988→                </div>
+   989→                <div className="grid grid-cols-2 gap-3">
+   990→                  <div>
+   991→                    <label className="block text-sm font-medium text-muted-foreground mb-1">Date *</label>
+   992→                    <input
+   993→                      type="date"
+   994→                      required
+   995→                      value={reservationForm.date}
+   996→                      onChange={(e) => setReservationForm(prev => ({ ...prev, date: e.target.value }))}
+   997→                      className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+   998→                    />
+   999→                  </div>
+  1000→                  <div>
+  1001→                    <label className="block text-sm font-medium text-muted-foreground mb-1">Time *</label>
+  1002→                    <input
+  1003→                      type="time"
+  1004→                      required
+  1005→                      value={reservationForm.time}
+  1006→                      onChange={(e) => setReservationForm(prev => ({ ...prev, time: e.target.value }))}
+  1007→                      className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+  1008→                    />
+  1009→                  </div>
+  1010→                </div>
+  1011→                <div>
+  1012→                  <label className="block text-sm font-medium text-muted-foreground mb-1">Guests *</label>
+  1013→                  <select
+  1014→                    value={reservationForm.guests}
+  1015→                    onChange={(e) => setReservationForm(prev => ({ ...prev, guests: e.target.value }))}
+  1016→                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+  1017→                  >
+  1018→                    {[1, 2, 3, 4, 5, 6, 7, 8, '9+'].map(n => (
+  1019→                      <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
+  1020→                    ))}
+  1021→                  </select>
+  1022→                </div>
+  1023→                <div>
+  1024→                  <label className="block text-sm font-medium text-muted-foreground mb-1">Occasion (Optional)</label>
+  1025→                  <select
+  1026→                    value={reservationForm.occasion}
+  1027→                    onChange={(e) => setReservationForm(prev => ({ ...prev, occasion: e.target.value }))}
+  1028→                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+  1029→                  >
+  1030→                    <option value="">Select occasion</option>
+  1031→                    <option value="casual">Casual Hangout</option>
+  1032→                    <option value="birthday">Birthday</option>
+  1033→                    <option value="anniversary">Anniversary</option>
+  1034→                    <option value="corporate">Corporate Event</option>
+  1035→                    <option value="date">Date Night</option>
+  1036→                  </select>
+  1037→                </div>
+  1038→                <div>
+  1039→                  <label className="block text-sm font-medium text-muted-foreground mb-1">Special Requests (Optional)</label>
+  1040→                  <textarea
+  1041→                    value={reservationForm.message}
+  1042→                    onChange={(e) => setReservationForm(prev => ({ ...prev, message: e.target.value }))}
+  1043→                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+  1044→                    rows={2}
+  1045→                    placeholder="Any special requests..."
+  1046→                  />
+  1047→                </div>
+  1048→                <button
+  1049→                  type="submit"
+  1050→                  className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition text-lg"
+  1051→                >
+  1052→                  Reserve Now
+  1053→                </button>
+  1054→              </form>
+  1055→            )}
+  1056→          </div>
+  1057→        </div>
+  1058→      )}
+  1059→
+  1060→      {/* ===== SCROLL TO TOP ===== */}
+  1061→      {showScrollTop && (
+  1062→        <button
+  1063→          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+  1064→          className="fixed bottom-6 left-6 z-40 w-10 h-10 bg-card border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition"
+  1065→        >
+  1066→          <ArrowUp className="w-5 h-5" />
+  1067→        </button>
+  1068→      )}
+  1069→    </div>
+  1070→  );
+  1071→}
+  1072→
+  1073→// Simple camera icon component since we don't have one from lucide
+  1074→function Camera({ className }: { className?: string }) {
+  1075→  return (
+  1076→    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  1077→      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+  1078→      <circle cx="12" cy="13" r="3" />
+  1079→    </svg>
+  1080→  );
+  1081→}
+  1082→

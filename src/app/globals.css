@@ -4,22 +4,22 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: #0a0a0f;
-  --color-foreground: #f5f0e8;
-  --color-primary: #d4a853;
-  --color-primary-foreground: #0a0a0f;
-  --color-secondary: #1a1a2e;
-  --color-secondary-foreground: #f5f0e8;
-  --color-accent: #e85d04;
-  --color-accent-foreground: #f5f0e8;
-  --color-muted: #16162a;
-  --color-muted-foreground: #9ca3af;
-  --color-card: #12121f;
-  --color-card-foreground: #f5f0e8;
-  --color-border: #2a2a3e;
+  --color-background: #faf7f2;
+  --color-foreground: #1c1917;
+  --color-primary: #b45309;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #fef3c7;
+  --color-secondary-foreground: #1c1917;
+  --color-accent: #92400e;
+  --color-accent-foreground: #ffffff;
+  --color-muted: #f5f0e8;
+  --color-muted-foreground: #78716c;
+  --color-card: #ffffff;
+  --color-card-foreground: #1c1917;
+  --color-border: #e7e5e4;
   --color-destructive: #dc2626;
-  --color-destructive-foreground: #f5f0e8;
-  --color-ring: #d4a853;
+  --color-destructive-foreground: #ffffff;
+  --color-ring: #b45309;
   --radius: 0.75rem;
 
   --font-sans: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
@@ -52,13 +52,13 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Neon glow effect */
+/* Warm glow for headings */
 .neon-glow {
-  text-shadow: 0 0 7px var(--color-primary), 0 0 10px var(--color-primary), 0 0 21px var(--color-primary), 0 0 42px var(--color-accent);
+  color: var(--color-primary);
 }
 
 .neon-glow-subtle {
-  text-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* Card hover effect */
@@ -67,7 +67,7 @@ body {
 }
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(212, 168, 83, 0.15);
+  box-shadow: 0 8px 25px rgba(180, 83, 9, 0.12);
 }
 
 /* Pulse animation for WhatsApp button */
@@ -103,14 +103,4 @@ body {
 .section-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-}
-
-/* Hero parallax overlay */
-.hero-overlay {
-  background: linear-gradient(
-    to bottom,
-    rgba(10, 10, 15, 0.3) 0%,
-    rgba(10, 10, 15, 0.6) 50%,
-    rgba(10, 10, 15, 0.95) 100%
-  );
 }

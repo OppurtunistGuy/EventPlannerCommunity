@@ -81,10 +81,10 @@ const EVENT_ICONS: Record<string, React.ReactNode> = {
 };
 
 const EVENT_COLORS: Record<string, string> = {
-  'live': 'from-red-500/20 to-orange-500/20 border-red-500/30',
-  'open-mic': 'from-purple-500/20 to-pink-500/20 border-purple-500/30',
-  'themed': 'from-amber-500/20 to-yellow-500/20 border-amber-500/30',
-  'dj': 'from-cyan-500/20 to-blue-500/20 border-cyan-500/30',
+  'live': 'from-red-50 to-orange-50 border-red-200',
+  'open-mic': 'from-purple-50 to-pink-50 border-purple-200',
+  'themed': 'from-amber-50 to-yellow-50 border-amber-200',
+  'dj': 'from-cyan-50 to-sky-50 border-cyan-200',
 };
 
 // ==========================================
@@ -248,7 +248,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* ===== NAVBAR ===== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -299,7 +299,7 @@ export default function Home() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-background/95 backdrop-blur-md border-t border-border">
+          <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-border shadow-lg">
             <div className="px-4 py-3 space-y-1">
               {[
                 { id: 'menu', label: 'Menu' },
@@ -330,9 +330,9 @@ export default function Home() {
       {/* ===== HERO SECTION ===== */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-secondary to-background" />
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: 'radial-gradient(circle at 20% 80%, #d4a853 0%, transparent 50%), radial-gradient(circle at 80% 20%, #e85d04 0%, transparent 50%), radial-gradient(circle at 50% 50%, #1a1a2e 0%, transparent 80%)',
+        <div className="absolute inset-0 bg-gradient-to-br from-[#faf7f2] via-[#fef3c7] to-[#faf7f2]" />
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: 'radial-gradient(circle at 20% 80%, #b45309 0%, transparent 40%), radial-gradient(circle at 80% 20%, #92400e 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 60%)',
         }} />
 
         {/* Floating decorative elements */}
@@ -343,14 +343,14 @@ export default function Home() {
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           {/* Neon sign effect */}
           <div className="mb-6">
-            <span className="text-primary/60 text-sm tracking-[0.3em] uppercase font-medium">Welcome to</span>
+            <span className="text-primary/80 text-sm tracking-[0.3em] uppercase font-medium">Welcome to</span>
           </div>
           <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight mb-4">
-            <span className="neon-glow text-primary">HIGH</span>
+            <span className="text-primary">HIGH</span>
             <br />
             <span className="text-foreground">SPIRITS</span>
           </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground mb-2 tracking-widest uppercase">
+          <p className="text-lg sm:text-xl text-primary mb-2 tracking-widest uppercase font-semibold">
             Cafe &amp; Bar
           </p>
           <p className="text-muted-foreground max-w-lg mx-auto mb-8">
@@ -388,7 +388,7 @@ export default function Home() {
 
           {/* Scroll indicator */}
           <div className="mt-16 animate-bounce">
-            <ChevronDown className="w-6 h-6 mx-auto text-muted-foreground" />
+            <ChevronDown className="w-6 h-6 mx-auto text-primary/60" />
           </div>
         </div>
       </section>
@@ -405,7 +405,7 @@ export default function Home() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6 sticky top-16 z-30 bg-background/95 backdrop-blur-md py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6 sticky top-16 z-30 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 shadow-sm">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -570,7 +570,7 @@ export default function Home() {
       </section>
 
       {/* ===== EVENTS SECTION ===== */}
-      <section id="events" className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary/30">
+      <section id="events" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">What&apos;s On</span>
@@ -629,12 +629,12 @@ export default function Home() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { label: 'Live Gigs', color: 'from-red-500/20 to-orange-500/20' },
-              { label: 'The Stage', color: 'from-purple-500/20 to-pink-500/20' },
-              { label: 'Inside Vibe', color: 'from-amber-500/20 to-yellow-500/20' },
-              { label: 'Cocktails', color: 'from-cyan-500/20 to-teal-500/20' },
-              { label: 'DA HIGH Neon', color: 'from-primary/20 to-accent/20' },
-              { label: 'Fairy Lights', color: 'from-green-500/20 to-emerald-500/20' },
+              { label: 'Live Gigs', color: 'from-red-50 to-orange-50' },
+              { label: 'The Stage', color: 'from-purple-50 to-pink-50' },
+              { label: 'Inside Vibe', color: 'from-amber-50 to-yellow-50' },
+              { label: 'Cocktails', color: 'from-cyan-50 to-teal-50' },
+              { label: 'DA HIGH Neon', color: 'from-amber-50 to-orange-50' },
+              { label: 'Fairy Lights', color: 'from-green-50 to-emerald-50' },
             ].map((item, i) => (
               <div
                 key={i}
@@ -669,7 +669,7 @@ export default function Home() {
       </section>
 
       {/* ===== ABOUT SECTION ===== */}
-      <section id="about" className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary/30">
+      <section id="about" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -710,10 +710,10 @@ export default function Home() {
 
             <div className="grid grid-cols-2 gap-4">
               {[
-                { label: 'Open-Air Seating', desc: 'Fairy lights under the stars', color: 'from-amber-500/20 to-primary/20' },
-                { label: 'Live Music Stage', desc: 'Bands, DJs, and open mic', color: 'from-red-500/20 to-purple-500/20' },
-                { label: 'Signature Cocktails', desc: 'Crafted by our expert bar team', color: 'from-cyan-500/20 to-teal-500/20' },
-                { label: 'Community Vibes', desc: 'Where everyone belongs', color: 'from-green-500/20 to-emerald-500/20' },
+                { label: 'Open-Air Seating', desc: 'Fairy lights under the stars', color: 'from-amber-50 to-orange-50' },
+                { label: 'Live Music Stage', desc: 'Bands, DJs, and open mic', color: 'from-red-50 to-purple-50' },
+                { label: 'Signature Cocktails', desc: 'Crafted by our expert bar team', color: 'from-cyan-50 to-teal-50' },
+                { label: 'Community Vibes', desc: 'Where everyone belongs', color: 'from-green-50 to-emerald-50' },
               ].map((item, i) => (
                 <div
                   key={i}
@@ -847,7 +847,7 @@ export default function Home() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-secondary/50 border-t border-border py-8 px-4 sm:px-6 lg:px-8 mt-auto">
+      <footer className="bg-muted border-t border-border py-8 px-4 sm:px-6 lg:px-8 mt-auto">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -934,7 +934,7 @@ export default function Home() {
 
       {/* ===== RESERVATION MODAL ===== */}
       {showReservation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/5 backdrop-blur-sm">
           <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-black text-foreground">Reserve a Table</h2>
