@@ -1,0 +1,504 @@
+     1→'use client';
+     2→
+     3→import { useState, useEffect, useCallback } from 'react';
+     4→import {
+     5→  Search, Phone, MapPin, Clock, ChevronDown, ChevronUp,
+     6→  Leaf, X, Menu as MenuIcon,
+     7→  CalendarDays, Music, Mic, PartyPopper, Sun, Send,
+     8→  Instagram, Mail, ArrowUp, Check
+     9→} from 'lucide-react';
+    10→
+    11→// ==========================================
+    12→// TYPES
+    13→// ==========================================
+    14→interface MenuItem {
+    15→  id: string; name: string; description?: string; price: number;
+    16→  isVeg: boolean; isBestseller: boolean; isNew: boolean; order: number;
+    17→}
+    18→interface MenuCategory {
+    19→  id: string; name: string; slug: string; icon: string;
+    20→  description?: string; tab: string; order: number; items: MenuItem[];
+    21→}
+    22→interface Event {
+    23→  id: string; title: string; description: string; date: string;
+    24→  time: string; type: string; isFeatured: boolean;
+    25→}
+    26→interface ReservationForm {
+    27→  name: string; phone: string; email: string; date: string;
+    28→  time: string; guests: string; occasion: string; message: string;
+    29→}
+    30→
+    31→// ==========================================
+    32→// DATA
+    33→// ==========================================
+    34→const PHONE = '+91 97654 00484';
+    35→const PHONE_TEL = 'tel:+919765400484';
+    36→const WHATSAPP = 'https://wa.me/919765400484?text=Hi!%20I%20would%20like%20to%20place%20an%20order%20from%20High%20Spirits%20Cafe';
+    37→const ADDRESS = '35A/1, Near ABC Farm, Behind Burger King, Koregaon Park, Pune 411001';
+    38→const EMAIL = 'highspiritscafe@gmail.com';
+    39→const INSTAGRAM = 'https://instagram.com/highspiritscafe/';
+    40→const GOOGLE_MAPS = 'https://maps.google.com/?q=High+Spirits+Cafe+Koregaon+Park+Pune';
+    41→
+    42→const HERO_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6916d4147cb7.jpg';
+    43→const COCKTAIL_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/262d581f9a38.jpg';
+    44→const FOOD_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/d8c9d15e152f.jpeg';
+    45→const INTERIOR_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/927a9c3c15b8.jpg';
+    46→
+    47→const TABS = [
+    48→  { key: 'offers', label: 'Happy Hour', icon: '🎉', badge: '12–6 PM' },
+    49→  { key: 'food', label: 'Food', icon: '🍽' },
+    50→  { key: 'bar', label: 'Bar', icon: '🍸' },
+    51→  { key: 'coffee', label: 'Coffee', icon: '☕' },
+    52→  { key: 'vintage', label: 'Vintage', icon: '🏷', badge: 'Tue & Thu' },
+    53→];
+    54→
+    55→const EVENT_META: Record<string, { label: string; color: string }> = {
+    56→  'live': { label: 'Live Music', color: 'bg-red-50 text-red-700 border-red-100' },
+    57→  'open-mic': { label: 'Open Mic', color: 'bg-purple-50 text-purple-700 border-purple-100' },
+    58→  'themed': { label: 'Special', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+    59→  'dj': { label: 'Sundowner', color: 'bg-teal-50 text-teal-700 border-teal-100' },
+    60→};
+    61→
+    62→function getHappyHourStatus() {
+    63→  const now = new Date();
+    64→  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    65→  const m = ist.getHours() * 60 + ist.getMinutes();
+    66→  if (m >= 720 && m < 1080) {
+    67→    const r = 1080 - m;
+    68→    return { active: true, msg: `Happy Hour is ON right now! Ends in ${Math.floor(r/60)}h ${r%60}m` };
+    69→  }
+    70→  return m < 720
+    71→    ? { active: false, msg: 'Happy Hour starts today at 12 PM' }
+    72→    : { active: false, msg: 'Happy Hour tomorrow from 12 PM' };
+    73→}
+    74→
+    75→// ==========================================
+    76→// MAIN
+    77→// ==========================================
+    78→export default function Home() {
+    79→  const [menuData, setMenuData] = useState<Record<string, MenuCategory[]>>({});
+    80→  const [events, setEvents] = useState<Event[]>([]);
+    81→  const [activeTab, setActiveTab] = useState('offers');
+    82→  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+    83→  const [search, setSearch] = useState('');
+    84→  const [vegFilter, setVegFilter] = useState<'all'|'veg'|'nonveg'>('all');
+    85→  const [mobileNav, setMobileNav] = useState(false);
+    86→  const [showReserve, setShowReserve] = useState(false);
+    87→  const [resForm, setResForm] = useState<ReservationForm>({ name:'', phone:'', email:'', date:'', time:'', guests:'2', occasion:'', message:'' });
+    88→  const [resDone, setResDone] = useState(false);
+    89→  const [hh, setHH] = useState(getHappyHourStatus());
+    90→  const [showTop, setShowTop] = useState(false);
+    91→  const [order, setOrder] = useState<{name:string; price:number}[]>([]);
+    92→
+    93→  useEffect(() => { fetch('/api/menu').then(r=>r.json()).then(setMenuData); fetch('/api/events').then(r=>r.json()).then(setEvents); }, []);
+    94→  useEffect(() => { const t = setInterval(()=>setHH(getHappyHourStatus()),60000); return ()=>clearInterval(t); }, []);
+    95→  useEffect(() => { const h = ()=>setShowTop(window.scrollY>500); window.addEventListener('scroll',h); return ()=>window.removeEventListener('scroll',h); }, []);
+    96→
+    97→  const switchTab = (t:string) => { setActiveTab(t); if(menuData[t]?.length) setExpandedCats(new Set([menuData[t][0].id])); };
+    98→  const toggleCat = (id:string) => setExpandedCats(p=>{
+    99→    const n=new Set(p);
+   100→    if(n.has(id)) { n.delete(id); } else { n.add(id); }
+   101→    return n;
+   102→  });
+   103→
+   104→  const filtered = useCallback((items:MenuItem[]) => {
+   105→    let f = items;
+   106→    if (search) { const q=search.toLowerCase(); f=f.filter(i=>i.name.toLowerCase().includes(q)||(i.description?.toLowerCase().includes(q))); }
+   107→    if (vegFilter==='veg') f=f.filter(i=>i.isVeg);
+   108→    if (vegFilter==='nonveg') f=f.filter(i=>!i.isVeg);
+   109→    return f;
+   110→  }, [search, vegFilter]);
+   111→
+   112→  const addOrder = (n:string,p:number) => setOrder(o=>[...o,{name:n,price:p}]);
+   113→  const rmOrder = (i:number) => setOrder(o=>o.filter((_,j)=>j!==i));
+   114→  const total = order.reduce((s,i)=>s+i.price,0);
+   115→
+   116→  const whatsappOrder = () => {
+   117→    if(!order.length){ window.open(WHATSAPP,'_blank'); return; }
+   118→    const list = order.map(i=>`• ${i.name} — ₹${i.price}`).join('\n');
+   119→    window.open(`https://wa.me/919765400484?text=${encodeURIComponent(`Hi! I'd like to order from High Spirits Cafe:\n\n${list}\n\nTotal: ₹${total}`)}`, '_blank');
+   120→  };
+   121→
+   122→  const submitRes = async (e:React.FormEvent) => { e.preventDefault(); await fetch('/api/reservations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(resForm)}); setResDone(true); };
+   123→  const go = (id:string) => { document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); setMobileNav(false); };
+   124→
+   125→  return (
+   126→    <div className="min-h-screen flex flex-col bg-background text-foreground">
+   127→
+   128→      {/* ===== NAV ===== */}
+   129→      <nav className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur border-b border-border/60">
+   130→        <div className="max-w-5xl mx-auto px-5 flex items-center justify-between h-[52px]">
+   131→          <button onClick={()=>go('hero')} className="flex items-center gap-1.5 btn-press">
+   132→            <div className="w-7 h-7 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs">H</div>
+   133→            <span className="font-semibold text-primary tracking-wide text-[15px]" style={{fontFamily:'Georgia,serif'}}>High Spirits</span>
+   134→          </button>
+   135→          <div className="hidden md:flex items-center gap-5 text-sm">
+   136→            {[{id:'menu',l:'Menu'},{id:'events',l:'Events'},{id:'about',l:'About'},{id:'contact',l:'Contact'}].map(s=>(
+   137→              <button key={s.id} onClick={()=>go(s.id)} className="text-muted-foreground hover:text-primary transition-colors duration-200">{s.l}</button>
+   138→            ))}
+   139→            <button onClick={()=>setShowReserve(true)} className="px-4 py-1.5 bg-primary text-primary-foreground rounded text-sm font-medium btn-press hover:bg-primary/90">Book a Table</button>
+   140→          </div>
+   141→          <button className="md:hidden text-muted-foreground" onClick={()=>setMobileNav(!mobileNav)}>
+   142→            {mobileNav ? <X className="w-5 h-5"/> : <MenuIcon className="w-5 h-5"/>}
+   143→          </button>
+   144→        </div>
+   145→        {mobileNav && (
+   146→          <div className="md:hidden bg-white border-t border-border/60 shadow-md">
+   147→            {[{id:'menu',l:'Menu'},{id:'events',l:'Events'},{id:'about',l:'About'},{id:'contact',l:'Contact'}].map(s=>(
+   148→              <button key={s.id} onClick={()=>go(s.id)} className="block w-full px-5 py-2.5 text-sm text-muted-foreground hover:text-primary hover:bg-muted/50">{s.l}</button>
+   149→            ))}
+   150→            <button onClick={()=>{setShowReserve(true);setMobileNav(false)}} className="block w-full mx-5 my-2 px-4 py-2.5 bg-primary text-primary-foreground rounded text-sm font-medium">Book a Table</button>
+   151→          </div>
+   152→        )}
+   153→      </nav>
+   154→
+   155→      {/* ===== HERO ===== */}
+   156→      <section id="hero" className="relative min-h-screen flex items-end overflow-hidden">
+   157→        <img src={HERO_IMG} alt="High Spirits Cafe" className="absolute inset-0 w-full h-full object-cover scale-[1.02]" />
+   158→        <div className="hero-overlay absolute inset-0" />
+   159→        <div className="hero-glow absolute inset-x-0 bottom-0 h-[60%]" />
+   160→
+   161→        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 pb-16 pt-24">
+   162→          <p className="text-white/60 text-[13px] tracking-[0.2em] uppercase mb-3 font-medium">Est. 2010 · Koregaon Park, Pune</p>
+   163→          <h1 className="text-white text-[clamp(3rem,8vw,5.5rem)] font-bold leading-[1.05] mb-4" style={{fontFamily:'Georgia,serif'}}>
+   164→            High Spirits<br/>Cafe
+   165→          </h1>
+   166→          <p className="text-white/75 text-base sm:text-lg max-w-md leading-relaxed mb-6">
+   167→            Live music, craft cocktails, great food — Pune&apos;s favourite hangout for over a decade.
+   168→          </p>
+   169→
+   170→          {hh.active && (
+   171→            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 backdrop-blur-sm mb-5">
+   172→              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
+   173→              <span className="text-white/90 text-sm font-medium">{hh.msg}</span>
+   174→            </div>
+   175→          )}
+   176→
+   177→          <div className="flex flex-wrap gap-3">
+   178→            <button onClick={()=>go('menu')} className="px-6 py-2.5 bg-white text-foreground rounded font-medium text-sm btn-press hover:bg-white/90 shadow-lg shadow-white/10">View Menu &amp; Order</button>
+   179→            <a href={PHONE_TEL} className="px-6 py-2.5 rounded border border-white/25 text-white/90 font-medium text-sm btn-press hover:bg-white/10">
+   180→              <Phone className="w-4 h-4 inline mr-1.5 -mt-0.5"/>Call Us
+   181→            </a>
+   182→          </div>
+   183→        </div>
+   184→      </section>
+   185→
+   186→      {/* ===== HAPPY HOUR STRIP ===== */}
+   187→      <div className="bg-primary text-primary-foreground py-2.5 px-5 text-center text-sm font-medium">
+   188→        🎉 Happy Hour Daily 12–6 PM — Beer ₹100 · Cocktails ₹150 · Mimosa ₹130 · Pitchers ₹600
+   189→        <button onClick={()=>go('menu')} className="ml-2 underline underline-offset-2 opacity-80 hover:opacity-100 transition-opacity">View deals →</button>
+   190→      </div>
+   191→
+   192→      {/* ===== MENU ===== */}
+   193→      <section id="menu" className="py-14 px-5 max-w-5xl mx-auto">
+   194→        <div className="mb-8">
+   195→          <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">What we serve</p>
+   196→          <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight" style={{fontFamily:'Georgia,serif'}}>Our Menu</h2>
+   197→          <div className="section-divider mt-3 mb-4"/>
+   198→          <p className="text-muted-foreground text-sm">Browse, add items, and order directly on WhatsApp.</p>
+   199→        </div>
+   200→
+   201→        {/* Search + filter */}
+   202→        <div className="flex flex-col sm:flex-row gap-2.5 mb-5">
+   203→          <div className="relative flex-1">
+   204→            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
+   205→            <input type="text" placeholder="Search — paneer, cocktail, pizza..." value={search} onChange={e=>setSearch(e.target.value)}
+   206→              className="w-full pl-10 pr-9 py-2.5 bg-white border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40"/>
+   207→            {search && <button onClick={()=>setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-4 h-4"/></button>}
+   208→          </div>
+   209→          <div className="flex gap-1.5">
+   210→            {[{k:'all'as const,l:'All'},{k:'veg'as const,l:'🟢 Veg'},{k:'nonveg'as const,l:'🔴 Non-Veg'}].map(f=>(
+   211→              <button key={f.k} onClick={()=>setVegFilter(f.k)}
+   212→                className={`px-3.5 py-2.5 rounded-md text-sm font-medium border transition-colors duration-200 ${
+   213→                  vegFilter===f.k ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
+   214→                }`}>{f.l}</button>
+   215→            ))}
+   216→          </div>
+   217→        </div>
+   218→
+   219→        {/* Tabs */}
+   220→        <div className="flex gap-0.5 mb-5 overflow-x-auto -mx-1 px-1 border-b border-border">
+   221→          {TABS.map(t=>(
+   222→            <button key={t.key} onClick={()=>switchTab(t.key)}
+   223→              className={`tab-underline flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
+   224→                activeTab===t.key ? 'active text-primary' : 'text-muted-foreground hover:text-foreground'
+   225→              }`}>
+   226→              <span className="text-[15px]">{t.icon}</span>{t.label}
+   227→              {t.badge && <span className="text-[10px] text-muted-foreground font-normal ml-0.5">{t.badge}</span>}
+   228→            </button>
+   229→          ))}
+   230→        </div>
+   231→
+   232→        {/* Categories */}
+   233→        <div className="space-y-1.5">
+   234→          {menuData[activeTab]?.map(cat=>{
+   235→            const open = expandedCats.has(cat.id);
+   236→            const items = filtered(cat.items);
+   237→            if(search && !items.length) return null;
+   238→            return (
+   239→              <div key={cat.id} className={`border rounded-md transition-all duration-200 ${open ? 'border-border bg-white shadow-sm' : 'border-border/60 bg-white/50'}`}>
+   240→                <button onClick={()=>toggleCat(cat.id)} className="w-full flex items-center justify-between px-4 py-3">
+   241→                  <div className="flex items-center gap-2">
+   242→                    <span className="text-[15px]">{cat.icon}</span>
+   243→                    <span className="font-semibold text-sm">{cat.name}</span>
+   244→                    {!open && <span className="text-[11px] text-muted-foreground">{items.length} items</span>}
+   245→                  </div>
+   246→                  <span className={`text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
+   247→                    <ChevronDown className="w-4 h-4"/>
+   248→                  </span>
+   249→                </button>
+   250→                {open && (
+   251→                  <div className="border-t border-border/40">
+   252→                    {items.map(item=>(
+   253→                      <div key={item.id} className="menu-row flex items-center justify-between px-4 py-[10px] border-b border-border/30 last:border-0">
+   254→                        <div className="flex-1 min-w-0 pr-3">
+   255→                          <div className="flex items-center gap-2">
+   256→                            <span className={`w-[14px] h-[14px] rounded-[2px] border flex items-center justify-center ${item.isVeg ? 'border-green-600' : 'border-red-600'}`}>
+   257→                              <span className={`w-[6px] h-[6px] rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`}/>
+   258→                            </span>
+   259→                            <span className="text-sm font-medium">{item.name}</span>
+   260→                            {item.isBestseller && <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Popular</span>}
+   261→                          </div>
+   262→                          {item.description && <p className="text-[12px] text-muted-foreground mt-0.5 ml-[18px]">{item.description}</p>}
+   263→                        </div>
+   264→                        <div className="flex items-center gap-2.5 flex-shrink-0">
+   265→                          <span className="text-sm font-semibold text-primary">₹{item.price}</span>
+   266→                          <button onClick={()=>addOrder(item.name,item.price)}
+   267→                            className="w-[28px] h-[28px] rounded-md border border-border bg-white hover:bg-primary hover:text-primary-foreground hover:border-primary flex items-center justify-center text-[15px] font-medium btn-press transition-all duration-150">+</button>
+   268→                        </div>
+   269→                      </div>
+   270→                    ))}
+   271→                  </div>
+   272→                )}
+   273→              </div>
+   274→            );
+   275→          })}
+   276→        </div>
+   277→
+   278→        {search && !Object.values(menuData).flat().some(c=>filtered(c.items).length>0) && (
+   279→          <div className="text-center py-10"><p className="text-muted-foreground text-sm">No results for &quot;{search}&quot;. Try another search.</p></div>
+   280→        )}
+   281→      </section>
+   282→
+   283→      {/* ===== EVENTS ===== */}
+   284→      <section id="events" className="py-14 px-5 bg-muted/80">
+   285→        <div className="max-w-5xl mx-auto">
+   286→          <div className="mb-8">
+   287→            <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">What's happening</p>
+   288→            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight" style={{fontFamily:'Georgia,serif'}}>Events &amp; Nights</h2>
+   289→            <div className="section-divider mt-3 mb-4"/>
+   290→          </div>
+   291→
+   292→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+   293→            {events.map(ev=>{
+   294→              const meta = EVENT_META[ev.type] || {label:ev.type, color:'bg-muted text-muted-foreground border-border'};
+   295→              return (
+   296→                <div key={ev.id} className="bg-white border border-border rounded-lg p-5 card-hover">
+   297→                  <div className="flex items-center gap-2 mb-3">
+   298→                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border uppercase tracking-wider ${meta.color}`}>{meta.label}</span>
+   299→                    {ev.isFeatured && <span className="text-[10px] font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/10">★ Featured</span>}
+   300→                  </div>
+   301→                  <h3 className="font-semibold text-[15px] mb-1.5 leading-snug">{ev.title}</h3>
+   302→                  <p className="text-muted-foreground text-sm leading-relaxed mb-3">{ev.description}</p>
+   303→                  <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
+   304→                    <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5"/>{ev.date}</span>
+   305→                    <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5"/>{ev.time}</span>
+   306→                  </div>
+   307→                </div>
+   308→              );
+   309→            })}
+   310→          </div>
+   311→        </div>
+   312→      </section>
+   313→
+   314→      {/* ===== ABOUT ===== */}
+   315→      <section id="about" className="py-14 px-5">
+   316→        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+   317→          <div className="lg:col-span-3">
+   318→            <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">Our story</p>
+   319→            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-2" style={{fontFamily:'Georgia,serif'}}>More Than a Bar</h2>
+   320→            <div className="section-divider mb-5"/>
+   321→
+   322→            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+   323→              High Spirits Cafe in Pune has been a fixture in Koregaon Park for over a decade. Its inviting open-air setting, adorned with fairy lights, makes it a gathering place for locals and visitors alike.
+   324→            </p>
+   325→            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+   326→              The eclectic music scene — live bands, DJ sets, open mic nights — ensures there&apos;s always something for every music lover. Coupled with great food and an impressive drinks selection, it&apos;s a complete experience for a memorable night out.
+   327→            </p>
+   328→            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+   329→              What truly sets High Spirits apart is its sense of community. Through themed parties, live gigs, and open mic nights, it creates a space where creativity and camaraderie flourish — making it a cherished institution in Pune&apos;s cultural landscape.
+   330→            </p>
+   331→
+   332→            <div className="flex gap-6">
+   333→              {[{v:'10+',l:'Years in Pune'},{v:'100+',l:'Drinks'},{v:'₹100',l:'HH Beer'}].map((s,i)=>(
+   334→                <div key={i} className="pr-6 border-r border-border last:border-0 last:pr-0">
+   335→                  <span className="text-xl font-bold text-primary">{s.v}</span>
+   336→                  <p className="text-[11px] text-muted-foreground mt-0.5">{s.l}</p>
+   337→                </div>
+   338→              ))}
+   339→            </div>
+   340→          </div>
+   341→
+   342→          <div className="lg:col-span-2 grid grid-cols-2 gap-3">
+   343→            <div className="aspect-[3/4] rounded-lg overflow-hidden shadow-md">
+   344→              <img src={INTERIOR_IMG} alt="Inside High Spirits" className="w-full h-full object-cover img-hover"/>
+   345→            </div>
+   346→            <div className="aspect-[3/4] rounded-lg overflow-hidden shadow-md mt-6">
+   347→              <img src={COCKTAIL_IMG} alt="Cocktails at the bar" className="w-full h-full object-cover img-hover"/>
+   348→            </div>
+   349→          </div>
+   350→        </div>
+   351→      </section>
+   352→
+   353→      {/* ===== CONTACT ===== */}
+   354→      <section id="contact" className="py-14 px-5 bg-muted/80">
+   355→        <div className="max-w-5xl mx-auto">
+   356→          <div className="mb-8">
+   357→            <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">Come visit</p>
+   358→            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight" style={{fontFamily:'Georgia,serif'}}>Find Us</h2>
+   359→            <div className="section-divider mt-3 mb-4"/>
+   360→          </div>
+   361→
+   362→          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+   363→            <div className="bg-white border border-border rounded-lg p-5 card-hover">
+   364→              <MapPin className="w-5 h-5 text-primary mb-2"/>
+   365→              <h3 className="font-semibold text-sm mb-1.5">Visit Us</h3>
+   366→              <p className="text-muted-foreground text-sm mb-2 leading-relaxed">{ADDRESS}</p>
+   367→              <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer" className="text-primary text-sm font-medium hover:underline">Get Directions →</a>
+   368→            </div>
+   369→            <div className="bg-white border border-border rounded-lg p-5 card-hover">
+   370→              <Phone className="w-5 h-5 text-primary mb-2"/>
+   371→              <h3 className="font-semibold text-sm mb-1.5">Contact</h3>
+   372→              <a href={PHONE_TEL} className="text-primary text-sm font-medium hover:underline block mb-1">{PHONE}</a>
+   373→              <a href={`mailto:${EMAIL}`} className="text-muted-foreground text-sm hover:text-primary hover:underline block mb-1">{EMAIL}</a>
+   374→              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-muted-foreground text-sm hover:text-primary hover:underline">
+   375→                <Instagram className="w-4 h-4"/>@highspiritscafe
+   376→              </a>
+   377→            </div>
+   378→            <div className="bg-white border border-border rounded-lg p-5 card-hover">
+   379→              <Clock className="w-5 h-5 text-primary mb-2"/>
+   380→              <h3 className="font-semibold text-sm mb-1.5">Hours</h3>
+   381→              <p className="text-muted-foreground text-sm">Open Daily: 12 PM – 12:30 AM</p>
+   382→              <p className="text-primary text-sm font-medium mt-1">Happy Hour: 12 PM – 6 PM</p>
+   383→              <p className="text-muted-foreground text-sm mt-0.5">Vintage: Tue & Thu</p>
+   384→            </div>
+   385→          </div>
+   386→
+   387→          <div className="rounded-lg overflow-hidden border border-border h-56 shadow-sm">
+   388→            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3782.9!2d73.89!3d18.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sHigh+Spirits+Cafe+Koregaon+Park+Pune!5e0!3m2!1sen!2sin!4v1"
+   389→              width="100%" height="100%" style={{border:0}} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="High Spirits Cafe"/>
+   390→          </div>
+   391→        </div>
+   392→      </section>
+   393→
+   394→      {/* ===== FOOTER ===== */}
+   395→      <footer className="bg-[#1C1917] text-[#F8F6F1] py-10 px-5 mt-auto">
+   396→        <div className="max-w-5xl mx-auto">
+   397→          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+   398→            <div>
+   399→              <span className="font-bold text-lg tracking-wide" style={{fontFamily:'Georgia,serif'}}>High Spirits Cafe</span>
+   400→              <p className="text-[#F8F6F1]/50 text-sm mt-2 leading-relaxed max-w-xs">{ADDRESS}</p>
+   401→            </div>
+   402→            <div className="flex items-center gap-5">
+   403→              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="text-[#F8F6F1]/40 hover:text-[#F8F6F1] transition-colors"><Instagram className="w-5 h-5"/></a>
+   404→              <a href={PHONE_TEL} className="text-[#F8F6F1]/40 hover:text-[#F8F6F1] transition-colors"><Phone className="w-5 h-5"/></a>
+   405→              <a href={`mailto:${EMAIL}`} className="text-[#F8F6F1]/40 hover:text-[#F8F6F1] transition-colors"><Mail className="w-5 h-5"/></a>
+   406→            </div>
+   407→          </div>
+   408→          <div className="mt-8 pt-5 border-t border-[#F8F6F1]/10 text-center text-xs text-[#F8F6F1]/30">
+   409→            GST No: 27AAIPI0115J1Z0 · © 2026 High Spirits Cafe, Pune
+   410→          </div>
+   411→        </div>
+   412→      </footer>
+   413→
+   414→      {/* ===== WHATSAPP ===== */}
+   415→      <button onClick={whatsappOrder}
+   416→        className="fixed bottom-5 right-5 z-40 w-[48px] h-[48px] bg-[#25D366] hover:bg-[#20BD5A] text-white rounded-full flex items-center justify-center shadow-lg shadow-[#25D366]/20 whatsapp-pulse btn-press"
+   417→        title="Order on WhatsApp">
+   418→        <Send className="w-5 h-5"/>
+   419→      </button>
+   420→
+   421→      {/* ===== ORDER BAR ===== */}
+   422→      {order.length>0 && (
+   423→        <div className="fixed bottom-5 left-5 right-[70px] z-40 sm:left-auto sm:right-[70px] sm:w-[280px]">
+   424→          <div className="bg-white border border-border rounded-lg p-3.5 shadow-xl shadow-black/5">
+   425→            <div className="flex items-center justify-between mb-2">
+   426→              <span className="text-xs font-semibold">Your Order <span className="text-muted-foreground">({order.length})</span></span>
+   427→              <button onClick={()=>setOrder([])} className="text-[11px] text-muted-foreground hover:text-destructive transition-colors">Clear</button>
+   428→            </div>
+   429→            <div className="max-h-24 overflow-y-auto space-y-0.5 mb-2">
+   430→              {order.map((it,i)=>(
+   431→                <div key={i} className="flex items-center justify-between text-[12px]">
+   432→                  <span className="text-muted-foreground truncate flex-1">{it.name}</span>
+   433→                  <div className="flex items-center gap-1.5 shrink-0">
+   434→                    <span className="font-medium text-foreground">₹{it.price}</span>
+   435→                    <button onClick={()=>rmOrder(i)} className="text-muted-foreground hover:text-destructive transition-colors"><X className="w-3 h-3"/></button>
+   436→                  </div>
+   437→                </div>
+   438→              ))}
+   439→            </div>
+   440→            <div className="flex items-center justify-between pt-2 border-t border-border">
+   441→              <span className="text-sm font-bold">₹{total}</span>
+   442→              <button onClick={whatsappOrder}
+   443→                className="px-3 py-1.5 bg-[#25D366] hover:bg-[#20BD5A] text-white text-[12px] font-medium rounded-md btn-press flex items-center gap-1 shadow-sm">
+   444→                <Send className="w-3 h-3"/> WhatsApp Order
+   445→              </button>
+   446→            </div>
+   447→          </div>
+   448→        </div>
+   449→      )}
+   450→
+   451→      {/* ===== RESERVE MODAL ===== */}
+   452→      {showReserve && (
+   453→        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1917]/30 backdrop-blur-[2px]" onClick={()=>{setShowReserve(false);setResDone(false)}}>
+   454→          <div className="bg-white rounded-xl p-6 max-w-[420px] w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={e=>e.stopPropagation()}>
+   455→            <div className="flex items-center justify-between mb-5">
+   456→              <h2 className="text-lg font-bold" style={{fontFamily:'Georgia,serif'}}>Book a Table</h2>
+   457→              <button onClick={()=>{setShowReserve(false);setResDone(false)}} className="text-muted-foreground hover:text-foreground transition-colors"><X className="w-5 h-5"/></button>
+   458→            </div>
+   459→
+   460→            {resDone ? (
+   461→              <div className="text-center py-6">
+   462→                <div className="w-11 h-11 mx-auto mb-2.5 rounded-full bg-green-50 flex items-center justify-center"><Check className="w-5 h-5 text-green-600"/></div>
+   463→                <h3 className="font-bold text-base mb-1">Booking Requested!</h3>
+   464→                <p className="text-muted-foreground text-sm">We&apos;ll confirm via WhatsApp or phone shortly.</p>
+   465→                <button onClick={()=>{setShowReserve(false);setResDone(false)}} className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium btn-press">Done</button>
+   466→              </div>
+   467→            ) : (
+   468→              <form onSubmit={submitRes} className="space-y-3">
+   469→                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Name *</label>
+   470→                  <input type="text" required value={resForm.name} onChange={e=>setResForm(p=>({...p,name:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Your name"/></div>
+   471→                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Phone *</label>
+   472→                  <input type="tel" required value={resForm.phone} onChange={e=>setResForm(p=>({...p,phone:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="+91 98765 43210"/></div>
+   473→                <div className="grid grid-cols-2 gap-3">
+   474→                  <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Date *</label>
+   475→                    <input type="date" required value={resForm.date} onChange={e=>setResForm(p=>({...p,date:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"/></div>
+   476→                  <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Time *</label>
+   477→                    <input type="time" required value={resForm.time} onChange={e=>setResForm(p=>({...p,time:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"/></div>
+   478→                </div>
+   479→                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Guests *</label>
+   480→                  <select value={resForm.guests} onChange={e=>setResForm(p=>({...p,guests:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+   481→                    {[1,2,3,4,5,6,7,8,'9+'].map(n=><option key={n} value={n}>{n} {n===1?'Guest':'Guests'}</option>)}</select></div>
+   482→                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Occasion</label>
+   483→                  <select value={resForm.occasion} onChange={e=>setResForm(p=>({...p,occasion:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+   484→                    <option value="">Optional</option><option value="casual">Casual</option><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option><option value="corporate">Corporate</option><option value="date">Date Night</option></select></div>
+   485→                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Notes</label>
+   486→                  <textarea value={resForm.message} onChange={e=>setResForm(p=>({...p,message:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" rows={2} placeholder="Any special requests..."/></div>
+   487→                <button type="submit" className="w-full py-2.5 bg-primary text-primary-foreground font-medium rounded-md text-sm btn-press hover:bg-primary/90">Book Now</button>
+   488→              </form>
+   489→            )}
+   490→          </div>
+   491→        </div>
+   492→      )}
+   493→
+   494→      {/* ===== TOP ===== */}
+   495→      {showTop && (
+   496→        <button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}
+   497→          className="fixed bottom-5 left-5 z-40 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground shadow-sm btn-press">
+   498→          <ArrowUp className="w-4 h-4"/>
+   499→        </button>
+   500→      )}
+   501→    </div>
+   502→  );
+   503→}
+   504→

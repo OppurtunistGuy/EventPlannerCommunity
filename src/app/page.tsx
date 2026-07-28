@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Search, Phone, MapPin, Clock, ChevronDown, ChevronUp,
-  Flame, Leaf, X, Menu as MenuIcon,
+  Leaf, X, Menu as MenuIcon,
   CalendarDays, Music, Mic, PartyPopper, Sun, Send,
   Instagram, Mail, ArrowUp, Check
 } from 'lucide-react';
@@ -12,50 +12,24 @@ import {
 // TYPES
 // ==========================================
 interface MenuItem {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  isVeg: boolean;
-  isBestseller: boolean;
-  isNew: boolean;
-  order: number;
+  id: string; name: string; description?: string; price: number;
+  isVeg: boolean; isBestseller: boolean; isNew: boolean; order: number;
 }
-
 interface MenuCategory {
-  id: string;
-  name: string;
-  slug: string;
-  icon: string;
-  description?: string;
-  tab: string;
-  order: number;
-  items: MenuItem[];
+  id: string; name: string; slug: string; icon: string;
+  description?: string; tab: string; order: number; items: MenuItem[];
 }
-
 interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  type: string;
-  isFeatured: boolean;
+  id: string; title: string; description: string; date: string;
+  time: string; type: string; isFeatured: boolean;
 }
-
 interface ReservationForm {
-  name: string;
-  phone: string;
-  email: string;
-  date: string;
-  time: string;
-  guests: string;
-  occasion: string;
-  message: string;
+  name: string; phone: string; email: string; date: string;
+  time: string; guests: string; occasion: string; message: string;
 }
 
 // ==========================================
-// CONSTANTS
+// DATA
 // ==========================================
 const PHONE = '+91 97654 00484';
 const PHONE_TEL = 'tel:+919765400484';
@@ -65,380 +39,232 @@ const EMAIL = 'highspiritscafe@gmail.com';
 const INSTAGRAM = 'https://instagram.com/highspiritscafe/';
 const GOOGLE_MAPS = 'https://maps.google.com/?q=High+Spirits+Cafe+Koregaon+Park+Pune';
 
-// Real images from search
-const HERO_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6916d4147cb7.jpg';
-const COCKTAIL_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/262d581f9a38.jpg';
-const FOOD_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/d8c9d15e152f.jpeg';
-const INTERIOR_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/927a9c3c15b8.jpg';
+const HERO_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6916d4147cb7.jpg';
+const COCKTAIL_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/262d581f9a38.jpg';
+const FOOD_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/d8c9d15e152f.jpeg';
+const INTERIOR_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/927a9c3c15b8.jpg';
 
 const TABS = [
-  { key: 'offers', label: 'Happy Hour', icon: '🎉', sublabel: '12–6 PM' },
+  { key: 'offers', label: 'Happy Hour', icon: '🎉', badge: '12–6 PM' },
   { key: 'food', label: 'Food', icon: '🍽' },
   { key: 'bar', label: 'Bar', icon: '🍸' },
   { key: 'coffee', label: 'Coffee', icon: '☕' },
-  { key: 'vintage', label: 'Vintage', icon: '🏷', sublabel: 'Tue & Thu' },
+  { key: 'vintage', label: 'Vintage', icon: '🏷', badge: 'Tue & Thu' },
 ];
 
-const EVENT_TYPE_LABEL: Record<string, string> = {
-  'live': 'Live Music',
-  'open-mic': 'Open Mic',
-  'themed': 'Special',
-  'dj': 'Sundowner',
+const EVENT_META: Record<string, { label: string; color: string }> = {
+  'live': { label: 'Live Music', color: 'bg-red-50 text-red-700 border-red-100' },
+  'open-mic': { label: 'Open Mic', color: 'bg-purple-50 text-purple-700 border-purple-100' },
+  'themed': { label: 'Special', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+  'dj': { label: 'Sundowner', color: 'bg-teal-50 text-teal-700 border-teal-100' },
 };
 
-// ==========================================
-// HELPER: Happy Hour Timer
-// ==========================================
 function getHappyHourStatus() {
   const now = new Date();
   const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const hour = ist.getHours();
-  const minute = ist.getMinutes();
-  const currentMinutes = hour * 60 + minute;
-  const startMinutes = 12 * 60;
-  const endMinutes = 18 * 60;
-
-  if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-    const remaining = endMinutes - currentMinutes;
-    const hoursLeft = Math.floor(remaining / 60);
-    const minsLeft = remaining % 60;
-    return { isActive: true, message: `Happy Hour ON — ends in ${hoursLeft}h ${minsLeft}m` };
+  const m = ist.getHours() * 60 + ist.getMinutes();
+  if (m >= 720 && m < 1080) {
+    const r = 1080 - m;
+    return { active: true, msg: `Happy Hour is ON right now! Ends in ${Math.floor(r/60)}h ${r%60}m` };
   }
-  if (currentMinutes < startMinutes) {
-    const until = startMinutes - currentMinutes;
-    return { isActive: false, message: `Happy Hour starts at 12 PM today` };
-  }
-  return { isActive: false, message: 'Happy Hour starts tomorrow at 12 PM' };
+  return m < 720
+    ? { active: false, msg: 'Happy Hour starts today at 12 PM' }
+    : { active: false, msg: 'Happy Hour tomorrow from 12 PM' };
 }
 
 // ==========================================
-// MAIN COMPONENT
+// MAIN
 // ==========================================
 export default function Home() {
   const [menuData, setMenuData] = useState<Record<string, MenuCategory[]>>({});
   const [events, setEvents] = useState<Event[]>([]);
   const [activeTab, setActiveTab] = useState('offers');
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery] = useState('');
-  const [vegFilter, setVegFilter] = useState<'all' | 'veg' | 'nonveg'>('all');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showReservation, setShowReservation] = useState(false);
-  const [reservationForm, setReservationForm] = useState<ReservationForm>({
-    name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '',
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState('');
+  const [vegFilter, setVegFilter] = useState<'all'|'veg'|'nonveg'>('all');
+  const [mobileNav, setMobileNav] = useState(false);
+  const [showReserve, setShowReserve] = useState(false);
+  const [resForm, setResForm] = useState<ReservationForm>({ name:'', phone:'', email:'', date:'', time:'', guests:'2', occasion:'', message:'' });
+  const [resDone, setResDone] = useState(false);
+  const [hh, setHH] = useState(getHappyHourStatus());
+  const [showTop, setShowTop] = useState(false);
+  const [order, setOrder] = useState<{name:string; price:number}[]>([]);
+
+  useEffect(() => { fetch('/api/menu').then(r=>r.json()).then(setMenuData); fetch('/api/events').then(r=>r.json()).then(setEvents); }, []);
+  useEffect(() => { const t = setInterval(()=>setHH(getHappyHourStatus()),60000); return ()=>clearInterval(t); }, []);
+  useEffect(() => { const h = ()=>setShowTop(window.scrollY>500); window.addEventListener('scroll',h); return ()=>window.removeEventListener('scroll',h); }, []);
+
+  const switchTab = (t:string) => { setActiveTab(t); if(menuData[t]?.length) setExpandedCats(new Set([menuData[t][0].id])); };
+  const toggleCat = (id:string) => setExpandedCats(p=>{
+    const n=new Set(p);
+    if(n.has(id)) { n.delete(id); } else { n.add(id); }
+    return n;
   });
-  const [reservationSubmitted, setReservationSubmitted] = useState(false);
-  const [happyHour, setHappyHour] = useState(getHappyHourStatus());
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  const [orderItems, setOrderItems] = useState<{ name: string; price: number }[]>([]);
 
-  useEffect(() => {
-    fetch('/api/menu').then(r => r.json()).then(setMenuData).catch(console.error);
-    fetch('/api/events').then(r => r.json()).then(setEvents).catch(console.error);
-  }, []);
+  const filtered = useCallback((items:MenuItem[]) => {
+    let f = items;
+    if (search) { const q=search.toLowerCase(); f=f.filter(i=>i.name.toLowerCase().includes(q)||(i.description?.toLowerCase().includes(q))); }
+    if (vegFilter==='veg') f=f.filter(i=>i.isVeg);
+    if (vegFilter==='nonveg') f=f.filter(i=>!i.isVeg);
+    return f;
+  }, [search, vegFilter]);
 
-  useEffect(() => {
-    const interval = setInterval(() => setHappyHour(getHappyHourStatus()), 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const addOrder = (n:string,p:number) => setOrder(o=>[...o,{name:n,price:p}]);
+  const rmOrder = (i:number) => setOrder(o=>o.filter((_,j)=>j!==i));
+  const total = order.reduce((s,i)=>s+i.price,0);
 
-  useEffect(() => {
-    const handler = () => setShowScrollTop(window.scrollY > 600);
-    window.addEventListener('scroll', handler);
-    return () => window.removeEventListener('scroll', handler);
-  }, []);
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    if (menuData[tab]?.length) {
-      setExpandedCategories(new Set([menuData[tab][0].id]));
-    }
+  const whatsappOrder = () => {
+    if(!order.length){ window.open(WHATSAPP,'_blank'); return; }
+    const list = order.map(i=>`• ${i.name} — ₹${i.price}`).join('\n');
+    window.open(`https://wa.me/919765400484?text=${encodeURIComponent(`Hi! I'd like to order from High Spirits Cafe:\n\n${list}\n\nTotal: ₹${total}`)}`, '_blank');
   };
 
-  const toggleCategory = (id: string) => {
-    setExpandedCategories(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
-  const getFilteredItems = useCallback((items: MenuItem[]) => {
-    let filtered = items;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(q) || (item.description && item.description.toLowerCase().includes(q))
-      );
-    }
-    if (vegFilter === 'veg') filtered = filtered.filter(i => i.isVeg);
-    if (vegFilter === 'nonveg') filtered = filtered.filter(i => !i.isVeg);
-    return filtered;
-  }, [searchQuery, vegFilter]);
-
-  const addToOrder = (name: string, price: number) => setOrderItems(prev => [...prev, { name, price }]);
-  const removeFromOrder = (index: number) => setOrderItems(prev => prev.filter((_, i) => i !== index));
-  const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
-
-  const sendWhatsAppOrder = () => {
-    if (orderItems.length === 0) { window.open(WHATSAPP, '_blank'); return; }
-    const itemsList = orderItems.map(i => `${i.name} — ₹${i.price}`).join('\n');
-    const total = `Total: ₹${orderTotal}`;
-    const message = encodeURIComponent(`Hi! I'd like to order from High Spirits Cafe:\n\n${itemsList}\n\n${total}`);
-    window.open(`https://wa.me/919765400484?text=${message}`, '_blank');
-  };
-
-  const handleReservation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await fetch('/api/reservations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reservationForm),
-      });
-      setReservationSubmitted(true);
-    } catch (err) { console.error(err); }
-  };
-
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    setMobileMenuOpen(false);
-  };
+  const submitRes = async (e:React.FormEvent) => { e.preventDefault(); await fetch('/api/reservations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(resForm)}); setResDone(true); };
+  const go = (id:string) => { document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); setMobileNav(false); };
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
 
-      {/* ===== NAVBAR ===== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14">
-            <button onClick={() => scrollTo('hero')} className="flex items-center gap-2">
-              <span className="text-primary font-bold text-lg tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>High Spirits</span>
-              <span className="text-muted-foreground text-xs tracking-widest uppercase hidden sm:inline">Cafe</span>
-            </button>
-
-            <div className="hidden md:flex items-center gap-6">
-              {[
-                { id: 'menu', label: 'Menu' },
-                { id: 'events', label: 'Events' },
-                { id: 'about', label: 'About' },
-                { id: 'contact', label: 'Contact' },
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollTo(item.id)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition"
-                >
-                  {item.label}
-                </button>
-              ))}
-              <button
-                onClick={() => setShowReservation(true)}
-                className="ml-2 px-4 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded hover:bg-primary/90 transition"
-              >
-                Book a Table
-              </button>
-            </div>
-
-            <button className="md:hidden p-2 text-muted-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
-            </button>
+      {/* ===== NAV ===== */}
+      <nav className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur border-b border-border/60">
+        <div className="max-w-5xl mx-auto px-5 flex items-center justify-between h-[52px]">
+          <button onClick={()=>go('hero')} className="flex items-center gap-1.5 btn-press">
+            <div className="w-7 h-7 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs">H</div>
+            <span className="font-semibold text-primary tracking-wide text-[15px]" style={{fontFamily:'Georgia,serif'}}>High Spirits</span>
+          </button>
+          <div className="hidden md:flex items-center gap-5 text-sm">
+            {[{id:'menu',l:'Menu'},{id:'events',l:'Events'},{id:'about',l:'About'},{id:'contact',l:'Contact'}].map(s=>(
+              <button key={s.id} onClick={()=>go(s.id)} className="text-muted-foreground hover:text-primary transition-colors duration-200">{s.l}</button>
+            ))}
+            <button onClick={()=>setShowReserve(true)} className="px-4 py-1.5 bg-primary text-primary-foreground rounded text-sm font-medium btn-press hover:bg-primary/90">Book a Table</button>
           </div>
+          <button className="md:hidden text-muted-foreground" onClick={()=>setMobileNav(!mobileNav)}>
+            {mobileNav ? <X className="w-5 h-5"/> : <MenuIcon className="w-5 h-5"/>}
+          </button>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-border">
-            <div className="px-4 py-2 space-y-0">
-              {[
-                { id: 'menu', label: 'Menu' },
-                { id: 'events', label: 'Events' },
-                { id: 'about', label: 'About' },
-                { id: 'contact', label: 'Contact' },
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollTo(item.id)}
-                  className="block w-full text-left px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground"
-                >
-                  {item.label}
-                </button>
-              ))}
-              <button
-                onClick={() => { setShowReservation(true); setMobileMenuOpen(false); }}
-                className="w-full my-2 px-4 py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded"
-              >
-                Book a Table
-              </button>
-            </div>
+        {mobileNav && (
+          <div className="md:hidden bg-white border-t border-border/60 shadow-md">
+            {[{id:'menu',l:'Menu'},{id:'events',l:'Events'},{id:'about',l:'About'},{id:'contact',l:'Contact'}].map(s=>(
+              <button key={s.id} onClick={()=>go(s.id)} className="block w-full px-5 py-2.5 text-sm text-muted-foreground hover:text-primary hover:bg-muted/50">{s.l}</button>
+            ))}
+            <button onClick={()=>{setShowReserve(true);setMobileNav(false)}} className="block w-full mx-5 my-2 px-4 py-2.5 bg-primary text-primary-foreground rounded text-sm font-medium">Book a Table</button>
           </div>
         )}
       </nav>
 
       {/* ===== HERO ===== */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center">
-        <div className="absolute inset-0">
-          <img src={HERO_IMAGE} alt="High Spirits Cafe interior" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
+      <section id="hero" className="relative min-h-screen flex items-end overflow-hidden">
+        <img src={HERO_IMG} alt="High Spirits Cafe" className="absolute inset-0 w-full h-full object-cover scale-[1.02]" />
+        <div className="hero-overlay absolute inset-0" style={{background:'linear-gradient(180deg, rgba(27,67,50,0.15) 0%, rgba(27,67,50,0.35) 40%, rgba(27,67,50,0.7) 75%, rgba(27,67,50,0.85) 100%)'}} />
+        <div className="hero-glow absolute inset-x-0 bottom-0 h-[60%]" style={{background:'radial-gradient(ellipse at center, rgba(212,163,115,0.15) 0%, transparent 70%)'}} />
 
-        <div className="relative z-10 text-center px-4 max-w-2xl mx-auto">
-          <p className="text-white/70 text-sm tracking-[0.25em] uppercase mb-4">Est. 2010 · Koregaon Park, Pune</p>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-            High Spirits<br />Cafe
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 pb-16 pt-24">
+          <p className="text-white/60 text-[13px] tracking-[0.2em] uppercase mb-3 font-medium">Est. 2010 · Koregaon Park, Pune</p>
+          <h1 className="text-white text-[clamp(3rem,8vw,5.5rem)] font-bold leading-[1.05] mb-4" style={{fontFamily:'Georgia,serif'}}>
+            High Spirits<br/>Cafe
           </h1>
-          <p className="text-white/80 text-base sm:text-lg max-w-md mx-auto mb-8 leading-relaxed">
-            Live music, craft cocktails, and great food — Pune&apos;s favourite hangout for over a decade.
+          <p className="text-white/75 text-base sm:text-lg max-w-md leading-relaxed mb-6">
+            Live music, craft cocktails, great food — Pune&apos;s favourite hangout for over a decade.
           </p>
 
-          {happyHour.isActive && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-white text-sm">{happyHour.message}</span>
+          {hh.active && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 backdrop-blur-sm mb-5">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
+              <span className="text-white/90 text-sm font-medium">{hh.msg}</span>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={() => scrollTo('menu')}
-              className="px-7 py-3 bg-white text-foreground font-medium rounded hover:bg-white/90 transition"
-            >
-              View Menu
-            </button>
-            <a
-              href={PHONE_TEL}
-              className="px-7 py-3 border border-white/40 text-white font-medium rounded hover:bg-white/10 transition"
-            >
-              <Phone className="w-4 h-4 inline mr-2" />Call Us
+          <div className="flex flex-wrap gap-3">
+            <button onClick={()=>go('menu')} className="px-6 py-2.5 bg-white text-foreground rounded font-medium text-sm btn-press hover:bg-white/90 shadow-lg shadow-white/10">View Menu &amp; Order</button>
+            <a href={PHONE_TEL} className="px-6 py-2.5 rounded border border-white/25 text-white/90 font-medium text-sm btn-press hover:bg-white/10">
+              <Phone className="w-4 h-4 inline mr-1.5 -mt-0.5"/>Call Us
             </a>
           </div>
         </div>
       </section>
 
-      {/* ===== HAPPY HOUR BANNER ===== */}
-      <div className="bg-primary text-primary-foreground py-3 px-4 text-center">
-        <p className="text-sm font-medium">
-          🎉 Happy Hour Daily 12–6 PM — Beer ₹100 · Cocktails ₹150 · Mimosa ₹130
-          <button onClick={() => scrollTo('menu')} className="ml-2 underline underline-offset-2 hover:no-underline">View all deals →</button>
-        </p>
+      {/* ===== HAPPY HOUR STRIP ===== */}
+      <div className="bg-primary text-primary-foreground py-2.5 px-5 text-center text-sm font-medium">
+        🎉 Happy Hour Daily 12–6 PM — Beer ₹100 · Cocktails ₹150 · Mimosa ₹130 · Pitchers ₹600
+        <button onClick={()=>go('menu')} className="ml-2 underline underline-offset-2 opacity-80 hover:opacity-100 transition-opacity">View deals →</button>
       </div>
 
-      {/* ===== MENU SECTION ===== */}
-      <section id="menu" className="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
-        <div className="mb-10">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>Menu</h2>
-          <div className="section-divider mb-4" />
-          <p className="text-muted-foreground text-sm">Browse our menu, add items, and order on WhatsApp.</p>
+      {/* ===== MENU ===== */}
+      <section id="menu" className="py-14 px-5 max-w-5xl mx-auto">
+        <div className="mb-8">
+          <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">What we serve</p>
+          <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight" style={{fontFamily:'Georgia,serif'}}>Our Menu</h2>
+          <div className="section-divider mt-3 mb-4"/>
+          <p className="text-muted-foreground text-sm">Browse, add items, and order directly on WhatsApp.</p>
         </div>
 
-        {/* Search & Filter */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        {/* Search + filter */}
+        <div className="flex flex-col sm:flex-row gap-2.5 mb-5">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search — try &quot;paneer&quot;, &quot;cocktail&quot;, &quot;pizza&quot;..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                <X className="w-4 h-4" />
-              </button>
-            )}
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
+            <input type="text" placeholder="Search — paneer, cocktail, pizza..." value={search} onChange={e=>setSearch(e.target.value)}
+              className="w-full pl-10 pr-9 py-2.5 bg-white border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40"/>
+            {search && <button onClick={()=>setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-4 h-4"/></button>}
           </div>
-          <div className="flex gap-2">
-            {[
-              { key: 'all' as const, label: 'All' },
-              { key: 'veg' as const, label: '🟢 Veg' },
-              { key: 'nonveg' as const, label: '🔴 Non-Veg' },
-            ].map(f => (
-              <button
-                key={f.key}
-                onClick={() => setVegFilter(f.key)}
-                className={`px-4 py-2.5 rounded text-sm font-medium border transition ${
-                  vegFilter === f.key
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-white border-border text-muted-foreground hover:border-primary/30'
-                }`}
-              >
-                {f.label}
-              </button>
+          <div className="flex gap-1.5">
+            {[{k:'all'as const,l:'All'},{k:'veg'as const,l:'🟢 Veg'},{k:'nonveg'as const,l:'🔴 Non-Veg'}].map(f=>(
+              <button key={f.k} onClick={()=>setVegFilter(f.k)}
+                className={`px-3.5 py-2.5 rounded-md text-sm font-medium border transition-colors duration-200 ${
+                  vegFilter===f.k ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
+                }`}>{f.l}</button>
             ))}
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 overflow-x-auto border-b border-border">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => handleTabChange(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition ${
-                activeTab === tab.key
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-              {tab.sublabel && <span className="text-xs text-muted-foreground">({tab.sublabel})</span>}
+        <div className="flex gap-0.5 mb-5 overflow-x-auto -mx-1 px-1 border-b border-border">
+          {TABS.map(t=>(
+            <button key={t.key} onClick={()=>switchTab(t.key)}
+              className={`tab-underline flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
+                activeTab===t.key ? 'active text-primary' : 'text-muted-foreground hover:text-foreground'
+              }`}>
+              <span className="text-[15px]">{t.icon}</span>{t.label}
+              {t.badge && <span className="text-[10px] text-muted-foreground font-normal ml-0.5">{t.badge}</span>}
             </button>
           ))}
         </div>
 
-        {/* Menu Categories */}
-        <div className="space-y-2">
-          {menuData[activeTab]?.map(category => {
-            const isExpanded = expandedCategories.has(category.id);
-            const filteredItems = getFilteredItems(category.items);
-            if (searchQuery && filteredItems.length === 0) return null;
-
+        {/* Categories */}
+        <div className="space-y-1.5">
+          {menuData[activeTab]?.map(cat=>{
+            const open = expandedCats.has(cat.id);
+            const items = filtered(cat.items);
+            if(search && !items.length) return null;
             return (
-              <div key={category.id} className="border border-border rounded bg-white">
-                <button
-                  onClick={() => toggleCategory(category.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition"
-                >
+              <div key={cat.id} className={`border rounded-md transition-all duration-200 ${open ? 'border-border bg-white shadow-sm' : 'border-border/60 bg-white/50'}`}>
+                <button onClick={()=>toggleCat(cat.id)} className="w-full flex items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">{category.icon}</span>
-                    <span className="font-semibold text-sm">{category.name}</span>
-                    <span className="text-xs text-muted-foreground">({filteredItems.length})</span>
+                    <span className="text-[15px]">{cat.icon}</span>
+                    <span className="font-semibold text-sm">{cat.name}</span>
+                    {!open && <span className="text-[11px] text-muted-foreground">{items.length} items</span>}
                   </div>
-                  {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                  <span className={`text-muted-foreground transition-all duration-200 ${open ? 'rotate-180' : ''}`}>
+                    <ChevronDown className="w-4 h-4"/>
+                  </span>
                 </button>
-
-                {isExpanded && (
-                  <div className="border-t border-border">
-                    {filteredItems.map(item => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between px-4 py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/30 transition"
-                      >
+                {open && (
+                  <div className="border-t border-border/40">
+                    {items.map(item=>(
+                      <div key={item.id} className="menu-row flex items-center justify-between px-4 py-[10px] border-b border-border/30 last:border-0">
                         <div className="flex-1 min-w-0 pr-3">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center flex-shrink-0 ${
-                              item.isVeg ? 'border-green-600' : 'border-red-600'
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`} />
+                          <div className="flex items-center gap-2">
+                            <span className={`w-[14px] h-[14px] rounded-[2px] border flex items-center justify-center ${item.isVeg ? 'border-green-600' : 'border-red-600'}`}>
+                              <span className={`w-[6px] h-[6px] rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`}/>
                             </span>
                             <span className="text-sm font-medium">{item.name}</span>
-                            {item.isBestseller && (
-                              <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium">Popular</span>
-                            )}
+                            {item.isBestseller && <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Popular</span>}
                           </div>
-                          {item.description && (
-                            <p className="text-xs text-muted-foreground mt-0.5 ml-5">{item.description}</p>
-                          )}
+                          {item.description && <p className="text-[12px] text-muted-foreground mt-0.5 ml-[18px]">{item.description}</p>}
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-sm font-semibold text-foreground">₹{item.price}</span>
-                          <button
-                            onClick={() => addToOrder(item.name, item.price)}
-                            className="w-7 h-7 rounded border border-border bg-white hover:bg-primary hover:text-primary-foreground hover:border-primary flex items-center justify-center text-sm transition"
-                            title="Add to order"
-                          >
-                            +
-                          </button>
+                        <div className="flex items-center gap-2.5 flex-shrink-0">
+                          <span className="text-sm font-semibold text-primary">₹{item.price}</span>
+                          <button onClick={()=>addOrder(item.name,item.price)}
+                            className="w-[28px] h-[28px] rounded-md border border-border bg-white hover:bg-primary hover:text-primary-foreground hover:border-primary flex items-center justify-center text-[15px] font-medium btn-press transition-all duration-150">+</button>
                         </div>
                       </div>
                     ))}
@@ -449,290 +275,227 @@ export default function Home() {
           })}
         </div>
 
-        {searchQuery && !Object.values(menuData).flat().some(cat => getFilteredItems(cat.items).length > 0) && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No items found for &quot;{searchQuery}&quot;</p>
-          </div>
+        {search && !Object.values(menuData).flat().some(c=>filtered(c.items).length>0) && (
+          <div className="text-center py-10"><p className="text-muted-foreground text-sm">No results for &quot;{search}&quot;. Try another search.</p></div>
         )}
       </section>
 
       {/* ===== EVENTS ===== */}
-      <section id="events" className="py-16 px-4 sm:px-6 bg-muted">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>What&apos;s On</h2>
-            <div className="section-divider mb-4" />
-            <p className="text-muted-foreground text-sm">Live gigs, open mic, and themed nights — there&apos;s always something happening.</p>
+      <section id="events" className="py-14 px-5 bg-muted/80">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8">
+            <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">What's happening</p>
+            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight" style={{fontFamily:'Georgia,serif'}}>Events &amp; Nights</h2>
+            <div className="section-divider mt-3 mb-4"/>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {events.map(event => (
-              <div key={event.id} className="bg-white border border-border rounded p-5 card-hover">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-medium text-primary bg-primary/5 px-2 py-0.5 rounded uppercase tracking-wider">
-                    {EVENT_TYPE_LABEL[event.type] || event.type}
-                  </span>
-                  {event.isFeatured && (
-                    <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium">Featured</span>
-                  )}
+            {events.map(ev=>{
+              const meta = EVENT_META[ev.type] || {label:ev.type, color:'bg-muted text-muted-foreground border-border'};
+              return (
+                <div key={ev.id} className="bg-white border border-border rounded-lg p-5 card-hover">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border uppercase tracking-wider ${meta.color}`}>{meta.label}</span>
+                    {ev.isFeatured && <span className="text-[10px] font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/10">★ Featured</span>}
+                  </div>
+                  <h3 className="font-semibold text-[15px] mb-1.5 leading-snug">{ev.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-3">{ev.description}</p>
+                  <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
+                    <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5"/>{ev.date}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5"/>{ev.time}</span>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-base mb-1.5">{event.title}</h3>
-                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{event.description}</p>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> {event.date}</span>
-                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {event.time}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* ===== ABOUT ===== */}
-      <section id="about" className="py-16 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>About Us</h2>
-              <div className="section-divider mb-6" />
-              <p className="text-muted-foreground mb-4 leading-relaxed text-sm">
-                High Spirits Cafe in Pune, India, is a beloved nightlife hotspot that has been a fixture in Koregaon Park for over a decade. With its inviting open-air setting, adorned with fairy lights, it&apos;s a gathering place for both locals and visitors.
-              </p>
-              <p className="text-muted-foreground mb-4 leading-relaxed text-sm">
-                The venue&apos;s eclectic music scene, ranging from live bands to DJ sets, ensures there&apos;s always something for every music lover. Coupled with a delectable menu of bar snacks and heartier fare, along with an impressive drinks selection, High Spirits offers a complete experience for a memorable night out.
-              </p>
-              <p className="text-muted-foreground mb-6 leading-relaxed text-sm">
-                What truly sets High Spirits apart is its dedication to building a sense of community. Through events like themed parties, live gigs, and open mic nights, it creates a space where creativity and camaraderie flourish.
-              </p>
-              <div className="flex gap-8">
-                <div>
-                  <span className="text-2xl font-bold text-primary">10+</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">Years in Pune</p>
-                </div>
-                <div>
-                  <span className="text-2xl font-bold text-primary">100+</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">Drinks on Menu</p>
-                </div>
-                <div>
-                  <span className="text-2xl font-bold text-primary">₹100</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">Happy Hour Beer</p>
-                </div>
-              </div>
-            </div>
+      <section id="about" className="py-14 px-5">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+          <div className="lg:col-span-3">
+            <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">Our story</p>
+            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-2" style={{fontFamily:'Georgia,serif'}}>More Than a Bar</h2>
+            <div className="section-divider mb-5"/>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="aspect-[3/4] rounded overflow-hidden">
-                <img src={INTERIOR_IMAGE} alt="Cafe interior" className="w-full h-full object-cover" />
-              </div>
-              <div className="aspect-[3/4] rounded overflow-hidden mt-8">
-                <img src={COCKTAIL_IMAGE} alt="Cocktails at the bar" className="w-full h-full object-cover" />
-              </div>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+              High Spirits Cafe in Pune has been a fixture in Koregaon Park for over a decade. Its inviting open-air setting, adorned with fairy lights, makes it a gathering place for locals and visitors alike.
+            </p>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+              The eclectic music scene — live bands, DJ sets, open mic nights — ensures there&apos;s always something for every music lover. Coupled with great food and an impressive drinks selection, it&apos;s a complete experience for a memorable night out.
+            </p>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+              What truly sets High Spirits apart is its sense of community. Through themed parties, live gigs, and open mic nights, it creates a space where creativity and camaraderie flourish — making it a cherished institution in Pune&apos;s cultural landscape.
+            </p>
+
+            <div className="flex gap-6">
+              {[{v:'10+',l:'Years in Pune'},{v:'100+',l:'Drinks'},{v:'₹100',l:'HH Beer'}].map((s,i)=>(
+                <div key={i} className="pr-6 border-r border-border last:border-0 last:pr-0">
+                  <span className="text-xl font-bold text-primary">{s.v}</span>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{s.l}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-2 grid grid-cols-2 gap-3">
+            <div className="aspect-[3/4] rounded-lg overflow-hidden shadow-md">
+              <img src={INTERIOR_IMG} alt="Inside High Spirits" className="w-full h-full object-cover img-hover"/>
+            </div>
+            <div className="aspect-[3/4] rounded-lg overflow-hidden shadow-md mt-6">
+              <img src={COCKTAIL_IMG} alt="Cocktails at the bar" className="w-full h-full object-cover img-hover"/>
             </div>
           </div>
         </div>
       </section>
 
       {/* ===== CONTACT ===== */}
-      <section id="contact" className="py-16 px-4 sm:px-6 bg-muted">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>Find Us</h2>
-            <div className="section-divider mb-4" />
+      <section id="contact" className="py-14 px-5 bg-muted/80">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8">
+            <p className="text-primary/70 text-xs tracking-[0.15em] uppercase font-medium mb-1">Come visit</p>
+            <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight" style={{fontFamily:'Georgia,serif'}}>Find Us</h2>
+            <div className="section-divider mt-3 mb-4"/>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white border border-border rounded p-5">
-              <h3 className="font-semibold text-sm mb-3">Visit Us</h3>
-              <p className="text-sm text-muted-foreground mb-3">{ADDRESS}</p>
-              <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-                Get Directions →
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white border border-border rounded-lg p-5 card-hover">
+              <MapPin className="w-5 h-5 text-primary mb-2"/>
+              <h3 className="font-semibold text-sm mb-1.5">Visit Us</h3>
+              <p className="text-muted-foreground text-sm mb-2 leading-relaxed">{ADDRESS}</p>
+              <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer" className="text-primary text-sm font-medium hover:underline">Get Directions →</a>
+            </div>
+            <div className="bg-white border border-border rounded-lg p-5 card-hover">
+              <Phone className="w-5 h-5 text-primary mb-2"/>
+              <h3 className="font-semibold text-sm mb-1.5">Contact</h3>
+              <a href={PHONE_TEL} className="text-primary text-sm font-medium hover:underline block mb-1">{PHONE}</a>
+              <a href={`mailto:${EMAIL}`} className="text-muted-foreground text-sm hover:text-primary hover:underline block mb-1">{EMAIL}</a>
+              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-muted-foreground text-sm hover:text-primary hover:underline">
+                <Instagram className="w-4 h-4"/>@highspiritscafe
               </a>
             </div>
-
-            <div className="bg-white border border-border rounded p-5">
-              <h3 className="font-semibold text-sm mb-3">Contact</h3>
-              <a href={PHONE_TEL} className="block text-sm text-primary hover:underline mb-1.5">{PHONE}</a>
-              <a href={`mailto:${EMAIL}`} className="block text-sm text-primary hover:underline mb-1.5">{EMAIL}</a>
-              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                <Instagram className="w-4 h-4" /> @highspiritscafe
-              </a>
-            </div>
-
-            <div className="bg-white border border-border rounded p-5">
-              <h3 className="font-semibold text-sm mb-3">Hours</h3>
-              <p className="text-sm text-muted-foreground">Open Daily: 12 PM – 12:30 AM</p>
-              <p className="text-sm text-primary font-medium mt-1">Happy Hour: 12 PM – 6 PM</p>
-              <p className="text-sm text-muted-foreground mt-1">Vintage Nights: Tue & Thu</p>
+            <div className="bg-white border border-border rounded-lg p-5 card-hover">
+              <Clock className="w-5 h-5 text-primary mb-2"/>
+              <h3 className="font-semibold text-sm mb-1.5">Hours</h3>
+              <p className="text-muted-foreground text-sm">Open Daily: 12 PM – 12:30 AM</p>
+              <p className="text-primary text-sm font-medium mt-1">Happy Hour: 12 PM – 6 PM</p>
+              <p className="text-muted-foreground text-sm mt-0.5">Vintage: Tue & Thu</p>
             </div>
           </div>
 
-          {/* Map */}
-          <div className="rounded overflow-hidden border border-border h-64">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3782.9!2d73.89!3d18.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sHigh+Spirits+Cafe+Koregaon+Park+Pune!5e0!3m2!1sen!2sin!4v1"
-              width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade" title="High Spirits Cafe Location"
-            />
+          <div className="rounded-lg overflow-hidden border border-border h-56 shadow-sm">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3782.9!2d73.89!3d18.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sHigh+Spirits+Cafe+Koregaon+Park+Pune!5e0!3m2!1sen!2sin!4v1"
+              width="100%" height="100%" style={{border:0}} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="High Spirits Cafe"/>
           </div>
         </div>
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-foreground text-background py-8 px-4 sm:px-6 mt-auto">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="bg-[#1C1917] text-[#F8F6F1] py-10 px-5 mt-auto">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
-              <span className="font-bold text-lg" style={{ fontFamily: 'Georgia, serif' }}>High Spirits Cafe</span>
-              <p className="text-sm text-background/60 mt-1">{ADDRESS}</p>
+              <span className="font-bold text-lg tracking-wide" style={{fontFamily:'Georgia,serif'}}>High Spirits Cafe</span>
+              <p className="text-[#F8F6F1]/50 text-sm mt-2 leading-relaxed max-w-xs">{ADDRESS}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="text-background/60 hover:text-background transition">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href={PHONE_TEL} className="text-background/60 hover:text-background transition">
-                <Phone className="w-5 h-5" />
-              </a>
-              <a href={`mailto:${EMAIL}`} className="text-background/60 hover:text-background transition">
-                <Mail className="w-5 h-5" />
-              </a>
+            <div className="flex items-center gap-5">
+              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="text-[#F8F6F1]/40 hover:text-[#F8F6F1] transition-colors"><Instagram className="w-5 h-5"/></a>
+              <a href={PHONE_TEL} className="text-[#F8F6F1]/40 hover:text-[#F8F6F1] transition-colors"><Phone className="w-5 h-5"/></a>
+              <a href={`mailto:${EMAIL}`} className="text-[#F8F6F1]/40 hover:text-[#F8F6F1] transition-colors"><Mail className="w-5 h-5"/></a>
             </div>
           </div>
-          <div className="mt-6 pt-4 border-t border-background/10 text-center text-xs text-background/40">
+          <div className="mt-8 pt-5 border-t border-[#F8F6F1]/10 text-center text-xs text-[#F8F6F1]/30">
             GST No: 27AAIPI0115J1Z0 · © 2026 High Spirits Cafe, Pune
           </div>
         </div>
       </footer>
 
-      {/* ===== FLOATING WHATSAPP ===== */}
-      <button
-        onClick={sendWhatsAppOrder}
-        className="fixed bottom-5 right-5 z-40 w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-md transition whatsapp-pulse"
-        title="Order on WhatsApp"
-      >
-        <Send className="w-5 h-5" />
+      {/* ===== WHATSAPP ===== */}
+      <button onClick={whatsappOrder}
+        className="fixed bottom-5 right-5 z-40 w-[48px] h-[48px] bg-[#25D366] hover:bg-[#20BD5A] text-white rounded-full flex items-center justify-center shadow-lg shadow-[#25D366]/20 whatsapp-pulse btn-press"
+        title="Order on WhatsApp">
+        <Send className="w-5 h-5"/>
       </button>
 
-      {/* ===== ORDER FLOATING BAR ===== */}
-      {orderItems.length > 0 && (
-        <div className="fixed bottom-5 left-5 right-20 z-40 sm:left-auto sm:right-20 sm:w-72">
-          <div className="bg-white border border-border rounded-lg p-3 shadow-lg">
+      {/* ===== ORDER BAR ===== */}
+      {order.length>0 && (
+        <div className="fixed bottom-5 left-5 right-[70px] z-40 sm:left-auto sm:right-[70px] sm:w-[280px]">
+          <div className="bg-white border border-border rounded-lg p-3.5 shadow-xl shadow-black/5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold">Your Order ({orderItems.length})</span>
-              <button onClick={() => setOrderItems([])} className="text-xs text-muted-foreground hover:text-destructive">Clear</button>
+              <span className="text-xs font-semibold">Your Order <span className="text-muted-foreground">({order.length})</span></span>
+              <button onClick={()=>setOrder([])} className="text-[11px] text-muted-foreground hover:text-destructive transition-colors">Clear</button>
             </div>
-            <div className="max-h-28 overflow-y-auto space-y-1 mb-2">
-              {orderItems.map((item, i) => (
-                <div key={i} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground truncate flex-1">{item.name}</span>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <span className="font-medium">₹{item.price}</span>
-                    <button onClick={() => removeFromOrder(i)} className="text-muted-foreground hover:text-destructive"><X className="w-3 h-3" /></button>
+            <div className="max-h-24 overflow-y-auto space-y-0.5 mb-2">
+              {order.map((it,i)=>(
+                <div key={i} className="flex items-center justify-between text-[12px]">
+                  <span className="text-muted-foreground truncate flex-1">{it.name}</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="font-medium text-foreground">₹{it.price}</span>
+                    <button onClick={()=>rmOrder(i)} className="text-muted-foreground hover:text-destructive transition-colors"><X className="w-3 h-3"/></button>
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-border">
-              <span className="text-sm font-bold">₹{orderTotal}</span>
-              <button
-                onClick={sendWhatsAppOrder}
-                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition flex items-center gap-1"
-              >
-                <Send className="w-3 h-3" /> Order on WhatsApp
+              <span className="text-sm font-bold">₹{total}</span>
+              <button onClick={whatsappOrder}
+                className="px-3 py-1.5 bg-[#25D366] hover:bg-[#20BD5A] text-white text-[12px] font-medium rounded-md btn-press flex items-center gap-1 shadow-sm">
+                <Send className="w-3 h-3"/> WhatsApp Order
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== RESERVATION MODAL ===== */}
-      {showReservation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-          <div className="bg-white border border-border rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+      {/* ===== RESERVE MODAL ===== */}
+      {showReserve && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1917]/30 backdrop-blur-[2px]" onClick={()=>{setShowReserve(false);setResDone(false)}}>
+          <div className="bg-white rounded-xl p-6 max-w-[420px] w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={e=>e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold" style={{ fontFamily: 'Georgia, serif' }}>Book a Table</h2>
-              <button onClick={() => { setShowReservation(false); setReservationSubmitted(false); }} className="text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
-              </button>
+              <h2 className="text-lg font-bold" style={{fontFamily:'Georgia,serif'}}>Book a Table</h2>
+              <button onClick={()=>{setShowReserve(false);setResDone(false)}} className="text-muted-foreground hover:text-foreground transition-colors"><X className="w-5 h-5"/></button>
             </div>
 
-            {reservationSubmitted ? (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-bold text-lg mb-1">Reservation Requested!</h3>
-                <p className="text-sm text-muted-foreground">We&apos;ll confirm your booking via WhatsApp or phone shortly.</p>
-                <button
-                  onClick={() => { setShowReservation(false); setReservationSubmitted(false); }}
-                  className="mt-5 px-5 py-2 bg-primary text-primary-foreground rounded text-sm font-medium"
-                >
-                  Done
-                </button>
+            {resDone ? (
+              <div className="text-center py-6">
+                <div className="w-11 h-11 mx-auto mb-2.5 rounded-full bg-green-50 flex items-center justify-center"><Check className="w-5 h-5 text-green-600"/></div>
+                <h3 className="font-bold text-base mb-1">Booking Requested!</h3>
+                <p className="text-muted-foreground text-sm">We&apos;ll confirm via WhatsApp or phone shortly.</p>
+                <button onClick={()=>{setShowReserve(false);setResDone(false)}} className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium btn-press">Done</button>
               </div>
             ) : (
-              <form onSubmit={handleReservation} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Name *</label>
-                  <input type="text" required value={reservationForm.name} onChange={(e) => setReservationForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Your name" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Phone *</label>
-                  <input type="tel" required value={reservationForm.phone} onChange={(e) => setReservationForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="+91 98765 43210" />
-                </div>
+              <form onSubmit={submitRes} className="space-y-3">
+                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Name *</label>
+                  <input type="text" required value={resForm.name} onChange={e=>setResForm(p=>({...p,name:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Your name"/></div>
+                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Phone *</label>
+                  <input type="tel" required value={resForm.phone} onChange={e=>setResForm(p=>({...p,phone:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="+91 98765 43210"/></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Date *</label>
-                    <input type="date" required value={reservationForm.date} onChange={(e) => setReservationForm(prev => ({ ...prev, date: e.target.value }))}
-                      className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Time *</label>
-                    <input type="time" required value={reservationForm.time} onChange={(e) => setReservationForm(prev => ({ ...prev, time: e.target.value }))}
-                      className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  </div>
+                  <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Date *</label>
+                    <input type="date" required value={resForm.date} onChange={e=>setResForm(p=>({...p,date:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"/></div>
+                  <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Time *</label>
+                    <input type="time" required value={resForm.time} onChange={e=>setResForm(p=>({...p,time:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"/></div>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Guests *</label>
-                  <select value={reservationForm.guests} onChange={(e) => setReservationForm(prev => ({ ...prev, guests: e.target.value }))}
-                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, '9+'].map(n => <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Occasion</label>
-                  <select value={reservationForm.occasion} onChange={(e) => setReservationForm(prev => ({ ...prev, occasion: e.target.value }))}
-                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                    <option value="">Select (optional)</option>
-                    <option value="casual">Casual Hangout</option>
-                    <option value="birthday">Birthday</option>
-                    <option value="anniversary">Anniversary</option>
-                    <option value="corporate">Corporate</option>
-                    <option value="date">Date Night</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Special Requests</label>
-                  <textarea value={reservationForm.message} onChange={(e) => setReservationForm(prev => ({ ...prev, message: e.target.value }))}
-                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" rows={2} placeholder="Any special requests..." />
-                </div>
-                <button type="submit" className="w-full py-2.5 bg-primary text-primary-foreground font-medium rounded text-sm hover:bg-primary/90 transition">
-                  Book Now
-                </button>
+                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Guests *</label>
+                  <select value={resForm.guests} onChange={e=>setResForm(p=>({...p,guests:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    {[1,2,3,4,5,6,7,8,'9+'].map(n=><option key={n} value={n}>{n} {n===1?'Guest':'Guests'}</option>)}</select></div>
+                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Occasion</label>
+                  <select value={resForm.occasion} onChange={e=>setResForm(p=>({...p,occasion:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="">Optional</option><option value="casual">Casual</option><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option><option value="corporate">Corporate</option><option value="date">Date Night</option></select></div>
+                <div><label className="block text-[11px] font-medium text-muted-foreground mb-0.5">Notes</label>
+                  <textarea value={resForm.message} onChange={e=>setResForm(p=>({...p,message:e.target.value}))} className="w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" rows={2} placeholder="Any special requests..."/></div>
+                <button type="submit" className="w-full py-2.5 bg-primary text-primary-foreground font-medium rounded-md text-sm btn-press hover:bg-primary/90">Book Now</button>
               </form>
             )}
           </div>
         </div>
       )}
 
-      {/* ===== SCROLL TO TOP ===== */}
-      {showScrollTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-5 left-5 z-40 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground shadow-sm transition"
-        >
-          <ArrowUp className="w-4 h-4" />
+      {/* ===== TOP ===== */}
+      {showTop && (
+        <button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}
+          className="fixed bottom-5 left-5 z-40 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground shadow-sm btn-press">
+          <ArrowUp className="w-4 h-4"/>
         </button>
       )}
     </div>
