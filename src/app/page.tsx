@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Search, Phone, MapPin, Clock, ChevronDown, ChevronUp,
-  Star, Flame, Leaf, Drumstick, X, Menu as MenuIcon,
+  Flame, Leaf, X, Menu as MenuIcon,
   CalendarDays, Music, Mic, PartyPopper, Sun, Send,
-  Instagram, Mail, ChevronRight, ArrowUp, Check
+  Instagram, Mail, ArrowUp, Check
 } from 'lucide-react';
 
 // ==========================================
@@ -60,31 +60,30 @@ interface ReservationForm {
 const PHONE = '+91 97654 00484';
 const PHONE_TEL = 'tel:+919765400484';
 const WHATSAPP = 'https://wa.me/919765400484?text=Hi!%20I%20would%20like%20to%20place%20an%20order%20from%20High%20Spirits%20Cafe';
-const ADDRESS = '35A/1, Near ABC Farm, Behind Burger King, Koregaon Park, Pune - 411001';
+const ADDRESS = '35A/1, Near ABC Farm, Behind Burger King, Koregaon Park, Pune 411001';
 const EMAIL = 'highspiritscafe@gmail.com';
 const INSTAGRAM = 'https://instagram.com/highspiritscafe/';
 const GOOGLE_MAPS = 'https://maps.google.com/?q=High+Spirits+Cafe+Koregaon+Park+Pune';
 
+// Real images from search
+const HERO_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6916d4147cb7.jpg';
+const COCKTAIL_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/262d581f9a38.jpg';
+const FOOD_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/d8c9d15e152f.jpeg';
+const INTERIOR_IMAGE = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/927a9c3c15b8.jpg';
+
 const TABS = [
-  { key: 'offers', label: 'Offers', icon: '🎉', sublabel: '12–6 PM' },
-  { key: 'food', label: 'Food', icon: '🍽️' },
+  { key: 'offers', label: 'Happy Hour', icon: '🎉', sublabel: '12–6 PM' },
+  { key: 'food', label: 'Food', icon: '🍽' },
   { key: 'bar', label: 'Bar', icon: '🍸' },
   { key: 'coffee', label: 'Coffee', icon: '☕' },
-  { key: 'vintage', label: 'Vintage', icon: '🏷️', sublabel: 'Tue & Thu' },
+  { key: 'vintage', label: 'Vintage', icon: '🏷', sublabel: 'Tue & Thu' },
 ];
 
-const EVENT_ICONS: Record<string, React.ReactNode> = {
-  'live': <Music className="w-5 h-5" />,
-  'open-mic': <Mic className="w-5 h-5" />,
-  'themed': <PartyPopper className="w-5 h-5" />,
-  'dj': <Sun className="w-5 h-5" />,
-};
-
-const EVENT_COLORS: Record<string, string> = {
-  'live': 'from-red-50 to-orange-50 border-red-200',
-  'open-mic': 'from-purple-50 to-pink-50 border-purple-200',
-  'themed': 'from-amber-50 to-yellow-50 border-amber-200',
-  'dj': 'from-cyan-50 to-sky-50 border-cyan-200',
+const EVENT_TYPE_LABEL: Record<string, string> = {
+  'live': 'Live Music',
+  'open-mic': 'Open Mic',
+  'themed': 'Special',
+  'dj': 'Sundowner',
 };
 
 // ==========================================
@@ -96,36 +95,20 @@ function getHappyHourStatus() {
   const hour = ist.getHours();
   const minute = ist.getMinutes();
   const currentMinutes = hour * 60 + minute;
-  const startMinutes = 12 * 60; // 12 PM
-  const endMinutes = 18 * 60; // 6 PM
+  const startMinutes = 12 * 60;
+  const endMinutes = 18 * 60;
 
   if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
     const remaining = endMinutes - currentMinutes;
     const hoursLeft = Math.floor(remaining / 60);
     const minsLeft = remaining % 60;
-    return {
-      isActive: true,
-      message: `Happy Hour LIVE! Ends in ${hoursLeft}h ${minsLeft}m`,
-      timeLeft: remaining,
-    };
+    return { isActive: true, message: `Happy Hour ON — ends in ${hoursLeft}h ${minsLeft}m` };
   }
-
   if (currentMinutes < startMinutes) {
     const until = startMinutes - currentMinutes;
-    const hoursUntil = Math.floor(until / 60);
-    const minsUntil = until % 60;
-    return {
-      isActive: false,
-      message: `Happy Hour starts in ${hoursUntil}h ${minsUntil}m`,
-      timeLeft: 0,
-    };
+    return { isActive: false, message: `Happy Hour starts at 12 PM today` };
   }
-
-  return {
-    isActive: false,
-    message: 'Happy Hour starts tomorrow at 12 PM',
-    timeLeft: 0,
-  };
+  return { isActive: false, message: 'Happy Hour starts tomorrow at 12 PM' };
 }
 
 // ==========================================
@@ -148,28 +131,22 @@ export default function Home() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [orderItems, setOrderItems] = useState<{ name: string; price: number }[]>([]);
 
-  // Fetch data
   useEffect(() => {
     fetch('/api/menu').then(r => r.json()).then(setMenuData).catch(console.error);
     fetch('/api/events').then(r => r.json()).then(setEvents).catch(console.error);
   }, []);
 
-  // Happy hour timer
   useEffect(() => {
-    const interval = setInterval(() => {
-      setHappyHour(getHappyHourStatus());
-    }, 60000);
+    const interval = setInterval(() => setHappyHour(getHappyHourStatus()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Scroll listener
   useEffect(() => {
     const handler = () => setShowScrollTop(window.scrollY > 600);
     window.addEventListener('scroll', handler);
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  // Handle tab change - expand first category
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     if (menuData[tab]?.length) {
@@ -180,20 +157,17 @@ export default function Home() {
   const toggleCategory = (id: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
 
-  // Filter menu items
   const getFilteredItems = useCallback((items: MenuItem[]) => {
     let filtered = items;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(q) ||
-        (item.description && item.description.toLowerCase().includes(q))
+        item.name.toLowerCase().includes(q) || (item.description && item.description.toLowerCase().includes(q))
       );
     }
     if (vegFilter === 'veg') filtered = filtered.filter(i => i.isVeg);
@@ -201,30 +175,18 @@ export default function Home() {
     return filtered;
   }, [searchQuery, vegFilter]);
 
-  // Add to order
-  const addToOrder = (name: string, price: number) => {
-    setOrderItems(prev => [...prev, { name, price }]);
-  };
-
-  const removeFromOrder = (index: number) => {
-    setOrderItems(prev => prev.filter((_, i) => i !== index));
-  };
-
+  const addToOrder = (name: string, price: number) => setOrderItems(prev => [...prev, { name, price }]);
+  const removeFromOrder = (index: number) => setOrderItems(prev => prev.filter((_, i) => i !== index));
   const orderTotal = orderItems.reduce((sum, item) => sum + item.price, 0);
 
-  // WhatsApp order
   const sendWhatsAppOrder = () => {
-    if (orderItems.length === 0) {
-      window.open(WHATSAPP, '_blank');
-      return;
-    }
+    if (orderItems.length === 0) { window.open(WHATSAPP, '_blank'); return; }
     const itemsList = orderItems.map(i => `${i.name} — ₹${i.price}`).join('\n');
     const total = `Total: ₹${orderTotal}`;
     const message = encodeURIComponent(`Hi! I'd like to order from High Spirits Cafe:\n\n${itemsList}\n\n${total}`);
     window.open(`https://wa.me/919765400484?text=${message}`, '_blank');
   };
 
-  // Reservation submit
   const handleReservation = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -234,12 +196,9 @@ export default function Home() {
         body: JSON.stringify(reservationForm),
       });
       setReservationSubmitted(true);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  // Scroll to section
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
@@ -247,307 +206,238 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+
       {/* ===== NAVBAR ===== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <button onClick={() => scrollTo('hero')} className="flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:bg-primary/30 transition">
-                <span className="text-primary font-bold text-lg">H</span>
-              </div>
-              <div className="hidden sm:block">
-                <span className="text-primary font-bold text-lg tracking-wide">HIGH SPIRITS</span>
-                <span className="text-muted-foreground text-xs block -mt-1 tracking-widest">CAFE</span>
-              </div>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-14">
+            <button onClick={() => scrollTo('hero')} className="flex items-center gap-2">
+              <span className="text-primary font-bold text-lg tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>High Spirits</span>
+              <span className="text-muted-foreground text-xs tracking-widest uppercase hidden sm:inline">Cafe</span>
             </button>
 
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-6">
               {[
                 { id: 'menu', label: 'Menu' },
                 { id: 'events', label: 'Events' },
-                { id: 'gallery', label: 'Gallery' },
                 { id: 'about', label: 'About' },
                 { id: 'contact', label: 'Contact' },
               ].map(item => (
                 <button
                   key={item.id}
                   onClick={() => scrollTo(item.id)}
-                  className="px-4 py-2 text-sm text-muted-foreground hover:text-primary transition rounded-lg hover:bg-primary/10"
+                  className="text-sm text-muted-foreground hover:text-foreground transition"
                 >
                   {item.label}
                 </button>
               ))}
               <button
                 onClick={() => setShowReservation(true)}
-                className="ml-2 px-5 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition"
+                className="ml-2 px-4 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded hover:bg-primary/90 transition"
               >
-                Reserve a Table
+                Book a Table
               </button>
             </div>
 
-            {/* Mobile hamburger */}
-            <button
-              className="md:hidden p-2 text-muted-foreground hover:text-primary"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+            <button className="md:hidden p-2 text-muted-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-border shadow-lg">
-            <div className="px-4 py-3 space-y-1">
+          <div className="md:hidden bg-white border-t border-border">
+            <div className="px-4 py-2 space-y-0">
               {[
                 { id: 'menu', label: 'Menu' },
                 { id: 'events', label: 'Events' },
-                { id: 'gallery', label: 'Gallery' },
                 { id: 'about', label: 'About' },
                 { id: 'contact', label: 'Contact' },
               ].map(item => (
                 <button
                   key={item.id}
                   onClick={() => scrollTo(item.id)}
-                  className="block w-full text-left px-4 py-3 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition"
+                  className="block w-full text-left px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground"
                 >
                   {item.label}
                 </button>
               ))}
               <button
                 onClick={() => { setShowReservation(true); setMobileMenuOpen(false); }}
-                className="w-full mt-2 px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-lg text-center"
+                className="w-full my-2 px-4 py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded"
               >
-                Reserve a Table
+                Book a Table
               </button>
             </div>
           </div>
         )}
       </nav>
 
-      {/* ===== HERO SECTION ===== */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#faf7f2] via-[#fef3c7] to-[#faf7f2]" />
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: 'radial-gradient(circle at 20% 80%, #b45309 0%, transparent 40%), radial-gradient(circle at 80% 20%, #92400e 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 60%)',
-        }} />
+      {/* ===== HERO ===== */}
+      <section id="hero" className="relative min-h-screen flex items-center justify-center">
+        <div className="absolute inset-0">
+          <img src={HERO_IMAGE} alt="High Spirits Cafe interior" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
 
-        {/* Floating decorative elements */}
-        <div className="absolute top-20 left-10 w-2 h-2 bg-primary/40 rounded-full animate-pulse" />
-        <div className="absolute top-40 right-20 w-3 h-3 bg-accent/30 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-40 left-20 w-1.5 h-1.5 bg-primary/50 rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          {/* Neon sign effect */}
-          <div className="mb-6">
-            <span className="text-primary/80 text-sm tracking-[0.3em] uppercase font-medium">Welcome to</span>
-          </div>
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight mb-4">
-            <span className="text-primary">HIGH</span>
-            <br />
-            <span className="text-foreground">SPIRITS</span>
+        <div className="relative z-10 text-center px-4 max-w-2xl mx-auto">
+          <p className="text-white/70 text-sm tracking-[0.25em] uppercase mb-4">Est. 2010 · Koregaon Park, Pune</p>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+            High Spirits<br />Cafe
           </h1>
-          <p className="text-lg sm:text-xl text-primary mb-2 tracking-widest uppercase font-semibold">
-            Cafe &amp; Bar
-          </p>
-          <p className="text-muted-foreground max-w-lg mx-auto mb-8">
-            Pune&apos;s favourite nightlife destination. Live music, signature cocktails, great food, and unforgettable vibes since over a decade.
+          <p className="text-white/80 text-base sm:text-lg max-w-md mx-auto mb-8 leading-relaxed">
+            Live music, craft cocktails, and great food — Pune&apos;s favourite hangout for over a decade.
           </p>
 
-          {/* Happy Hour Status */}
-          <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full border mb-8 ${
-            happyHour.isActive
-              ? 'bg-green-500/10 border-green-500/30 text-green-400'
-              : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-          }`}>
-            <Clock className="w-4 h-4" />
-            <span className="text-sm font-medium">{happyHour.message}</span>
-            {happyHour.isActive && (
-              <span className="w-2 h-2 bg-green-400 rounded-full countdown-pulse" />
-            )}
-          </div>
+          {happyHour.isActive && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-white text-sm">{happyHour.message}</span>
+            </div>
+          )}
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => scrollTo('menu')}
-              className="px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition text-lg shadow-lg shadow-primary/20"
+              className="px-7 py-3 bg-white text-foreground font-medium rounded hover:bg-white/90 transition"
             >
-              See Menu &amp; Order
+              View Menu
             </button>
             <a
               href={PHONE_TEL}
-              className="px-8 py-3.5 border-2 border-primary/40 text-primary font-bold rounded-xl hover:bg-primary/10 transition text-lg"
+              className="px-7 py-3 border border-white/40 text-white font-medium rounded hover:bg-white/10 transition"
             >
-              <Phone className="w-5 h-5 inline mr-2" />
-              Call Us
+              <Phone className="w-4 h-4 inline mr-2" />Call Us
             </a>
-          </div>
-
-          {/* Scroll indicator */}
-          <div className="mt-16 animate-bounce">
-            <ChevronDown className="w-6 h-6 mx-auto text-primary/60" />
           </div>
         </div>
       </section>
 
+      {/* ===== HAPPY HOUR BANNER ===== */}
+      <div className="bg-primary text-primary-foreground py-3 px-4 text-center">
+        <p className="text-sm font-medium">
+          🎉 Happy Hour Daily 12–6 PM — Beer ₹100 · Cocktails ₹150 · Mimosa ₹130
+          <button onClick={() => scrollTo('menu')} className="ml-2 underline underline-offset-2 hover:no-underline">View all deals →</button>
+        </p>
+      </div>
+
       {/* ===== MENU SECTION ===== */}
-      <section id="menu" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">Our Menu</span>
-          <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">What We Serve</h2>
-          <div className="section-divider max-w-xs mx-auto mb-6" />
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            From craft cocktails to hearty meals — explore our menu, find your favourites, and order directly on WhatsApp.
-          </p>
+      <section id="menu" className="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
+        <div className="mb-10">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>Menu</h2>
+          <div className="section-divider mb-4" />
+          <p className="text-muted-foreground text-sm">Browse our menu, add items, and order on WhatsApp.</p>
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6 sticky top-16 z-30 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 shadow-sm">
+        {/* Search & Filter */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search menu — try 'paneer', 'cocktail', 'pizza'..."
+              placeholder="Search — try &quot;paneer&quot;, &quot;cocktail&quot;, &quot;pizza&quot;..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
+              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
           <div className="flex gap-2">
             {[
-              { key: 'all', label: 'All', icon: null },
-              { key: 'veg', label: 'Veg', icon: <Leaf className="w-3.5 h-3.5" /> },
-              { key: 'nonveg', label: 'Non-Veg', icon: <Drumstick className="w-3.5 h-3.5" /> },
+              { key: 'all' as const, label: 'All' },
+              { key: 'veg' as const, label: '🟢 Veg' },
+              { key: 'nonveg' as const, label: '🔴 Non-Veg' },
             ].map(f => (
               <button
                 key={f.key}
-                onClick={() => setVegFilter(f.key as 'all' | 'veg' | 'nonveg')}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition border ${
+                onClick={() => setVegFilter(f.key)}
+                className={`px-4 py-2.5 rounded text-sm font-medium border transition ${
                   vegFilter === f.key
-                    ? 'bg-primary/20 border-primary/40 text-primary'
-                    : 'bg-card border-border text-muted-foreground hover:border-primary/20'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-white border-border text-muted-foreground hover:border-primary/30'
                 }`}
               >
-                {f.icon}
                 {f.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Menu Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 overflow-x-auto border-b border-border">
           {TABS.map(tab => (
             <button
               key={tab.key}
               onClick={() => handleTabChange(tab.key)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold whitespace-nowrap transition border ${
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition ${
                 activeTab === tab.key
-                  ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
-                  : 'bg-card border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              <span className="text-lg">{tab.icon}</span>
+              <span>{tab.icon}</span>
               <span>{tab.label}</span>
-              {tab.sublabel && (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  activeTab === tab.key ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/10 text-primary'
-                }`}>
-                  {tab.sublabel}
-                </span>
-              )}
+              {tab.sublabel && <span className="text-xs text-muted-foreground">({tab.sublabel})</span>}
             </button>
           ))}
         </div>
 
         {/* Menu Categories */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {menuData[activeTab]?.map(category => {
             const isExpanded = expandedCategories.has(category.id);
             const filteredItems = getFilteredItems(category.items);
             if (searchQuery && filteredItems.length === 0) return null;
 
             return (
-              <div key={category.id} className="border border-border rounded-xl overflow-hidden bg-card">
-                {/* Category Header */}
+              <div key={category.id} className="border border-border rounded bg-white">
                 <button
                   onClick={() => toggleCategory(category.id)}
-                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-secondary/50 transition"
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{category.icon}</span>
-                    <div className="text-left">
-                      <h3 className="font-bold text-foreground">{category.name}</h3>
-                      {category.description && (
-                        <p className="text-xs text-muted-foreground">{category.description}</p>
-                      )}
-                    </div>
-                  </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                      {filteredItems.length} items
-                    </span>
-                    {isExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    )}
+                    <span className="text-base">{category.icon}</span>
+                    <span className="font-semibold text-sm">{category.name}</span>
+                    <span className="text-xs text-muted-foreground">({filteredItems.length})</span>
                   </div>
+                  {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                 </button>
 
-                {/* Category Items */}
                 {isExpanded && (
                   <div className="border-t border-border">
                     {filteredItems.map(item => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between px-5 py-3.5 border-b border-border/50 last:border-0 hover:bg-secondary/30 transition menu-item-hover"
+                        className="flex items-center justify-between px-4 py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/30 transition"
                       >
-                        <div className="flex-1 min-w-0 pr-4">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {/* Veg/Non-veg indicator */}
-                            <span className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center flex-shrink-0 ${
-                              item.isVeg ? 'border-green-500' : 'border-red-500'
+                        <div className="flex-1 min-w-0 pr-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center flex-shrink-0 ${
+                              item.isVeg ? 'border-green-600' : 'border-red-600'
                             }`}>
-                              <span className={`w-2 h-2 rounded-full ${
-                                item.isVeg ? 'bg-green-500' : 'bg-red-500'
-                              }`} />
+                              <span className={`w-1.5 h-1.5 rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`} />
                             </span>
-                            <span className="font-semibold text-foreground text-sm">{item.name}</span>
+                            <span className="text-sm font-medium">{item.name}</span>
                             {item.isBestseller && (
-                              <span className="flex items-center gap-0.5 text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
-                                <Flame className="w-3 h-3" /> Bestseller
-                              </span>
-                            )}
-                            {item.isNew && (
-                              <span className="text-xs bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20">
-                                New
-                              </span>
+                              <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium">Popular</span>
                             )}
                           </div>
                           {item.description && (
-                            <p className="text-xs text-muted-foreground mt-1 ml-6">{item.description}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 ml-5">{item.description}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className="font-bold text-primary">₹{item.price}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-sm font-semibold text-foreground">₹{item.price}</span>
                           <button
                             onClick={() => addToOrder(item.name, item.price)}
-                            className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/20 flex items-center justify-center text-primary transition"
+                            className="w-7 h-7 rounded border border-border bg-white hover:bg-primary hover:text-primary-foreground hover:border-primary flex items-center justify-center text-sm transition"
                             title="Add to order"
                           >
-                            <span className="text-lg leading-none">+</span>
+                            +
                           </button>
                         </div>
                       </div>
@@ -559,58 +449,38 @@ export default function Home() {
           })}
         </div>
 
-        {/* No results */}
         {searchQuery && !Object.values(menuData).flat().some(cat => getFilteredItems(cat.items).length > 0) && (
-          <div className="text-center py-12 text-muted-foreground">
-            <Search className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-medium">No items found for &quot;{searchQuery}&quot;</p>
-            <p className="text-sm mt-1">Try a different search term or clear the filter</p>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No items found for &quot;{searchQuery}&quot;</p>
           </div>
         )}
       </section>
 
-      {/* ===== EVENTS SECTION ===== */}
-      <section id="events" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">What&apos;s On</span>
-            <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">Events &amp; Nights</h2>
-            <div className="section-divider max-w-xs mx-auto mb-6" />
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              From live gigs to open mic nights — there&apos;s always something happening at High Spirits.
-            </p>
+      {/* ===== EVENTS ===== */}
+      <section id="events" className="py-16 px-4 sm:px-6 bg-muted">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>What&apos;s On</h2>
+            <div className="section-divider mb-4" />
+            <p className="text-muted-foreground text-sm">Live gigs, open mic, and themed nights — there&apos;s always something happening.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {events.map(event => (
-              <div
-                key={event.id}
-                className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${EVENT_COLORS[event.type] || 'from-primary/10 to-accent/10 border-border'} p-6 card-hover`}
-              >
-                {event.isFeatured && (
-                  <div className="absolute top-3 right-3">
-                    <span className="flex items-center gap-1 text-xs bg-primary/20 text-primary px-2 py-1 rounded-full border border-primary/30">
-                      <Star className="w-3 h-3" /> Featured
-                    </span>
-                  </div>
-                )}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    {EVENT_ICONS[event.type] || <Music className="w-5 h-5" />}
-                  </div>
-                  <div>
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider">{event.type.replace('-', ' ')}</span>
-                  </div>
+              <div key={event.id} className="bg-white border border-border rounded p-5 card-hover">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-medium text-primary bg-primary/5 px-2 py-0.5 rounded uppercase tracking-wider">
+                    {EVENT_TYPE_LABEL[event.type] || event.type}
+                  </span>
+                  {event.isFeatured && (
+                    <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium">Featured</span>
+                  )}
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-foreground">{event.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{event.description}</p>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="flex items-center gap-1.5 text-primary">
-                    <CalendarDays className="w-4 h-4" /> {event.date}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="w-4 h-4" /> {event.time}
-                  </span>
+                <h3 className="font-semibold text-base mb-1.5">{event.title}</h3>
+                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{event.description}</p>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> {event.date}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {event.time}</span>
                 </div>
               </div>
             ))}
@@ -618,314 +488,156 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== GALLERY SECTION ===== */}
-      <section id="gallery" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">The Vibe</span>
-            <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">Gallery</h2>
-            <div className="section-divider max-w-xs mx-auto mb-6" />
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { label: 'Live Gigs', color: 'from-red-50 to-orange-50' },
-              { label: 'The Stage', color: 'from-purple-50 to-pink-50' },
-              { label: 'Inside Vibe', color: 'from-amber-50 to-yellow-50' },
-              { label: 'Cocktails', color: 'from-cyan-50 to-teal-50' },
-              { label: 'DA HIGH Neon', color: 'from-amber-50 to-orange-50' },
-              { label: 'Fairy Lights', color: 'from-green-50 to-emerald-50' },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className={`relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br ${item.color} border border-border card-hover group cursor-pointer`}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-background/20 backdrop-blur-sm flex items-center justify-center border border-border/50 group-hover:scale-110 transition">
-                      <Camera className="w-8 h-8 text-primary/60" />
-                    </div>
-                    <span className="text-sm font-medium text-foreground/80">{item.label}</span>
-                  </div>
-                </div>
-                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition" />
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <a
-              href={INSTAGRAM}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-card border border-border rounded-xl text-muted-foreground hover:text-primary hover:border-primary/30 transition"
-            >
-              <Instagram className="w-5 h-5" />
-              See more on Instagram
-              <ChevronRight className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== ABOUT SECTION ===== */}
-      <section id="about" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted">
-        <div className="max-w-7xl mx-auto">
+      {/* ===== ABOUT ===== */}
+      <section id="about" className="py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">Our Story</span>
-              <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-6">More Than a Bar</h2>
-              <div className="section-divider max-w-xs mb-6" />
-              <p className="text-muted-foreground mb-4 leading-relaxed">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>About Us</h2>
+              <div className="section-divider mb-6" />
+              <p className="text-muted-foreground mb-4 leading-relaxed text-sm">
                 High Spirits Cafe in Pune, India, is a beloved nightlife hotspot that has been a fixture in Koregaon Park for over a decade. With its inviting open-air setting, adorned with fairy lights, it&apos;s a gathering place for both locals and visitors.
               </p>
-              <p className="text-muted-foreground mb-4 leading-relaxed">
+              <p className="text-muted-foreground mb-4 leading-relaxed text-sm">
                 The venue&apos;s eclectic music scene, ranging from live bands to DJ sets, ensures there&apos;s always something for every music lover. Coupled with a delectable menu of bar snacks and heartier fare, along with an impressive drinks selection, High Spirits offers a complete experience for a memorable night out.
               </p>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                What truly sets High Spirits apart is its dedication to building a sense of community. Through events like themed parties, live gigs, and open mic nights, it creates a space where creativity and camaraderie flourish. This spirit of inclusivity has made High Spirits Cafe a cherished institution in Pune&apos;s cultural landscape.
+              <p className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                What truly sets High Spirits apart is its dedication to building a sense of community. Through events like themed parties, live gigs, and open mic nights, it creates a space where creativity and camaraderie flourish.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <div className="text-center">
-                  <span className="text-3xl font-black text-primary">10+</span>
-                  <p className="text-xs text-muted-foreground mt-1">Years in Pune</p>
+              <div className="flex gap-8">
+                <div>
+                  <span className="text-2xl font-bold text-primary">10+</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">Years in Pune</p>
                 </div>
-                <div className="w-px h-12 bg-border" />
-                <div className="text-center">
-                  <span className="text-3xl font-black text-primary">100+</span>
-                  <p className="text-xs text-muted-foreground mt-1">Drinks &amp; Cocktails</p>
+                <div>
+                  <span className="text-2xl font-bold text-primary">100+</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">Drinks on Menu</p>
                 </div>
-                <div className="w-px h-12 bg-border" />
-                <div className="text-center">
-                  <span className="text-3xl font-black text-primary">Live</span>
-                  <p className="text-xs text-muted-foreground mt-1">Music Every Week</p>
-                </div>
-                <div className="w-px h-12 bg-border" />
-                <div className="text-center">
-                  <span className="text-3xl font-black text-primary">₹100</span>
-                  <p className="text-xs text-muted-foreground mt-1">Happy Hour Beer</p>
+                <div>
+                  <span className="text-2xl font-bold text-primary">₹100</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">Happy Hour Beer</p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: 'Open-Air Seating', desc: 'Fairy lights under the stars', color: 'from-amber-50 to-orange-50' },
-                { label: 'Live Music Stage', desc: 'Bands, DJs, and open mic', color: 'from-red-50 to-purple-50' },
-                { label: 'Signature Cocktails', desc: 'Crafted by our expert bar team', color: 'from-cyan-50 to-teal-50' },
-                { label: 'Community Vibes', desc: 'Where everyone belongs', color: 'from-green-50 to-emerald-50' },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className={`p-6 rounded-2xl bg-gradient-to-br ${item.color} border border-border card-hover`}
-                >
-                  <h4 className="font-bold text-foreground mb-1">{item.label}</h4>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
-                </div>
-              ))}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="aspect-[3/4] rounded overflow-hidden">
+                <img src={INTERIOR_IMAGE} alt="Cafe interior" className="w-full h-full object-cover" />
+              </div>
+              <div className="aspect-[3/4] rounded overflow-hidden mt-8">
+                <img src={COCKTAIL_IMAGE} alt="Cocktails at the bar" className="w-full h-full object-cover" />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== CONTACT SECTION ===== */}
-      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-primary text-sm tracking-[0.2em] uppercase font-medium">Find Us</span>
-            <h2 className="text-4xl sm:text-5xl font-black mt-2 mb-4">Contact Us</h2>
-            <div className="section-divider max-w-xs mx-auto mb-6" />
+      {/* ===== CONTACT ===== */}
+      <section id="contact" className="py-16 px-4 sm:px-6 bg-muted">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif' }}>Find Us</h2>
+            <div className="section-divider mb-4" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Phone */}
-            <a
-              href={PHONE_TEL}
-              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary/20 transition">
-                <Phone className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground mb-1">Call Us</h3>
-                <p className="text-primary font-medium">{PHONE}</p>
-                <p className="text-xs text-muted-foreground mt-1">Tap to call directly</p>
-              </div>
-            </a>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white border border-border rounded p-5">
+              <h3 className="font-semibold text-sm mb-3">Visit Us</h3>
+              <p className="text-sm text-muted-foreground mb-3">{ADDRESS}</p>
+              <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                Get Directions →
+              </a>
+            </div>
 
-            {/* WhatsApp */}
-            <button
-              onClick={sendWhatsAppOrder}
-              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group text-left"
-            >
-              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400 flex-shrink-0 group-hover:bg-green-500/20 transition">
-                <Send className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground mb-1">WhatsApp Order</h3>
-                <p className="text-green-400 font-medium">Chat &amp; Order</p>
-                <p className="text-xs text-muted-foreground mt-1">Quick, easy, no app needed</p>
-              </div>
-            </button>
+            <div className="bg-white border border-border rounded p-5">
+              <h3 className="font-semibold text-sm mb-3">Contact</h3>
+              <a href={PHONE_TEL} className="block text-sm text-primary hover:underline mb-1.5">{PHONE}</a>
+              <a href={`mailto:${EMAIL}`} className="block text-sm text-primary hover:underline mb-1.5">{EMAIL}</a>
+              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                <Instagram className="w-4 h-4" /> @highspiritscafe
+              </a>
+            </div>
 
-            {/* Location */}
-            <a
-              href={GOOGLE_MAPS}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary/20 transition">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground mb-1">Visit Us</h3>
-                <p className="text-sm text-muted-foreground">{ADDRESS}</p>
-                <p className="text-xs text-primary mt-1">Get Directions →</p>
-              </div>
-            </a>
-
-            {/* Email */}
-            <a
-              href={`mailto:${EMAIL}`}
-              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary/20 transition">
-                <Mail className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground mb-1">Email Us</h3>
-                <p className="text-primary font-medium">{EMAIL}</p>
-                <p className="text-xs text-muted-foreground mt-1">For inquiries &amp; events</p>
-              </div>
-            </a>
-
-            {/* Instagram */}
-            <a
-              href={INSTAGRAM}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border card-hover group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 flex-shrink-0 group-hover:bg-pink-500/20 transition">
-                <Instagram className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground mb-1">Instagram</h3>
-                <p className="text-pink-400 font-medium">@highspiritscafe</p>
-                <p className="text-xs text-muted-foreground mt-1">Live updates &amp; photos</p>
-              </div>
-            </a>
-
-            {/* Hours */}
-            <div className="flex items-start gap-4 p-6 rounded-2xl bg-card border border-border">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                <Clock className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground mb-1">Hours</h3>
-                <p className="text-sm text-muted-foreground">Open Daily: 12 PM – 12:30 AM</p>
-                <p className="text-xs text-amber-400 mt-1">Happy Hour: 12 PM – 6 PM</p>
-              </div>
+            <div className="bg-white border border-border rounded p-5">
+              <h3 className="font-semibold text-sm mb-3">Hours</h3>
+              <p className="text-sm text-muted-foreground">Open Daily: 12 PM – 12:30 AM</p>
+              <p className="text-sm text-primary font-medium mt-1">Happy Hour: 12 PM – 6 PM</p>
+              <p className="text-sm text-muted-foreground mt-1">Vintage Nights: Tue & Thu</p>
             </div>
           </div>
 
-          {/* Map Embed */}
-          <div className="mt-8 rounded-2xl overflow-hidden border border-border h-64 sm:h-80">
+          {/* Map */}
+          <div className="rounded overflow-hidden border border-border h-64">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3782.9!2d73.89!3d18.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sHigh+Spirits+Cafe+Koregaon+Park+Pune!5e0!3m2!1sen!2sin!4v1"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="High Spirits Cafe Location"
+              width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade" title="High Spirits Cafe Location"
             />
           </div>
         </div>
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-muted border-t border-border py-8 px-4 sm:px-6 lg:px-8 mt-auto">
-        <div className="max-w-7xl mx-auto">
+      <footer className="bg-foreground text-background py-8 px-4 sm:px-6 mt-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-                <span className="text-primary font-bold">H</span>
-              </div>
-              <div>
-                <span className="text-primary font-bold tracking-wide">HIGH SPIRITS CAFE</span>
-              </div>
+            <div>
+              <span className="font-bold text-lg" style={{ fontFamily: 'Georgia, serif' }}>High Spirits Cafe</span>
+              <p className="text-sm text-background/60 mt-1">{ADDRESS}</p>
             </div>
-            <div className="text-center text-xs text-muted-foreground">
-              <p>{ADDRESS}</p>
-              <p className="mt-1">GST No: 27AAIPI0115J1Z0</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-pink-400 hover:border-pink-400/30 transition">
-                <Instagram className="w-4 h-4" />
+            <div className="flex items-center gap-4">
+              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="text-background/60 hover:text-background transition">
+                <Instagram className="w-5 h-5" />
               </a>
-              <a href={PHONE_TEL} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition">
-                <Phone className="w-4 h-4" />
+              <a href={PHONE_TEL} className="text-background/60 hover:text-background transition">
+                <Phone className="w-5 h-5" />
               </a>
-              <a href={`mailto:${EMAIL}`} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition">
-                <Mail className="w-4 h-4" />
+              <a href={`mailto:${EMAIL}`} className="text-background/60 hover:text-background transition">
+                <Mail className="w-5 h-5" />
               </a>
             </div>
           </div>
-          <div className="mt-6 text-center text-xs text-muted-foreground">
-            © 2026 High Spirits Cafe, Pune. All rights reserved.
+          <div className="mt-6 pt-4 border-t border-background/10 text-center text-xs text-background/40">
+            GST No: 27AAIPI0115J1Z0 · © 2026 High Spirits Cafe, Pune
           </div>
         </div>
       </footer>
 
-      {/* ===== FLOATING WHATSAPP BUTTON ===== */}
+      {/* ===== FLOATING WHATSAPP ===== */}
       <button
         onClick={sendWhatsAppOrder}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-green-500/30 transition whatsapp-pulse"
+        className="fixed bottom-5 right-5 z-40 w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-md transition whatsapp-pulse"
         title="Order on WhatsApp"
       >
-        <Send className="w-6 h-6" />
+        <Send className="w-5 h-5" />
       </button>
 
       {/* ===== ORDER FLOATING BAR ===== */}
       {orderItems.length > 0 && (
-        <div className="fixed bottom-6 left-6 right-24 z-40 sm:left-auto sm:right-24 sm:w-80">
-          <div className="bg-card border border-primary/30 rounded-2xl p-4 shadow-xl shadow-primary/10">
+        <div className="fixed bottom-5 left-5 right-20 z-40 sm:left-auto sm:right-20 sm:w-72">
+          <div className="bg-white border border-border rounded-lg p-3 shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold text-primary">Your Order</span>
-              <button
-                onClick={() => setOrderItems([])}
-                className="text-xs text-muted-foreground hover:text-destructive"
-              >
-                Clear all
-              </button>
+              <span className="text-xs font-semibold">Your Order ({orderItems.length})</span>
+              <button onClick={() => setOrderItems([])} className="text-xs text-muted-foreground hover:text-destructive">Clear</button>
             </div>
-            <div className="max-h-32 overflow-y-auto space-y-1 mb-2">
+            <div className="max-h-28 overflow-y-auto space-y-1 mb-2">
               {orderItems.map((item, i) => (
-                <div key={i} className="flex items-center justify-between text-sm">
+                <div key={i} className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground truncate flex-1">{item.name}</span>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-primary">₹{item.price}</span>
-                    <button
-                      onClick={() => removeFromOrder(i)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className="font-medium">₹{item.price}</span>
+                    <button onClick={() => removeFromOrder(i)} className="text-muted-foreground hover:text-destructive"><X className="w-3 h-3" /></button>
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-border">
-              <span className="font-bold text-foreground">Total: ₹{orderTotal}</span>
+              <span className="text-sm font-bold">₹{orderTotal}</span>
               <button
                 onClick={sendWhatsAppOrder}
-                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-xl transition flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition flex items-center gap-1"
               >
-                <Send className="w-3.5 h-3.5" />
-                WhatsApp Order
+                <Send className="w-3 h-3" /> Order on WhatsApp
               </button>
             </div>
           </div>
@@ -934,122 +646,79 @@ export default function Home() {
 
       {/* ===== RESERVATION MODAL ===== */}
       {showReservation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/5 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-foreground">Reserve a Table</h2>
-              <button
-                onClick={() => { setShowReservation(false); setReservationSubmitted(false); }}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+          <div className="bg-white border border-border rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold" style={{ fontFamily: 'Georgia, serif' }}>Book a Table</h2>
+              <button onClick={() => { setShowReservation(false); setReservationSubmitted(false); }} className="text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {reservationSubmitted ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <Check className="w-8 h-8 text-green-400" />
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check className="w-6 h-6 text-green-600" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">Reservation Requested!</h3>
-                <p className="text-muted-foreground text-sm">
-                  We&apos;ll confirm your booking via WhatsApp or phone call shortly.
-                </p>
+                <h3 className="font-bold text-lg mb-1">Reservation Requested!</h3>
+                <p className="text-sm text-muted-foreground">We&apos;ll confirm your booking via WhatsApp or phone shortly.</p>
                 <button
                   onClick={() => { setShowReservation(false); setReservationSubmitted(false); }}
-                  className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold"
+                  className="mt-5 px-5 py-2 bg-primary text-primary-foreground rounded text-sm font-medium"
                 >
                   Done
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleReservation} className="space-y-4">
+              <form onSubmit={handleReservation} className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={reservationForm.name}
-                    onChange={(e) => setReservationForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Your name"
-                  />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Name *</label>
+                  <input type="text" required value={reservationForm.name} onChange={(e) => setReservationForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Your name" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">Phone *</label>
-                  <input
-                    type="tel"
-                    required
-                    value={reservationForm.phone}
-                    onChange={(e) => setReservationForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="+91 98765 43210"
-                  />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Phone *</label>
+                  <input type="tel" required value={reservationForm.phone} onChange={(e) => setReservationForm(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="+91 98765 43210" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">Date *</label>
-                    <input
-                      type="date"
-                      required
-                      value={reservationForm.date}
-                      onChange={(e) => setReservationForm(prev => ({ ...prev, date: e.target.value }))}
-                      className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Date *</label>
+                    <input type="date" required value={reservationForm.date} onChange={(e) => setReservationForm(prev => ({ ...prev, date: e.target.value }))}
+                      className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">Time *</label>
-                    <input
-                      type="time"
-                      required
-                      value={reservationForm.time}
-                      onChange={(e) => setReservationForm(prev => ({ ...prev, time: e.target.value }))}
-                      className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Time *</label>
+                    <input type="time" required value={reservationForm.time} onChange={(e) => setReservationForm(prev => ({ ...prev, time: e.target.value }))}
+                      className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">Guests *</label>
-                  <select
-                    value={reservationForm.guests}
-                    onChange={(e) => setReservationForm(prev => ({ ...prev, guests: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, '9+'].map(n => (
-                      <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
-                    ))}
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Guests *</label>
+                  <select value={reservationForm.guests} onChange={(e) => setReservationForm(prev => ({ ...prev, guests: e.target.value }))}
+                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, '9+'].map(n => <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">Occasion (Optional)</label>
-                  <select
-                    value={reservationForm.occasion}
-                    onChange={(e) => setReservationForm(prev => ({ ...prev, occasion: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="">Select occasion</option>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Occasion</label>
+                  <select value={reservationForm.occasion} onChange={(e) => setReservationForm(prev => ({ ...prev, occasion: e.target.value }))}
+                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option value="">Select (optional)</option>
                     <option value="casual">Casual Hangout</option>
                     <option value="birthday">Birthday</option>
                     <option value="anniversary">Anniversary</option>
-                    <option value="corporate">Corporate Event</option>
+                    <option value="corporate">Corporate</option>
                     <option value="date">Date Night</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">Special Requests (Optional)</label>
-                  <textarea
-                    value={reservationForm.message}
-                    onChange={(e) => setReservationForm(prev => ({ ...prev, message: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-                    rows={2}
-                    placeholder="Any special requests..."
-                  />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Special Requests</label>
+                  <textarea value={reservationForm.message} onChange={(e) => setReservationForm(prev => ({ ...prev, message: e.target.value }))}
+                    className="w-full px-3 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" rows={2} placeholder="Any special requests..." />
                 </div>
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition text-lg"
-                >
-                  Reserve Now
+                <button type="submit" className="w-full py-2.5 bg-primary text-primary-foreground font-medium rounded text-sm hover:bg-primary/90 transition">
+                  Book Now
                 </button>
               </form>
             )}
@@ -1061,21 +730,11 @@ export default function Home() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 left-6 z-40 w-10 h-10 bg-card border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition"
+          className="fixed bottom-5 left-5 z-40 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground shadow-sm transition"
         >
-          <ArrowUp className="w-5 h-5" />
+          <ArrowUp className="w-4 h-4" />
         </button>
       )}
     </div>
-  );
-}
-
-// Simple camera icon component since we don't have one from lucide
-function Camera({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-      <circle cx="12" cy="13" r="3" />
-    </svg>
   );
 }
