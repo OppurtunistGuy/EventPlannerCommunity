@@ -159,6 +159,7 @@ export default function Home() {
   const [menuData, setMenuData] = useState<Record<string, MenuCategory[]>>({});
   const [events, setEvents] = useState<Event[]>([]);
   const [tables, setTables] = useState<TableInfo[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
   // Menu state
   const [activeTab, setActiveTab] = useState<string>('food');
@@ -201,11 +202,12 @@ export default function Home() {
   useEffect(() => {
     const handler = (event: ErrorEvent) => {
       console.error('[DIAG] Uncaught runtime error:', event.error?.message, event.error?.stack);
-      // Prevent the error boundary from catching it — we want to see the diag
-      // event.preventDefault();
+      // Prevent the error from propagating to the error boundary
+      event.preventDefault();
     };
     const rejectionHandler = (event: PromiseRejectionEvent) => {
       console.error('[DIAG] Unhandled promise rejection:', event.reason);
+      event.preventDefault();
     };
     window.addEventListener('error', handler);
     window.addEventListener('unhandledrejection', rejectionHandler);
@@ -233,27 +235,39 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    let loadingCount = 3;
+    const markLoaded = () => { loadingCount--; if (loadingCount <= 0) setDataLoading(false); };
+
     fetch('/api/menu')
       .then(r => { if (!r.ok) throw new Error(`menu ${r.status}`); return r.json(); })
       .then(data => {
         console.log('[DIAG] menuData loaded, keys:', Object.keys(data));
+        console.log('[DIAG] menuData["food"]:', data['food'] ? `${data['food'].length} categories` : 'MISSING');
+        console.log('[DIAG] menuData["coffee"]:', data['coffee'] ? `${data['coffee'].length} categories` : 'MISSING');
+        console.log('[DIAG] menuData["bar"]:', data['bar'] ? `${data['bar'].length} categories` : 'MISSING');
+        console.log('[DIAG] menuData["offers"]:', data['offers'] ? `${data['offers'].length} categories` : 'MISSING');
+        console.log('[DIAG] menuData["vintage"]:', data['vintage'] ? `${data['vintage'].length} categories` : 'MISSING');
         setMenuData(data);
+        markLoaded();
       })
-      .catch(err => console.error('[DIAG] /api/menu failed:', err));
+      .catch(err => { console.error('[DIAG] /api/menu failed:', err); markLoaded(); });
     fetch('/api/events')
       .then(r => { if (!r.ok) throw new Error(`events ${r.status}`); return r.json(); })
       .then(data => {
         console.log('[DIAG] events loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
         setEvents(Array.isArray(data) ? data : []);
+        markLoaded();
       })
-      .catch(err => console.error('[DIAG] /api/events failed:', err));
+      .catch(err => { console.error('[DIAG] /api/events failed:', err); markLoaded(); });
     fetch('/api/tables')
       .then(r => { if (!r.ok) throw new Error(`tables ${r.status}`); return r.json(); })
       .then(data => {
         console.log('[DIAG] tables loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+        console.log('[DIAG] tables:', JSON.stringify(data).substring(0, 200));
         setTables(Array.isArray(data) ? data : []);
+        markLoaded();
       })
-      .catch(err => console.error('[DIAG] /api/tables failed:', err));
+      .catch(err => { console.error('[DIAG] /api/tables failed:', err); markLoaded(); });
   }, []);
 
   useEffect(() => {
@@ -295,6 +309,7 @@ export default function Home() {
   // CART HELPERS
   // ==========================================
   const addToCart = (item: MenuItem) => {
+    console.log('[DIAG] addToCart:', item.name, 'price:', item.price);
     setCart(prev => {
       const existing = prev.find(c => c.menuItem.id === item.id);
       if (existing) return prev.map(c => c.menuItem.id === item.id ? { ...c, quantity: c.quantity + 1 } : c);
@@ -323,6 +338,7 @@ export default function Home() {
   // ==========================================
   const submitOrder = async () => {
     if (!selectedTable || cart.length === 0) return;
+    console.log('[DIAG] Submit order - table:', selectedTable.number, 'items:', cart.length);
     setOrderSubmitting(true);
     try {
       const res = await fetch('/api/orders', {
@@ -334,7 +350,12 @@ export default function Home() {
           items: cart.map(c => ({ menuItemId: c.menuItem.id, quantity: c.quantity })),
         }),
       });
-      if (!res.ok) throw new Error('Order failed');
+      if (!res.ok) {
+        const errData = await res.text();
+        console.error('[DIAG] Order failed:', res.status, errData);
+        throw new Error('Order failed');
+      }
+      console.log('[DIAG] Order placed successfully');
       setCart([]);
       setShowCart(false);
       setOrderSuccess(true);
@@ -345,7 +366,7 @@ export default function Home() {
       }
       setTimeout(() => setOrderSuccess(false), 4000);
     } catch (err) {
-      console.error(err);
+      console.error('[DIAG] submitOrder error:', err);
     } finally {
       setOrderSubmitting(false);
     }
@@ -355,10 +376,12 @@ export default function Home() {
   // BILL
   // ==========================================
   const fetchBill = async (tableId: string) => {
+    console.log('[DIAG] fetchBill for tableId:', tableId);
     try {
       const res = await fetch(`/api/bill?tableId=${tableId}`);
       if (!res.ok) throw new Error(`bill ${res.status}`);
       const data = await res.json();
+      console.log('[DIAG] Bill data:', JSON.stringify(data).substring(0, 200));
       setBillData(data);
       setShowBill(true);
     } catch (err) {
@@ -395,6 +418,7 @@ export default function Home() {
   // ==========================================
   const submitReservation = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[DIAG] Submit reservation:', reservationForm);
     setReservationSubmitting(true);
     try {
       const res = await fetch('/api/reservations', {
@@ -402,7 +426,11 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reservationForm),
       });
-      if (!res.ok) throw new Error('Reservation failed');
+      if (!res.ok) {
+        const errData = await res.text();
+        console.error('[DIAG] Reservation failed:', res.status, errData);
+        throw new Error('Reservation failed');
+      }
       setReservationSuccess(true);
       setTimeout(() => {
         setReservationSuccess(false);
@@ -410,7 +438,7 @@ export default function Home() {
         setReservationForm({ name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '' });
       }, 3000);
     } catch (err) {
-      console.error(err);
+      console.error('[DIAG] submitReservation error:', err);
     } finally {
       setReservationSubmitting(false);
     }
@@ -452,7 +480,7 @@ export default function Home() {
                 {id}
               </button>
             ))}
-            <button onClick={() => setShowReservation(true)} className={`text-sm font-medium px-4 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
+            <button onClick={() => { console.log('[DIAG] Reserve button clicked (nav), setting showReservation=true'); setShowReservation(true); }} className={`text-sm font-medium px-4 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
               Reserve a Table
             </button>
           </div>
@@ -490,7 +518,7 @@ export default function Home() {
               {['menu', 'events', 'about', 'contact'].map(id => (
                 <button key={id} onClick={() => scrollTo(id)} className="text-left text-base font-medium text-[var(--color-foreground)] hover:text-[var(--color-primary)] capitalize">{id}</button>
               ))}
-              <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-accent)]">
+              <button onClick={() => { console.log('[DIAG] Reserve button clicked (mobile nav)'); setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-accent)]">
                 Reserve a Table
               </button>
               {selectedTable && (
@@ -522,7 +550,7 @@ export default function Home() {
               <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
                 <UtensilsCrossed className="w-4 h-4" /> View Menu
               </button>
-              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+              <button onClick={() => { console.log('[DIAG] Reserve button clicked (hero), setting showReservation=true'); setShowReservation(true); }} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4" /> Reserve a Table
               </button>
             </div>
@@ -596,7 +624,7 @@ export default function Home() {
                 <p className="text-sm font-medium text-[var(--color-foreground)]">Select your table to start ordering</p>
                 <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your waiter can also add items for you</p>
               </div>
-              <button onClick={() => setShowTableSelector(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+              <button onClick={() => { console.log('[DIAG] Select Table button clicked, setting showTableSelector=true'); setShowTableSelector(true); }} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
                 <Users className="w-4 h-4" /> Select Table
               </button>
             </motion.div>
@@ -630,7 +658,13 @@ export default function Home() {
 
           {/* Categories */}
           <div ref={menuRef} className="space-y-3">
-            {filteredCategories.length === 0 && (
+            {dataLoading && filteredCategories.length === 0 && (
+              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+                <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
+                <p className="text-sm">Loading menu...</p>
+              </div>
+            )}
+            {!dataLoading && filteredCategories.length === 0 && (
               <div className="text-center py-16 text-[var(--color-muted-foreground)]">
                 <Search className="w-8 h-8 mx-auto mb-3 opacity-40" />
                 <p className="text-sm">No items found. Try a different search.</p>
@@ -751,7 +785,7 @@ export default function Home() {
               </div>
               {/* CTA after about */}
               <div className="mt-6 flex flex-wrap gap-3">
-                <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                <button onClick={() => { console.log('[DIAG] Reserve button clicked (about)'); setShowReservation(true); }} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
                   <CalendarDays className="w-4 h-4" /> Reserve a Table
                 </button>
                 <button onClick={() => scrollTo('menu')} className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
@@ -852,7 +886,7 @@ export default function Home() {
               <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Reserve your table or just walk in — we&apos;d love to host you.</p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+              <button onClick={() => { console.log('[DIAG] Reserve button clicked (contact)'); setShowReservation(true); }} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
                 <CalendarDays className="w-4 h-4" /> Reserve a Table
               </button>
               <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
@@ -918,7 +952,7 @@ export default function Home() {
                   { label: 'Menu', action: () => scrollTo('menu') },
                   { label: 'Events', action: () => scrollTo('events') },
                   { label: 'About', action: () => scrollTo('about') },
-                  { label: 'Reservations', action: () => setShowReservation(true) },
+                  { label: 'Reservations', action: () => { console.log('[DIAG] Reserve button clicked (footer links)'); setShowReservation(true); } },
                 ].map(link => (
                   <button key={link.label} onClick={link.action} className="text-xs text-white/60 hover:text-white transition-colors text-left">
                     {link.label}
@@ -940,7 +974,7 @@ export default function Home() {
                   <Instagram className="w-3.5 h-3.5" /> @highspiritscafe
                 </a>
               </div>
-              <button onClick={() => setShowReservation(true)} className="mt-4 px-4 py-2 bg-white/15 rounded-lg text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-2">
+              <button onClick={() => { console.log('[DIAG] Reserve button clicked (footer)'); setShowReservation(true); }} className="mt-4 px-4 py-2 bg-white/15 rounded-lg text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-2">
                 <CalendarDays className="w-3.5 h-3.5" /> Reserve a Table
               </button>
             </div>
@@ -985,7 +1019,7 @@ export default function Home() {
         {showTableSelector && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
-            onClick={() => setShowTableSelector(false)}>
+            onClick={() => { console.log('[DIAG] Table selector modal backdrop clicked, closing'); setShowTableSelector(false); }}>
             <motion.div variants={slideUp} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
               className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -999,6 +1033,7 @@ export default function Home() {
                 </button>
               </div>
               <div className="overflow-y-auto p-5 flex-1">
+                {(() => { console.log('[DIAG] Rendering table selector, tables:', tables.length, 'selectedTable:', selectedTable?.number); return null; })()}
                 {(['indoor', 'outdoor', 'bar', 'vip'] as const).map(area => {
                   const areaTables = tables.filter(t => t.area === area);
                   if (areaTables.length === 0) return null;
@@ -1011,7 +1046,7 @@ export default function Home() {
                           const isAvailable = table.status === 'available';
                           return (
                             <button key={table.id} disabled={!isAvailable && !isSelected}
-                              onClick={() => { setSelectedTable(isSelected ? null : table); setShowTableSelector(false); }}
+                              onClick={() => { console.log('[DIAG] Table selected:', table.number, 'area:', table.area, 'status:', table.status); setSelectedTable(isSelected ? null : table); setShowTableSelector(false); }}
                               className={`table-card p-3 rounded-xl border text-center ${isSelected ? 'selected' : isAvailable ? 'border-[var(--color-border)] bg-white hover:border-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-secondary)] opacity-50 cursor-not-allowed'}`}>
                               <div className="flex items-center justify-center gap-1.5 mb-1">
                                 <span className={`status-dot ${isAvailable ? 'status-available' : 'status-occupied'}`} />
@@ -1171,7 +1206,7 @@ export default function Home() {
         {showReservation && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-            onClick={() => setShowReservation(false)}>
+            onClick={() => { console.log('[DIAG] Reservation modal backdrop clicked, closing'); setShowReservation(false); }}>
             <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
               className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
