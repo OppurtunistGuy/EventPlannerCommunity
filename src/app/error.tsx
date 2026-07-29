@@ -11,6 +11,8 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error('Application error:', error);
+    // Send error details to a visible endpoint for debugging
+    fetch(`/api/error-log?message=${encodeURIComponent(error.message)}&stack=${encodeURIComponent(error.stack || '')}`).catch(() => {});
   }, [error]);
 
   return (
