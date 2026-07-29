@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Phone, MapPin, Clock, ChevronDown, ChevronUp,
   Leaf, X, Menu as MenuIcon,
   CalendarDays, Music, Mic, PartyPopper, Sun, Send,
   Instagram, Mail, ArrowUp, Check, Plus, Minus, Trash2,
-  Receipt, Users, UtensilsCrossed, ShoppingBag, ClipboardList,
-  AlertCircle, RefreshCw, Wine, Coffee, Utensils, Sparkles, Tag
+  Receipt, Users, UtensilsCrossed, ShoppingBag,
+  Wine, Coffee, Utensils, Sparkles, Tag, Star, Navigation,
+  ExternalLink, Heart, ChevronRight
 } from 'lucide-react';
 
 // ==========================================
@@ -51,10 +52,12 @@ interface ReservationForm {
 // ==========================================
 const PHONE = '+91 97654 00484';
 const PHONE_TEL = 'tel:+919765400484';
+const WHATSAPP = 'https://wa.me/919765400484';
 const ADDRESS = '35A/1, Near ABC Farm, Behind Burger King, Koregaon Park, Pune 411001';
 const EMAIL = 'highspiritscafe@gmail.com';
 const INSTAGRAM = 'https://instagram.com/highspiritscafe/';
 const GOOGLE_MAPS = 'https://maps.google.com/?q=High+Spirits+Cafe+Koregaon+Park+Pune';
+const MAPS_EMBED = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3782.5!2d73.89!3d18.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTjCsDMzJzA2LjAiTiA3M8KwNTMnMjQuMCJF!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin';
 
 const HERO_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6916d4147cb7.jpg';
 const COCKTAIL_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/262d581f9a38.jpg';
@@ -70,10 +73,7 @@ const TABS = [
 ] as const;
 
 const AREA_LABELS: Record<string, string> = {
-  indoor: 'Indoor',
-  outdoor: 'Outdoor',
-  bar: 'Bar Counter',
-  vip: 'VIP Lounge',
+  indoor: 'Indoor', outdoor: 'Outdoor', bar: 'Bar Counter', vip: 'VIP Lounge',
 };
 
 // ==========================================
@@ -101,16 +101,20 @@ function getTimeLeft(): string {
   return `${h}h ${m}m ${s}s`;
 }
 
+function isRestaurantOpen(): { open: boolean; closesAt: string } {
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const hour = now.getHours();
+  // Open 12 PM to 1 AM (next day)
+  if (hour >= 12 || hour < 1) return { open: true, closesAt: '1:00 AM' };
+  return { open: false, closesAt: '12:00 PM' };
+}
+
 // ==========================================
 // ANIMATION VARIANTS
 // ==========================================
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-};
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.4 } },
 };
 const slideInRight = {
   hidden: { x: 360, opacity: 0 },
@@ -143,7 +147,7 @@ export default function Home() {
   const [vegOnly, setVegOnly] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  // Table & Order state
+  // Table & Order state — customer only sees their table number and order
   const [selectedTable, setSelectedTable] = useState<TableInfo | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
@@ -161,8 +165,9 @@ export default function Home() {
   const [reservationSubmitting, setReservationSubmitting] = useState(false);
   const [reservationSuccess, setReservationSuccess] = useState(false);
 
-  // Happy hour
+  // Happy hour & status
   const [happyHourTime, setHappyHourTime] = useState('');
+  const [restaurantStatus, setRestaurantStatus] = useState({ open: false, closesAt: '' });
 
   // Mobile nav
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -175,8 +180,12 @@ export default function Home() {
   // FETCH DATA
   // ==========================================
   useEffect(() => {
-    const timer = setInterval(() => setHappyHourTime(getTimeLeft()), 1000);
+    const timer = setInterval(() => {
+      setHappyHourTime(getTimeLeft());
+      setRestaurantStatus(isRestaurantOpen());
+    }, 1000);
     setHappyHourTime(getTimeLeft());
+    setRestaurantStatus(isRestaurantOpen());
     return () => clearInterval(timer);
   }, []);
 
@@ -268,7 +277,6 @@ export default function Home() {
       setCart([]);
       setShowCart(false);
       setOrderSuccess(true);
-      // Refresh tables
       const tablesRes = await fetch('/api/tables');
       setTables(await tablesRes.json());
       setTimeout(() => setOrderSuccess(false), 4000);
@@ -348,6 +356,9 @@ export default function Home() {
     setMobileNavOpen(false);
   };
 
+  // Next upcoming event
+  const nextEvent = events.find(e => e.isFeatured) || events[0];
+
   // ==========================================
   // RENDER
   // ==========================================
@@ -368,7 +379,7 @@ export default function Home() {
               </button>
             ))}
             <button onClick={() => setShowReservation(true)} className={`text-sm font-medium px-4 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
-              Reserve
+              Reserve a Table
             </button>
           </div>
           <div className="flex items-center gap-3">
@@ -379,7 +390,7 @@ export default function Home() {
                 onClick={() => fetchBill(selectedTable.id)}
                 className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
               >
-                <Receipt className="w-3.5 h-3.5" /> Table {selectedTable.number} — Bill
+                <Receipt className="w-3.5 h-3.5" /> My Bill
               </motion.button>
             )}
             <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className={`md:hidden p-1.5 ${scrolled ? 'text-[var(--color-foreground)]' : 'text-white'}`}>
@@ -392,36 +403,25 @@ export default function Home() {
       {/* Mobile nav overlay */}
       <AnimatePresence>
         {mobileNavOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 md:hidden"
-            onClick={() => setMobileNavOpen(false)}
-          >
-            <motion.div
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={() => setMobileNavOpen(false)}>
+            <motion.div initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
               className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl p-6 flex flex-col gap-6"
-              onClick={e => e.stopPropagation()}
-            >
+              onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between">
                 <span className="font-[var(--font-display)] text-lg font-bold text-[var(--color-primary)]">High Spirits</span>
                 <button onClick={() => setMobileNavOpen(false)}><X className="w-5 h-5" /></button>
               </div>
               {['menu', 'events', 'about', 'contact'].map(id => (
-                <button key={id} onClick={() => scrollTo(id)} className="text-left text-base font-medium text-[var(--color-foreground)] hover:text-[var(--color-primary)] capitalize">
-                  {id}
-                </button>
+                <button key={id} onClick={() => scrollTo(id)} className="text-left text-base font-medium text-[var(--color-foreground)] hover:text-[var(--color-primary)] capitalize">{id}</button>
               ))}
               <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-accent)]">
                 Reserve a Table
               </button>
               {selectedTable && (
                 <button onClick={() => { fetchBill(selectedTable.id); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
-                  <Receipt className="w-4 h-4" /> Table {selectedTable.number} — View Bill
+                  <Receipt className="w-4 h-4" /> View My Bill
                 </button>
               )}
             </motion.div>
@@ -445,18 +445,18 @@ export default function Home() {
               Pune&apos;s favourite nightlife destination. Live music, craft cocktails, and unforgettable evenings — since 2005.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button onClick={() => { setShowTableSelector(true); }} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
-                <UtensilsCrossed className="w-4 h-4" /> Order at Your Table
+              <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4" /> View Menu
               </button>
-              <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20">
-                View Menu
+              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+                <CalendarDays className="w-4 h-4" /> Reserve a Table
               </button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ===== HAPPY HOUR BANNER ===== */}
+      {/* ===== HAPPY HOUR BANNER + RESTAURANT STATUS ===== */}
       <div className="bg-[var(--color-primary)] text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3">
@@ -465,75 +465,38 @@ export default function Home() {
             <span className="text-xs text-white/60 hidden sm:inline">|</span>
             <span className="text-xs text-white/80 hidden sm:inline">Beer ₹100 · Cocktails ₹150 · Mimosa ₹130</span>
           </div>
-          <span className="text-xs font-mono text-white/70">{happyHourTime}</span>
+          <div className="flex items-center gap-4">
+            {/* Live restaurant status */}
+            <span className={`flex items-center gap-1.5 text-xs font-medium ${restaurantStatus.open ? 'text-green-300' : 'text-red-300'}`}>
+              <span className={`w-2 h-2 rounded-full ${restaurantStatus.open ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+              {restaurantStatus.open ? `Open · Closes at ${restaurantStatus.closesAt}` : `Closed · Opens at ${restaurantStatus.closesAt}`}
+            </span>
+            <span className="text-xs font-mono text-white/70">{happyHourTime}</span>
+          </div>
         </div>
       </div>
 
-      {/* ===== TABLE SELECTOR (when no table selected) ===== */}
-      <AnimatePresence>
-        {!selectedTable && (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            variants={fadeUp}
-            className="bg-[var(--color-secondary)] border-b border-[var(--color-border)]"
-          >
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="section-label">Table Ordering</p>
-                  <h2 className="section-heading text-xl sm:text-2xl mt-1">Select Your Table</h2>
-                </div>
-                <button onClick={() => setShowTableSelector(true)} className="text-sm font-medium text-[var(--color-primary)] hover:underline flex items-center gap-1">
-                  View All Tables <ChevronDown className="w-4 h-4" />
-                </button>
-              </div>
-              <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
-                Choose your table to start ordering. Your waiter will be notified instantly.
-              </p>
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                {tables.filter(t => t.status === 'available').slice(0, 8).map(table => (
-                  <button
-                    key={table.id}
-                    onClick={() => { setSelectedTable(table); setShowTableSelector(false); }}
-                    className="flex-shrink-0 px-4 py-3 bg-white rounded-lg border border-[var(--color-border)] hover:border-[var(--color-primary)] hover:shadow-sm transition-all text-center"
-                  >
-                    <div className="text-lg font-bold text-[var(--color-primary)]">T{table.number}</div>
-                    <div className="text-xs text-[var(--color-muted-foreground)]">{AREA_LABELS[table.area] || table.area} · {table.capacity} seats</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ===== SELECTED TABLE BAR ===== */}
+      {/* ===== SELECTED TABLE BAR (subtle, customer-friendly) ===== */}
       <AnimatePresence>
         {selectedTable && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-[var(--color-primary)] text-white overflow-hidden"
+            className="bg-[var(--color-primary)]/5 border-b border-[var(--color-primary)]/10 overflow-hidden"
           >
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
-                  <span className="text-sm font-bold">T{selectedTable.number}</span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium">Table {selectedTable.number}</span>
-                  <span className="text-xs text-white/60 ml-2">{AREA_LABELS[selectedTable.area]} · {selectedTable.capacity} seats</span>
-                </div>
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[var(--color-muted-foreground)]">Dining at</span>
+                <span className="text-sm font-semibold text-[var(--color-primary)]">Table {selectedTable.number}</span>
+                <span className="text-xs text-[var(--color-muted-foreground)]">· {AREA_LABELS[selectedTable.area]}</span>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1.5 bg-white/15 rounded text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-1.5">
-                  <Receipt className="w-3.5 h-3.5" /> View Bill
+                <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5">
+                  <Receipt className="w-3.5 h-3.5" /> View My Bill
                 </button>
-                <button onClick={() => { setSelectedTable(null); setCart([]); }} className="px-3 py-1.5 bg-white/15 rounded text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-1.5">
-                  <X className="w-3.5 h-3.5" /> Change
+                <button onClick={() => { setSelectedTable(null); setCart([]); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
+                  Change
                 </button>
               </div>
             </div>
@@ -551,16 +514,27 @@ export default function Home() {
             <div className="divider mx-auto mt-4" />
           </motion.div>
 
+          {/* Table assignment prompt (if no table selected) */}
+          {!selectedTable && (
+            <motion.div initial="hidden" animate="visible" variants={fadeUp}
+              className="mb-8 bg-[var(--color-secondary)] border border-[var(--color-border)] rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <p className="text-sm font-medium text-[var(--color-foreground)]">Select your table to start ordering</p>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your waiter can also add items for you</p>
+              </div>
+              <button onClick={() => setShowTableSelector(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                <Users className="w-4 h-4" /> Select Table
+              </button>
+            </motion.div>
+          )}
+
           {/* Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 -mx-1 px-1">
             {TABS.map(tab => {
               const Icon = tab.icon;
               return (
-                <button
-                  key={tab.key}
-                  onClick={() => handleTabChange(tab.key)}
-                  className={`tab-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border ${activeTab === tab.key ? 'active border-[var(--color-primary)]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
-                >
+                <button key={tab.key} onClick={() => handleTabChange(tab.key)}
+                  className={`tab-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border ${activeTab === tab.key ? 'active border-[var(--color-primary)]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}>
                   <Icon className="w-4 h-4" /> {tab.label}
                 </button>
               );
@@ -571,18 +545,11 @@ export default function Home() {
           <div className="flex items-center gap-3 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
-              <input
-                type="text"
-                placeholder="Search menu..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
-              />
+              <input type="text" placeholder="Search menu..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all" />
             </div>
-            <button
-              onClick={() => setVegOnly(!vegOnly)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${vegOnly ? 'bg-[#27AE60]/10 border-[#27AE60] text-[#27AE60]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)]'}`}
-            >
+            <button onClick={() => setVegOnly(!vegOnly)}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${vegOnly ? 'bg-[#27AE60]/10 border-[#27AE60] text-[#27AE60]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)]'}`}>
               <Leaf className="w-4 h-4" /> Veg
             </button>
           </div>
@@ -598,19 +565,10 @@ export default function Home() {
             {filteredCategories.map((cat, idx) => {
               const isOpen = expandedCategories.has(cat.slug) || searchQuery.length > 0;
               return (
-                <motion.div
-                  key={cat.id}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: '-30px' }}
-                  variants={fadeUp}
-                  transition={{ delay: idx * 0.05 }}
-                  className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden"
-                >
-                  <button
-                    onClick={() => toggleCategory(cat.slug)}
-                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--color-secondary)]/50 transition-colors"
-                  >
+                <motion.div key={cat.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.05 }}
+                  className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden">
+                  <button onClick={() => toggleCategory(cat.slug)}
+                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--color-secondary)]/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <span className="text-lg">{cat.icon}</span>
                       <div className="text-left">
@@ -623,23 +581,12 @@ export default function Home() {
                   </button>
                   <AnimatePresence>
                     {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        className="overflow-hidden"
-                      >
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
                         <div className="border-t border-[var(--color-border)]">
                           {cat.items.map((item) => (
-                            <MenuItemRow
-                              key={item.id}
-                              item={item}
-                              inCart={cart.find(c => c.menuItem.id === item.id)}
-                              onAdd={addToCart}
-                              onUpdateQty={updateCartQty}
-                              tableSelected={!!selectedTable}
-                            />
+                            <MenuItemRow key={item.id} item={item} inCart={cart.find(c => c.menuItem.id === item.id)}
+                              onAdd={addToCart} onUpdateQty={updateCartQty} tableSelected={!!selectedTable} />
                           ))}
                         </div>
                       </motion.div>
@@ -662,15 +609,8 @@ export default function Home() {
           </motion.div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((event, idx) => (
-              <motion.div
-                key={event.id}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: '-30px' }}
-                variants={fadeUp}
-                transition={{ delay: idx * 0.08 }}
-                className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow"
-              >
+              <motion.div key={event.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.08 }}
+                className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
                     {event.type === 'live' && <Music className="w-5 h-5 text-[var(--color-primary)]" />}
@@ -699,41 +639,68 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
             <p className="section-label">Since 2005</p>
-            <h2 className="section-heading text-3xl sm:text-4xl mt-2">About High Spirits</h2>
+            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Our Story</h2>
             <div className="divider mx-auto mt-4" />
           </motion.div>
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
               <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
-                High Spirits Cafe has been Pune&apos;s go-to spot for great food, handcrafted cocktails, and the best live music in the city. Nestled in the heart of Koregaon Park, we&apos;ve been crafting unforgettable nights since 2005.
+                In 2005, two friends had a simple idea: create a place where the music is always live, the drinks never stop flowing, and everyone feels like a regular. That place became High Spirits — a corner of Koregaon Park that turned into Pune&apos;s longest-running nightlife institution.
+              </p>
+              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
+                What makes us different? We don&apos;t do pretension. We do great cocktails at honest prices, live music that makes you stay past midnight, and food that surprises you — from Konkani Paneer Chilli to Neapolitan pizzas. Our Vintage Nights on Tuesdays and Thursdays have become legendary, and our Saturday gigs are the worst-kept secret in the city.
               </p>
               <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-6">
-                From our legendary Vintage Nights with budget-friendly cocktails to our Saturday live gigs, every visit is a story worth telling. Our menu blends global flavours with local soul — from Konkani Paneer Chilli to Neapolitan pizzas, and shots that are conversation starters.
+                Walk in as a stranger, walk out as family. That&apos;s the High Spirits promise.
               </p>
-              <div className="grid grid-cols-3 gap-4">
+              {/* Trust metrics */}
+              <div className="grid grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[var(--color-primary)]">19+</div>
                   <div className="text-xs text-[var(--color-muted-foreground)]">Years</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--color-primary)]">110+</div>
-                  <div className="text-xs text-[var(--color-muted-foreground)]">Menu Items</div>
+                  <div className="flex items-center justify-center gap-0.5">
+                    <span className="text-2xl font-bold text-[var(--color-primary)]">4.6</span>
+                    <Star className="w-4 h-4 fill-[var(--color-accent)] text-[var(--color-accent)]" />
+                  </div>
+                  <div className="text-xs text-[var(--color-muted-foreground)]">Rating</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--color-primary)]">50K+</div>
+                  <div className="text-xs text-[var(--color-muted-foreground)]">Guests</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[var(--color-primary)]">5</div>
-                  <div className="text-xs text-[var(--color-muted-foreground)]">Weekly Events</div>
+                  <div className="text-xs text-[var(--color-muted-foreground)]">Live Events</div>
                 </div>
+              </div>
+              {/* CTA after about */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4" /> Reserve a Table
+                </button>
+                <button onClick={() => scrollTo('menu')} className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
+                  View Menu <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </motion.div>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="grid grid-cols-2 gap-3">
               <img src={INTERIOR_IMG} alt="Interior" className="rounded-xl object-cover w-full h-48 sm:h-64" />
               <img src={COCKTAIL_IMG} alt="Cocktails" className="rounded-xl object-cover w-full h-48 sm:h-64 mt-6" />
               <img src={FOOD_IMG} alt="Food" className="rounded-xl object-cover w-full h-48 sm:h-64 -mt-6" />
-              <div className="rounded-xl bg-[var(--color-primary)] text-white flex items-center justify-center p-6 h-48 sm:h-64">
-                <div className="text-center">
-                  <p className="font-[var(--font-display)] text-2xl font-bold mb-1">Good Vibes</p>
-                  <p className="font-[var(--font-display)] text-2xl font-bold">Great Nights</p>
+              {/* Replace green card with Google Rating card */}
+              <div className="rounded-xl bg-[var(--color-primary)] text-white flex flex-col items-center justify-center p-5 h-48 sm:h-64">
+                <div className="flex items-center gap-1 mb-2">
+                  {[1,2,3,4,5].map(i => (
+                    <Star key={i} className={`w-5 h-5 ${i <= 4 ? 'fill-[var(--color-accent)] text-[var(--color-accent)]' : 'fill-white/30 text-white/30'}`} />
+                  ))}
                 </div>
+                <p className="font-[var(--font-display)] text-lg font-bold">4.6 on Google</p>
+                <p className="text-xs text-white/60 mt-1">Based on 2,800+ reviews</p>
+                <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer" className="mt-3 text-xs text-white/80 underline hover:text-white transition-colors">
+                  Read Reviews →
+                </a>
               </div>
             </motion.div>
           </div>
@@ -748,39 +715,113 @@ export default function Home() {
             <h2 className="section-heading text-3xl sm:text-4xl mt-2">Find Us</h2>
             <div className="divider mx-auto mt-4" />
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: MapPin, label: 'Address', value: ADDRESS, href: GOOGLE_MAPS },
-              { icon: Phone, label: 'Call Us', value: PHONE, href: PHONE_TEL },
-              { icon: Clock, label: 'Hours', value: 'Mon–Sun: 12 PM – 1 AM', href: null },
-              { icon: Mail, label: 'Email', value: EMAIL, href: `mailto:${EMAIL}` },
-            ].map((item, idx) => (
-              <motion.div
-                key={item.label}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                transition={{ delay: idx * 0.08 }}
-                className="bg-white rounded-xl border border-[var(--color-border)] p-5 text-center"
-              >
-                <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mx-auto mb-3">
-                  <item.icon className="w-5 h-5 text-[var(--color-primary)]" />
-                </div>
-                <h3 className="font-semibold text-sm mb-1">{item.label}</h3>
-                {item.href ? (
-                  <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="text-xs text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors">
-                    {item.value}
-                  </a>
-                ) : (
-                  <p className="text-xs text-[var(--color-muted-foreground)]">{item.value}</p>
-                )}
-              </motion.div>
-            ))}
+
+          {/* Contact cards with actionable links */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Address — opens Google Maps */}
+            <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer"
+              className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow group cursor-pointer">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mb-3">
+                <MapPin className="w-5 h-5 text-[var(--color-primary)]" />
+              </div>
+              <h3 className="font-semibold text-sm mb-1">Address</h3>
+              <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed mb-2">{ADDRESS}</p>
+              <span className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1 group-hover:underline">
+                <Navigation className="w-3 h-3" /> Get Directions
+              </span>
+            </a>
+
+            {/* Call — highlighted as primary action */}
+            <a href={PHONE_TEL}
+              className="bg-[var(--color-primary)] text-white rounded-xl p-5 hover:opacity-90 transition-opacity group cursor-pointer shadow-md">
+              <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center mb-3">
+                <Phone className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-semibold text-sm mb-1">Call Us</h3>
+              <p className="text-xs text-white/80 mb-2">{PHONE}</p>
+              <span className="text-xs text-white font-medium flex items-center gap-1 group-hover:underline">
+                <Phone className="w-3 h-3" /> Call Now
+              </span>
+            </a>
+
+            {/* Hours — with live status */}
+            <div className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mb-3">
+                <Clock className="w-5 h-5 text-[var(--color-primary)]" />
+              </div>
+              <h3 className="font-semibold text-sm mb-1">Hours</h3>
+              <p className="text-xs text-[var(--color-muted-foreground)]">Mon–Sun: 12 PM – 1 AM</p>
+              <span className={`inline-flex items-center gap-1.5 mt-2 text-xs font-medium ${restaurantStatus.open ? 'text-[#27AE60]' : 'text-[var(--color-destructive)]'}`}>
+                <span className={`w-2 h-2 rounded-full ${restaurantStatus.open ? 'bg-[#27AE60] animate-pulse' : 'bg-[var(--color-destructive)]'}`} />
+                {restaurantStatus.open ? `Open · Closes at ${restaurantStatus.closesAt}` : `Closed · Opens at ${restaurantStatus.closesAt}`}
+              </span>
+            </div>
+
+            {/* Email */}
+            <a href={`mailto:${EMAIL}`}
+              className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow group cursor-pointer">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mb-3">
+                <Mail className="w-5 h-5 text-[var(--color-primary)]" />
+              </div>
+              <h3 className="font-semibold text-sm mb-1">Email</h3>
+              <p className="text-xs text-[var(--color-muted-foreground)] mb-2">{EMAIL}</p>
+              <span className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1 group-hover:underline">
+                <ExternalLink className="w-3 h-3" /> Send Email
+              </span>
+            </a>
           </div>
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors">
+
+          {/* Reservation CTA in contact section */}
+          <div className="bg-white rounded-xl border border-[var(--color-border)] p-6 mb-8 flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h3 className="font-semibold text-[var(--color-foreground)]">Ready to visit?</h3>
+              <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Reserve your table or just walk in — we&apos;d love to host you.</p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                <CalendarDays className="w-4 h-4" /> Reserve a Table
+              </button>
+              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
+                <Send className="w-4 h-4" /> WhatsApp
+              </a>
+            </div>
+          </div>
+
+          {/* Google Maps */}
+          <div className="rounded-xl overflow-hidden border border-[var(--color-border)] shadow-sm">
+            <iframe
+              src={MAPS_EMBED}
+              width="100%"
+              height="300"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="High Spirits Cafe Location"
+              className="w-full"
+            />
+            <div className="bg-white p-4 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)]">
+                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> Koregaon Park, Pune</span>
+                <span className="flex items-center gap-1"><Navigation className="w-3.5 h-3.5" /> Near ABC Farm</span>
+                <span className="flex items-center gap-1"><Car className="w-3.5 h-3.5" /> Street parking available</span>
+              </div>
+              <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer"
+                className="text-xs font-medium text-[var(--color-primary)] hover:underline flex items-center gap-1">
+                <Navigation className="w-3.5 h-3.5" /> Get Directions
+              </a>
+            </div>
+          </div>
+
+          {/* Social proof */}
+          <div className="mt-8 flex items-center justify-center gap-6">
+            <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors">
               <Instagram className="w-4 h-4" /> @highspiritscafe
+            </a>
+            <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors">
+              <Star className="w-4 h-4 fill-[var(--color-accent)] text-[var(--color-accent)]" /> 4.6 on Google
             </a>
           </div>
         </div>
@@ -789,15 +830,51 @@ export default function Home() {
       {/* ===== FOOTER ===== */}
       <footer className="bg-[var(--color-primary)] text-white py-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="grid sm:grid-cols-3 gap-8 mb-8">
+            {/* Brand */}
             <div>
               <span className="font-[var(--font-display)] text-xl font-bold">High Spirits Cafe</span>
-              <p className="text-white/50 text-xs mt-1">Koregaon Park, Pune — Since 2005</p>
+              <p className="text-white/50 text-xs mt-2 leading-relaxed">Pune&apos;s favourite nightlife destination since 2005. Live music, craft cocktails, and unforgettable evenings in the heart of Koregaon Park.</p>
             </div>
-            <div className="flex items-center gap-6 text-xs text-white/50">
-              <button onClick={() => setShowReservation(true)} className="hover:text-white transition-colors">Reservations</button>
-              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
-              <a href={PHONE_TEL} className="hover:text-white transition-colors">{PHONE}</a>
+            {/* Quick Links */}
+            <div>
+              <h4 className="text-sm font-semibold mb-3">Quick Links</h4>
+              <div className="flex flex-col gap-2">
+                {[
+                  { label: 'Menu', action: () => scrollTo('menu') },
+                  { label: 'Events', action: () => scrollTo('events') },
+                  { label: 'About', action: () => scrollTo('about') },
+                  { label: 'Reservations', action: () => setShowReservation(true) },
+                ].map(link => (
+                  <button key={link.label} onClick={link.action} className="text-xs text-white/60 hover:text-white transition-colors text-left">
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Contact & Social */}
+            <div>
+              <h4 className="text-sm font-semibold mb-3">Contact</h4>
+              <div className="flex flex-col gap-2">
+                <a href={PHONE_TEL} className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5" /> {PHONE}
+                </a>
+                <a href={`mailto:${EMAIL}`} className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5" /> {EMAIL}
+                </a>
+                <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+                  <Instagram className="w-3.5 h-3.5" /> @highspiritscafe
+                </a>
+              </div>
+              <button onClick={() => setShowReservation(true)} className="mt-4 px-4 py-2 bg-white/15 rounded-lg text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-2">
+                <CalendarDays className="w-3.5 h-3.5" /> Reserve a Table
+              </button>
+            </div>
+          </div>
+          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p className="text-xs text-white/40">&copy; {new Date().getFullYear()} High Spirits Cafe. All rights reserved.</p>
+            <div className="flex items-center gap-4 text-xs text-white/40">
+              <span>Payment: Cash · UPI · Cards</span>
             </div>
           </div>
         </div>
@@ -807,13 +884,10 @@ export default function Home() {
       <AnimatePresence>
         {cartCount > 0 && selectedTable && (
           <motion.button
-            initial={{ scale: 0, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0, y: 20 }}
+            initial={{ scale: 0, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0, y: 20 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             onClick={() => setShowCart(true)}
-            className="fixed bottom-6 right-6 z-40 bg-[var(--color-primary)] text-white px-5 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3"
-          >
+            className="fixed bottom-6 right-6 z-40 bg-[var(--color-primary)] text-white px-5 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
             <ShoppingBag className="w-5 h-5" />
             <span className="font-semibold text-sm">{cartCount} items</span>
             <span className="text-xs text-white/70">· {fmt(cartTotal)}</span>
@@ -824,14 +898,10 @@ export default function Home() {
       {/* ===== ORDER SUCCESS TOAST ===== */}
       <AnimatePresence>
         {orderSuccess && (
-          <motion.div
-            initial={{ y: -60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -60, opacity: 0 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#27AE60] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3"
-          >
+          <motion.div initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#27AE60] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
             <Check className="w-5 h-5" />
-            <span className="font-medium text-sm">Order sent to kitchen! Your waiter will be with you shortly.</span>
+            <span className="font-medium text-sm">Order placed! Your waiter will bring it shortly.</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -839,25 +909,16 @@ export default function Home() {
       {/* ===== TABLE SELECTOR MODAL ===== */}
       <AnimatePresence>
         {showTableSelector && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
-            onClick={() => setShowTableSelector(false)}
-          >
-            <motion.div
-              variants={slideUp}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+            onClick={() => setShowTableSelector(false)}>
+            <motion.div variants={slideUp} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
-              className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col"
-            >
+              className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col">
               <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
                 <div>
-                  <h2 className="font-semibold text-lg">Select Table</h2>
-                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Choose your table to start ordering</p>
+                  <h2 className="font-semibold text-lg">Select Your Table</h2>
+                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Choose your table to start ordering. Your waiter can also add items for you.</p>
                 </div>
                 <button onClick={() => setShowTableSelector(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
                   <X className="w-5 h-5" />
@@ -875,15 +936,9 @@ export default function Home() {
                           const isSelected = selectedTable?.id === table.id;
                           const isAvailable = table.status === 'available';
                           return (
-                            <button
-                              key={table.id}
-                              disabled={!isAvailable && !isSelected}
-                              onClick={() => {
-                                setSelectedTable(isSelected ? null : table);
-                                setShowTableSelector(false);
-                              }}
-                              className={`table-card p-3 rounded-xl border text-center ${isSelected ? 'selected' : isAvailable ? 'border-[var(--color-border)] bg-white hover:border-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-secondary)] opacity-50 cursor-not-allowed'}`}
-                            >
+                            <button key={table.id} disabled={!isAvailable && !isSelected}
+                              onClick={() => { setSelectedTable(isSelected ? null : table); setShowTableSelector(false); }}
+                              className={`table-card p-3 rounded-xl border text-center ${isSelected ? 'selected' : isAvailable ? 'border-[var(--color-border)] bg-white hover:border-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-secondary)] opacity-50 cursor-not-allowed'}`}>
                               <div className="flex items-center justify-center gap-1.5 mb-1">
                                 <span className={`status-dot ${isAvailable ? 'status-available' : 'status-occupied'}`} />
                                 <span className="text-base font-bold text-[var(--color-foreground)]">T{table.number}</span>
@@ -906,22 +961,11 @@ export default function Home() {
       {/* ===== CART SIDEBAR ===== */}
       <AnimatePresence>
         {showCart && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50"
-            onClick={() => setShowCart(false)}
-          >
-            <motion.div
-              variants={slideInRight}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50" onClick={() => setShowCart(false)}>
+            <motion.div variants={slideInRight} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
-              className="absolute right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white shadow-2xl flex flex-col"
-            >
-              {/* Header */}
+              className="absolute right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
               <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
                 <div>
                   <h2 className="font-semibold text-lg">Your Order</h2>
@@ -933,8 +977,6 @@ export default function Home() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-
-              {/* Cart items */}
               <div className="flex-1 overflow-y-auto p-5">
                 {cart.length === 0 ? (
                   <div className="text-center py-16 text-[var(--color-muted-foreground)]">
@@ -968,8 +1010,6 @@ export default function Home() {
                   </div>
                 )}
               </div>
-
-              {/* Footer */}
               {cart.length > 0 && (
                 <div className="border-t border-[var(--color-border)] p-5">
                   <div className="flex items-center justify-between mb-4">
@@ -981,17 +1021,10 @@ export default function Home() {
                       <Users className="w-4 h-4" /> Select a Table First
                     </button>
                   ) : (
-                    <button
-                      onClick={submitOrder}
-                      disabled={orderSubmitting}
-                      className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {orderSubmitting ? (
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                      {orderSubmitting ? 'Sending to Kitchen...' : `Send to Kitchen — Table ${selectedTable.number}`}
+                    <button onClick={submitOrder} disabled={orderSubmitting}
+                      className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
+                      {orderSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      {orderSubmitting ? 'Placing Order...' : 'Place Order'}
                     </button>
                   )}
                 </div>
@@ -1004,22 +1037,12 @@ export default function Home() {
       {/* ===== BILL MODAL ===== */}
       <AnimatePresence>
         {showBill && billData && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-            onClick={() => setShowBill(false)}
-          >
-            <motion.div
-              variants={scaleIn}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+            onClick={() => setShowBill(false)}>
+            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
-            >
-              {/* Bill header */}
+              className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
               <div className="bg-[var(--color-primary)] text-white p-6 text-center">
                 <p className="font-[var(--font-display)] text-xl font-bold">High Spirits Cafe</p>
                 <p className="text-xs text-white/60 mt-1">Koregaon Park, Pune</p>
@@ -1028,8 +1051,6 @@ export default function Home() {
                   <span className="px-3 py-1 bg-white/15 rounded-full text-xs">{AREA_LABELS[(billData as Record<string, unknown>).tableArea as string] || ''}</span>
                 </div>
               </div>
-
-              {/* Bill items */}
               <div className="p-5">
                 <div className="space-y-2 mb-4">
                   {((billData as Record<string, unknown>).items as { name: string; isVeg: boolean; quantity: number; price: number; total: number; status: string }[]).map((item, idx) => (
@@ -1043,7 +1064,6 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-
                 <div className="border-t border-dashed border-[var(--color-border)] pt-3 space-y-1.5">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-[var(--color-muted-foreground)]">Subtotal</span>
@@ -1059,8 +1079,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
-              {/* Actions */}
               <div className="p-5 pt-0 flex gap-2">
                 <button onClick={() => setShowBill(false)} className="flex-1 py-2.5 border border-[var(--color-border)] rounded-xl text-sm font-medium hover:bg-[var(--color-secondary)] transition-colors">
                   Close
@@ -1077,21 +1095,12 @@ export default function Home() {
       {/* ===== RESERVATION MODAL ===== */}
       <AnimatePresence>
         {showReservation && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-            onClick={() => setShowReservation(false)}
-          >
-            <motion.div
-              variants={scaleIn}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+            onClick={() => setShowReservation(false)}>
+            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
-            >
+              className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
@@ -1102,7 +1111,6 @@ export default function Home() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 {reservationSuccess ? (
                   <div className="text-center py-8">
                     <div className="w-12 h-12 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-3">
@@ -1115,31 +1123,37 @@ export default function Home() {
                   <form onSubmit={submitReservation} className="space-y-4">
                     <div>
                       <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Name *</label>
-                      <input type="text" required value={reservationForm.name} onChange={e => setReservationForm(p => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+                      <input type="text" required value={reservationForm.name} onChange={e => setReservationForm(p => ({ ...p, name: e.target.value }))}
+                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Phone *</label>
-                      <input type="tel" required value={reservationForm.phone} onChange={e => setReservationForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+                      <input type="tel" required value={reservationForm.phone} onChange={e => setReservationForm(p => ({ ...p, phone: e.target.value }))}
+                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Date *</label>
-                        <input type="date" required value={reservationForm.date} onChange={e => setReservationForm(p => ({ ...p, date: e.target.value }))} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+                        <input type="date" required value={reservationForm.date} onChange={e => setReservationForm(p => ({ ...p, date: e.target.value }))}
+                          className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Time *</label>
-                        <input type="time" required value={reservationForm.time} onChange={e => setReservationForm(p => ({ ...p, time: e.target.value }))} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+                        <input type="time" required value={reservationForm.time} onChange={e => setReservationForm(p => ({ ...p, time: e.target.value }))}
+                          className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Guests</label>
-                      <select value={reservationForm.guests} onChange={e => setReservationForm(p => ({ ...p, guests: e.target.value }))} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+                      <select value={reservationForm.guests} onChange={e => setReservationForm(p => ({ ...p, guests: e.target.value }))}
+                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
                         {[1,2,3,4,5,6,7,8,10,12,15,20].map(n => <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Occasion</label>
-                      <select value={reservationForm.occasion} onChange={e => setReservationForm(p => ({ ...p, occasion: e.target.value }))} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+                      <select value={reservationForm.occasion} onChange={e => setReservationForm(p => ({ ...p, occasion: e.target.value }))}
+                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
                         <option value="">Select (optional)</option>
                         <option value="birthday">Birthday</option>
                         <option value="anniversary">Anniversary</option>
@@ -1147,7 +1161,8 @@ export default function Home() {
                         <option value="casual">Casual</option>
                       </select>
                     </div>
-                    <button type="submit" disabled={reservationSubmitting} className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+                    <button type="submit" disabled={reservationSubmitting}
+                      className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
                       {reservationSubmitting ? 'Confirming...' : 'Confirm Reservation'}
                     </button>
                   </form>
@@ -1161,13 +1176,9 @@ export default function Home() {
       {/* ===== SCROLL TO TOP ===== */}
       <AnimatePresence>
         {scrolled && (
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
+          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-6 left-6 z-40 w-10 h-10 bg-white border border-[var(--color-border)] rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-shadow"
-          >
+            className="fixed bottom-6 left-6 z-40 w-10 h-10 bg-white border border-[var(--color-border)] rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-shadow">
             <ArrowUp className="w-4 h-4 text-[var(--color-foreground)]" />
           </motion.button>
         )}
@@ -1180,11 +1191,8 @@ export default function Home() {
 // MENU ITEM ROW COMPONENT
 // ==========================================
 function MenuItemRow({ item, inCart, onAdd, onUpdateQty, tableSelected }: {
-  item: MenuItem;
-  inCart?: CartItem;
-  onAdd: (item: MenuItem) => void;
-  onUpdateQty: (id: string, delta: number) => void;
-  tableSelected: boolean;
+  item: MenuItem; inCart?: CartItem; onAdd: (item: MenuItem) => void;
+  onUpdateQty: (id: string, delta: number) => void; tableSelected: boolean;
 }) {
   return (
     <div className="menu-row px-5 py-3 flex items-start gap-3 border-b border-[var(--color-border)] last:border-b-0">
@@ -1218,5 +1226,16 @@ function MenuItemRow({ item, inCart, onAdd, onUpdateQty, tableSelected }: {
         )}
       </div>
     </div>
+  );
+}
+
+// Car icon for parking info
+function Car({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2" />
+      <circle cx="6.5" cy="16.5" r="2.5" />
+      <circle cx="16.5" cy="16.5" r="2.5" />
+    </svg>
   );
 }
