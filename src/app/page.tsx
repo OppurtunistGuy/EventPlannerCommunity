@@ -197,17 +197,16 @@ export default function Home() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // ==========================================
-  // GLOBAL ERROR INTERCEPTOR (temporary diagnostic)
+  // GLOBAL ERROR INTERCEPTOR (diagnostic only - DO NOT preventDefault)
   // ==========================================
   useEffect(() => {
     const handler = (event: ErrorEvent) => {
       console.error('[DIAG] Uncaught runtime error:', event.error?.message, event.error?.stack);
-      // Prevent the error from propagating to the error boundary
-      event.preventDefault();
+      // Do NOT call event.preventDefault() — let React error boundary handle it
     };
     const rejectionHandler = (event: PromiseRejectionEvent) => {
       console.error('[DIAG] Unhandled promise rejection:', event.reason);
-      event.preventDefault();
+      // Do NOT call event.preventDefault() — let it propagate
     };
     window.addEventListener('error', handler);
     window.addEventListener('unhandledrejection', rejectionHandler);
@@ -238,8 +237,14 @@ export default function Home() {
     let loadingCount = 3;
     const markLoaded = () => { loadingCount--; if (loadingCount <= 0) setDataLoading(false); };
 
+    console.log('[DIAG] Starting data fetch...');
+
     fetch('/api/menu')
-      .then(r => { if (!r.ok) throw new Error(`menu ${r.status}`); return r.json(); })
+      .then(r => {
+        console.log('[DIAG] /api/menu response status:', r.status, r.ok);
+        if (!r.ok) throw new Error(`menu ${r.status}`);
+        return r.json();
+      })
       .then(data => {
         console.log('[DIAG] menuData loaded, keys:', Object.keys(data));
         console.log('[DIAG] menuData["food"]:', data['food'] ? `${data['food'].length} categories` : 'MISSING');
@@ -247,23 +252,38 @@ export default function Home() {
         console.log('[DIAG] menuData["bar"]:', data['bar'] ? `${data['bar'].length} categories` : 'MISSING');
         console.log('[DIAG] menuData["offers"]:', data['offers'] ? `${data['offers'].length} categories` : 'MISSING');
         console.log('[DIAG] menuData["vintage"]:', data['vintage'] ? `${data['vintage'].length} categories` : 'MISSING');
-        setMenuData(data);
+        // Validate data structure
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          setMenuData(data);
+        } else {
+          console.error('[DIAG] /api/menu returned unexpected data structure:', typeof data, Array.isArray(data));
+        }
         markLoaded();
       })
       .catch(err => { console.error('[DIAG] /api/menu failed:', err); markLoaded(); });
+
     fetch('/api/events')
-      .then(r => { if (!r.ok) throw new Error(`events ${r.status}`); return r.json(); })
+      .then(r => {
+        console.log('[DIAG] /api/events response status:', r.status, r.ok);
+        if (!r.ok) throw new Error(`events ${r.status}`);
+        return r.json();
+      })
       .then(data => {
         console.log('[DIAG] events loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
         setEvents(Array.isArray(data) ? data : []);
         markLoaded();
       })
       .catch(err => { console.error('[DIAG] /api/events failed:', err); markLoaded(); });
+
     fetch('/api/tables')
-      .then(r => { if (!r.ok) throw new Error(`tables ${r.status}`); return r.json(); })
+      .then(r => {
+        console.log('[DIAG] /api/tables response status:', r.status, r.ok);
+        if (!r.ok) throw new Error(`tables ${r.status}`);
+        return r.json();
+      })
       .then(data => {
         console.log('[DIAG] tables loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
-        console.log('[DIAG] tables:', JSON.stringify(data).substring(0, 200));
+        console.log('[DIAG] tables:', JSON.stringify(data).substring(0, 300));
         setTables(Array.isArray(data) ? data : []);
         markLoaded();
       })
@@ -290,6 +310,18 @@ export default function Home() {
     });
     return { ...cat, items };
   }).filter(cat => cat.items.length > 0);
+
+  // Diagnostic logging for menu state (only on significant state changes)
+  const diagLogged = useRef(false);
+  useEffect(() => {
+    if (!dataLoading && Object.keys(menuData).length > 0 && !diagLogged.current) {
+      diagLogged.current = true;
+      console.log('[DIAG] Data loaded successfully — menuTabs:', Object.keys(menuData), 'activeTab:', activeTab);
+      console.log('[DIAG] categories count:', categories.length, 'filteredCategories count:', filteredCategories.length);
+      console.log('[DIAG] tables count:', tables.length, 'selectedTable:', selectedTable?.number);
+      console.log('[DIAG] showReservation:', showReservation, 'showTableSelector:', showTableSelector);
+    }
+  }, [dataLoading, menuData, categories.length, filteredCategories.length, tables.length, selectedTable, showReservation, showTableSelector, activeTab]);
 
   const toggleCategory = (slug: string) => {
     setExpandedCategories(prev => {
@@ -456,14 +488,8 @@ export default function Home() {
   const nextEvent = events.find(e => e.isFeatured) || events[0];
 
   // ==========================================
-  // RENDER (with diagnostic logging)
+  // RENDER
   // ==========================================
-  try {
-    // Log render state for diagnostics
-    if (typeof window !== 'undefined' && (menuData && Object.keys(menuData).length > 0 || events.length > 0 || tables.length > 0)) {
-      console.log('[DIAG] Rendering with data — menuTabs:', Object.keys(menuData), 'events:', events.length, 'tables:', tables.length);
-    }
-  } catch {}
   return (
     <div className="min-h-screen flex flex-col">
       {/* ===== NAV ===== */}

@@ -1,0 +1,1000 @@
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG] Select Table button clicked, setting showTableSelector=true
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: true
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG] Table selected: 3 area: indoor status: available
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: offers dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: coffee dataLoading: false
+[log] [DIAG-RENDER] categories count: 1 filteredCategories count: 1
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: bar dataLoading: false
+[log] [DIAG-RENDER] categories count: 7 filteredCategories count: 7
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: bar dataLoading: false
+[log] [DIAG-RENDER] categories count: 7 filteredCategories count: 7
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: bar dataLoading: false
+[log] [DIAG-RENDER] categories count: 7 filteredCategories count: 7
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: bar dataLoading: false
+[log] [DIAG-RENDER] categories count: 7 filteredCategories count: 7
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: bar dataLoading: false
+[log] [DIAG-RENDER] categories count: 7 filteredCategories count: 7
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: vintage dataLoading: false
+[log] [DIAG-RENDER] categories count: 2 filteredCategories count: 2
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: 3
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG] Starting data fetch...
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG] /api/menu response status: 200 true
+[log] [DIAG] /api/events response status: 200 true
+[log] [DIAG] /api/tables response status: 200 true
+[log] [DIAG] menuData loaded, keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG] menuData["food"]: 9 categories
+[log] [DIAG] menuData["coffee"]: 1 categories
+[log] [DIAG] menuData["bar"]: 7 categories
+[log] [DIAG] menuData["offers"]: 1 categories
+[log] [DIAG] menuData["vintage"]: 2 categories
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG] events loaded, count: 5
+[log] [DIAG] tables loaded, count: 20
+[log] [DIAG] tables: [{"id":"cms55ki06006tqezn524q1hhs","number":1,"capacity":2,"area":"indoor","status":"occupied","orders":[{"id":"cms6euf900002shu71n156pdf","tableId":"cms55ki06006tqezn524q1hhs","status":"pending","type":"dine-in","notes":null,"total":1895,"createdAt":"2026-07-29T18:20:46.645Z","updatedAt":"2026-07-2
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG] Starting data fetch...
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG] /api/events response status: 200 true
+[log] [DIAG] events loaded, count: 5
+[log] [DIAG-RENDER] menuData keys: [] activeTab: food dataLoading: true
+[log] [DIAG-RENDER] categories count: 0 filteredCategories count: 0
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 0 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG] /api/menu response status: 200 true
+[log] [DIAG] /api/tables response status: 200 true
+[log] [DIAG] menuData loaded, keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG] menuData["food"]: 9 categories
+[log] [DIAG] menuData["coffee"]: 1 categories
+[log] [DIAG] menuData["bar"]: 7 categories
+[log] [DIAG] menuData["offers"]: 1 categories
+[log] [DIAG] menuData["vintage"]: 2 categories
+[log] [DIAG] tables loaded, count: 20
+[log] [DIAG] tables: [{"id":"cms55ki06006tqezn524q1hhs","number":1,"capacity":2,"area":"indoor","status":"occupied","orders":[{"id":"cms6euf900002shu71n156pdf","tableId":"cms55ki06006tqezn524q1hhs","status":"pending","type":"dine-in","notes":null,"total":1895,"createdAt":"2026-07-29T18:20:46.645Z","updatedAt":"2026-07-2
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
+[log] [DIAG-RENDER] menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food dataLoading: false
+[log] [DIAG-RENDER] categories count: 9 filteredCategories count: 9
+[log] [DIAG-RENDER] searchQuery:  vegOnly: false
+[log] [DIAG-RENDER] tables count: 20 selectedTable: undefined
+[log] [DIAG-RENDER] showReservation: false showTableSelector: false
