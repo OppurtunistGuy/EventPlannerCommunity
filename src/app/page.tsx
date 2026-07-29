@@ -9,7 +9,7 @@ import {
   Instagram, Mail, ArrowUp, Check, Plus, Minus, Trash2,
   Receipt, Users, UtensilsCrossed, ShoppingBag,
   Wine, Coffee, Utensils, Sparkles, Tag, Star, Navigation,
-  ExternalLink, Heart, ChevronRight
+  ExternalLink, Heart, ChevronRight, RefreshCw
 } from 'lucide-react';
 
 // ==========================================
