@@ -10,7 +10,15 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Application error:', error);
+    console.error('[DIAG] Error boundary caught:', error?.message, error?.stack);
+    // Make it visible in the page too for debugging
+    try {
+      const diagEl = document.createElement('div');
+      diagEl.id = 'diag-error';
+      diagEl.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;padding:8px 16px;font-size:12px;z-index:99999;white-space:pre-wrap;max-height:120px;overflow:auto;';
+      diagEl.textContent = `[DIAG] ${error?.message}\n${error?.stack?.split('\n').slice(0,5).join('\n')}`;
+      document.body.appendChild(diagEl);
+    } catch {}
   }, [error]);
 
   return (

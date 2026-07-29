@@ -81,9 +81,18 @@ const AREA_LABELS: Record<string, string> = {
 // ==========================================
 const fmt = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
+function safeISTDate(): Date {
+  try {
+    return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  } catch {
+    // Fallback: UTC+5:30 offset
+    const now = new Date();
+    return new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+  }
+}
+
 function getHappyHourEnd(): Date {
-  const now = new Date();
-  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const ist = safeISTDate();
   const end = new Date(ist);
   end.setHours(18, 0, 0, 0);
   if (ist >= end) { end.setDate(end.getDate() + 1); }
@@ -91,22 +100,32 @@ function getHappyHourEnd(): Date {
 }
 
 function getTimeLeft(): string {
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const end = getHappyHourEnd();
-  const diff = end.getTime() - now.getTime();
-  if (diff <= 0) return 'Happy Hour starts tomorrow!';
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  return `${h}h ${m}m ${s}s`;
+  try {
+    const now = safeISTDate();
+    const end = getHappyHourEnd();
+    const diff = end.getTime() - now.getTime();
+    if (diff <= 0) return 'Happy Hour starts tomorrow!';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return `${h}h ${m}m ${s}s`;
+  } catch (err) {
+    console.error('[DIAG] getTimeLeft crashed:', err);
+    return '';
+  }
 }
 
 function isRestaurantOpen(): { open: boolean; closesAt: string } {
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const hour = now.getHours();
-  // Open 12 PM to 1 AM (next day)
-  if (hour >= 12 || hour < 1) return { open: true, closesAt: '1:00 AM' };
-  return { open: false, closesAt: '12:00 PM' };
+  try {
+    const now = safeISTDate();
+    const hour = now.getHours();
+    // Open 12 PM to 1 AM (next day)
+    if (hour >= 12 || hour < 1) return { open: true, closesAt: '1:00 AM' };
+    return { open: false, closesAt: '12:00 PM' };
+  } catch (err) {
+    console.error('[DIAG] isRestaurantOpen crashed:', err);
+    return { open: false, closesAt: '' };
+  }
 }
 
 // ==========================================
@@ -177,22 +196,64 @@ export default function Home() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // ==========================================
+  // GLOBAL ERROR INTERCEPTOR (temporary diagnostic)
+  // ==========================================
+  useEffect(() => {
+    const handler = (event: ErrorEvent) => {
+      console.error('[DIAG] Uncaught runtime error:', event.error?.message, event.error?.stack);
+      // Prevent the error boundary from catching it — we want to see the diag
+      // event.preventDefault();
+    };
+    const rejectionHandler = (event: PromiseRejectionEvent) => {
+      console.error('[DIAG] Unhandled promise rejection:', event.reason);
+    };
+    window.addEventListener('error', handler);
+    window.addEventListener('unhandledrejection', rejectionHandler);
+    return () => {
+      window.removeEventListener('error', handler);
+      window.removeEventListener('unhandledrejection', rejectionHandler);
+    };
+  }, []);
+
+  // ==========================================
   // FETCH DATA
   // ==========================================
   useEffect(() => {
-    const timer = setInterval(() => {
-      setHappyHourTime(getTimeLeft());
-      setRestaurantStatus(isRestaurantOpen());
-    }, 1000);
-    setHappyHourTime(getTimeLeft());
-    setRestaurantStatus(isRestaurantOpen());
+    const tick = () => {
+      try {
+        setHappyHourTime(getTimeLeft());
+        setRestaurantStatus(isRestaurantOpen());
+      } catch (err) {
+        console.error('[DIAG] setInterval tick crashed:', err);
+      }
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    fetch('/api/menu').then(r => r.json()).then(setMenuData).catch(console.error);
-    fetch('/api/events').then(r => r.json()).then(setEvents).catch(console.error);
-    fetch('/api/tables').then(r => r.json()).then(setTables).catch(console.error);
+    fetch('/api/menu')
+      .then(r => { if (!r.ok) throw new Error(`menu ${r.status}`); return r.json(); })
+      .then(data => {
+        console.log('[DIAG] menuData loaded, keys:', Object.keys(data));
+        setMenuData(data);
+      })
+      .catch(err => console.error('[DIAG] /api/menu failed:', err));
+    fetch('/api/events')
+      .then(r => { if (!r.ok) throw new Error(`events ${r.status}`); return r.json(); })
+      .then(data => {
+        console.log('[DIAG] events loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+        setEvents(Array.isArray(data) ? data : []);
+      })
+      .catch(err => console.error('[DIAG] /api/events failed:', err));
+    fetch('/api/tables')
+      .then(r => { if (!r.ok) throw new Error(`tables ${r.status}`); return r.json(); })
+      .then(data => {
+        console.log('[DIAG] tables loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+        setTables(Array.isArray(data) ? data : []);
+      })
+      .catch(err => console.error('[DIAG] /api/tables failed:', err));
   }, []);
 
   useEffect(() => {
@@ -207,7 +268,7 @@ export default function Home() {
   const categories = menuData[activeTab] || [];
 
   const filteredCategories = categories.map(cat => {
-    const items = cat.items.filter(item => {
+    const items = (cat.items || []).filter(item => {
       const matchSearch = !searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchVeg = !vegOnly || item.isVeg;
@@ -278,7 +339,10 @@ export default function Home() {
       setShowCart(false);
       setOrderSuccess(true);
       const tablesRes = await fetch('/api/tables');
-      setTables(await tablesRes.json());
+      if (tablesRes.ok) {
+        const tablesData = await tablesRes.json();
+        setTables(Array.isArray(tablesData) ? tablesData : []);
+      }
       setTimeout(() => setOrderSuccess(false), 4000);
     } catch (err) {
       console.error(err);
@@ -293,11 +357,12 @@ export default function Home() {
   const fetchBill = async (tableId: string) => {
     try {
       const res = await fetch(`/api/bill?tableId=${tableId}`);
+      if (!res.ok) throw new Error(`bill ${res.status}`);
       const data = await res.json();
       setBillData(data);
       setShowBill(true);
     } catch (err) {
-      console.error(err);
+      console.error('[DIAG] fetchBill failed:', err);
     }
   };
 
@@ -316,7 +381,10 @@ export default function Home() {
       setBillData(null);
       setSelectedTable(null);
       const tablesRes = await fetch('/api/tables');
-      setTables(await tablesRes.json());
+      if (tablesRes.ok) {
+        const tablesData = await tablesRes.json();
+        setTables(Array.isArray(tablesData) ? tablesData : []);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -360,8 +428,14 @@ export default function Home() {
   const nextEvent = events.find(e => e.isFeatured) || events[0];
 
   // ==========================================
-  // RENDER
+  // RENDER (with diagnostic logging)
   // ==========================================
+  try {
+    // Log render state for diagnostics
+    if (typeof window !== 'undefined' && (menuData && Object.keys(menuData).length > 0 || events.length > 0 || tables.length > 0)) {
+      console.log('[DIAG] Rendering with data — menuTabs:', Object.keys(menuData), 'events:', events.length, 'tables:', tables.length);
+    }
+  } catch {}
   return (
     <div className="min-h-screen flex flex-col">
       {/* ===== NAV ===== */}

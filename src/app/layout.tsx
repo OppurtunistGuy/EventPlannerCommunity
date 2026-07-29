@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { DiagnosticErrorBoundary } from '@/components/DiagnosticErrorBoundary';
 
 export const metadata: Metadata = {
   title: 'High Spirits Cafe | Best Bar & Live Music in Koregaon Park, Pune',
@@ -25,7 +26,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
-        {children}
+        <DiagnosticErrorBoundary>
+          {children}
+        </DiagnosticErrorBoundary>
       </body>
     </html>
   );
