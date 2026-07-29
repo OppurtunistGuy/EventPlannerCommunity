@@ -10,18 +10,13 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('[DIAG-ERROR-TSX] Error boundary caught:', error?.message, error?.stack);
+    // Print complete stack trace to console
+    console.error('[DIAG-ERROR-TSX] ========== ERROR BOUNDARY CAUGHT ==========');
+    console.error('[DIAG-ERROR-TSX] Error message:', error?.message);
     console.error('[DIAG-ERROR-TSX] Error digest:', error?.digest);
-    // Make it visible in the page too for debugging
-    try {
-      const existing = document.getElementById('diag-error');
-      if (existing) existing.remove();
-      const diagEl = document.createElement('div');
-      diagEl.id = 'diag-error';
-      diagEl.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;padding:12px 16px;font-size:12px;z-index:99999;white-space:pre-wrap;max-height:200px;overflow:auto;';
-      diagEl.textContent = `[ERROR-TSX] ${error?.message}\n${error?.stack?.split('\n').slice(0,10).join('\n')}`;
-      document.body.appendChild(diagEl);
-    } catch {}
+    console.error('[DIAG-ERROR-TSX] Complete stack trace:');
+    console.error(error?.stack);
+    console.error('[DIAG-ERROR-TSX] ========== END ERROR BOUNDARY ==========');
   }, [error]);
 
   return (
@@ -65,7 +60,7 @@ export default function Error({
           maxWidth: '400px',
         }}
       >
-        We encountered an unexpected error. Please try refreshing the page.
+        We encountered an unexpected error. The full error details are shown below for debugging.
       </p>
       <div style={{
         background: '#fff3f3',
@@ -73,18 +68,19 @@ export default function Error({
         borderRadius: 8,
         padding: '12px 16px',
         marginBottom: '1rem',
-        maxWidth: '600px',
+        maxWidth: '800px',
         width: '100%',
         textAlign: 'left',
         fontSize: '0.75rem',
         fontFamily: 'monospace',
         color: '#c0392b',
         whiteSpace: 'pre-wrap',
-        maxHeight: 200,
+        maxHeight: 400,
         overflow: 'auto',
       }}>
         <b>Error:</b> {error?.message}{'\n'}
-        <b>Stack:</b>{'\n'}{error?.stack?.split('\n').slice(0, 8).join('\n')}
+        <b>Digest:</b> {error?.digest || 'N/A'}{'\n'}
+        <b>Complete Stack Trace:</b>{'\n'}{error?.stack || 'No stack trace available'}
       </div>
       <button
         onClick={() => { console.log('[DIAG] Try Again clicked'); reset(); }}

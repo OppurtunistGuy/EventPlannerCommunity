@@ -237,57 +237,57 @@ export default function Home() {
     let loadingCount = 3;
     const markLoaded = () => { loadingCount--; if (loadingCount <= 0) setDataLoading(false); };
 
-    console.log('[DIAG] Starting data fetch...');
+    console.log('[DIAG-FETCH] Starting data fetch...');
 
     fetch('/api/menu')
       .then(r => {
-        console.log('[DIAG] /api/menu response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /api/menu response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`menu ${r.status}`);
         return r.json();
       })
       .then(data => {
-        console.log('[DIAG] menuData loaded, keys:', Object.keys(data));
-        console.log('[DIAG] menuData["food"]:', data['food'] ? `${data['food'].length} categories` : 'MISSING');
-        console.log('[DIAG] menuData["coffee"]:', data['coffee'] ? `${data['coffee'].length} categories` : 'MISSING');
-        console.log('[DIAG] menuData["bar"]:', data['bar'] ? `${data['bar'].length} categories` : 'MISSING');
-        console.log('[DIAG] menuData["offers"]:', data['offers'] ? `${data['offers'].length} categories` : 'MISSING');
-        console.log('[DIAG] menuData["vintage"]:', data['vintage'] ? `${data['vintage'].length} categories` : 'MISSING');
+        console.log('[DIAG-FETCH] menuData loaded, keys:', Object.keys(data));
+        console.log('[DIAG-FETCH] menuData["food"]:', data['food'] ? `${data['food'].length} categories` : 'MISSING');
+        console.log('[DIAG-FETCH] menuData["coffee"]:', data['coffee'] ? `${data['coffee'].length} categories` : 'MISSING');
+        console.log('[DIAG-FETCH] menuData["bar"]:', data['bar'] ? `${data['bar'].length} categories` : 'MISSING');
+        console.log('[DIAG-FETCH] menuData["offers"]:', data['offers'] ? `${data['offers'].length} categories` : 'MISSING');
+        console.log('[DIAG-FETCH] menuData["vintage"]:', data['vintage'] ? `${data['vintage'].length} categories` : 'MISSING');
         // Validate data structure
         if (data && typeof data === 'object' && !Array.isArray(data)) {
           setMenuData(data);
         } else {
-          console.error('[DIAG] /api/menu returned unexpected data structure:', typeof data, Array.isArray(data));
+          console.error('[DIAG-FETCH] /api/menu returned unexpected data structure:', typeof data, Array.isArray(data));
         }
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG] /api/menu failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /api/menu failed:', err); markLoaded(); });
 
     fetch('/api/events')
       .then(r => {
-        console.log('[DIAG] /api/events response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /api/events response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`events ${r.status}`);
         return r.json();
       })
       .then(data => {
-        console.log('[DIAG] events loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+        console.log('[DIAG-FETCH] events loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
         setEvents(Array.isArray(data) ? data : []);
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG] /api/events failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /api/events failed:', err); markLoaded(); });
 
     fetch('/api/tables')
       .then(r => {
-        console.log('[DIAG] /api/tables response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /api/tables response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`tables ${r.status}`);
         return r.json();
       })
       .then(data => {
-        console.log('[DIAG] tables loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
-        console.log('[DIAG] tables:', JSON.stringify(data).substring(0, 300));
+        console.log('[DIAG-FETCH] tables loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+        console.log('[DIAG-FETCH] tables:', JSON.stringify(data).substring(0, 300));
         setTables(Array.isArray(data) ? data : []);
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG] /api/tables failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /api/tables failed:', err); markLoaded(); });
   }, []);
 
   useEffect(() => {
@@ -311,17 +311,38 @@ export default function Home() {
     return { ...cat, items };
   }).filter(cat => cat.items.length > 0);
 
-  // Diagnostic logging for menu state (only on significant state changes)
-  const diagLogged = useRef(false);
+  // Diagnostic logging for menu state — logs on every significant state change
   useEffect(() => {
-    if (!dataLoading && Object.keys(menuData).length > 0 && !diagLogged.current) {
-      diagLogged.current = true;
-      console.log('[DIAG] Data loaded successfully — menuTabs:', Object.keys(menuData), 'activeTab:', activeTab);
-      console.log('[DIAG] categories count:', categories.length, 'filteredCategories count:', filteredCategories.length);
-      console.log('[DIAG] tables count:', tables.length, 'selectedTable:', selectedTable?.number);
-      console.log('[DIAG] showReservation:', showReservation, 'showTableSelector:', showTableSelector);
+    console.log('[DIAG-MENU] dataLoading:', dataLoading, 'menuData keys:', Object.keys(menuData), 'activeTab:', activeTab);
+    console.log('[DIAG-MENU] categories:', categories.length, 'filteredCategories:', filteredCategories.length);
+    console.log('[DIAG-MENU] searchQuery:', JSON.stringify(searchQuery), 'vegOnly:', vegOnly);
+    if (categories.length > 0) {
+      console.log('[DIAG-MENU] Sample category:', categories[0]?.name, 'items:', categories[0]?.items?.length);
     }
-  }, [dataLoading, menuData, categories.length, filteredCategories.length, tables.length, selectedTable, showReservation, showTableSelector, activeTab]);
+    if (filteredCategories.length > 0) {
+      console.log('[DIAG-MENU] Sample filtered:', filteredCategories[0]?.name, 'items:', filteredCategories[0]?.items?.length);
+    }
+  }, [dataLoading, menuData, activeTab, categories.length, filteredCategories.length, searchQuery, vegOnly]);
+
+  // Diagnostic logging for tables and reservation state
+  useEffect(() => {
+    console.log('[DIAG-TABLES] tables:', tables.length, 'selectedTable:', selectedTable?.number, 'showTableSelector:', showTableSelector);
+    console.log('[DIAG-RESERVE] showReservation:', showReservation, 'reservationSubmitting:', reservationSubmitting, 'reservationSuccess:', reservationSuccess);
+  }, [tables.length, selectedTable, showTableSelector, showReservation, reservationSubmitting, reservationSuccess]);
+
+  // Diagnostic: print full state before render
+  const fullStateLogged = useRef(false);
+  useEffect(() => {
+    if (!dataLoading && !fullStateLogged.current) {
+      fullStateLogged.current = true;
+      console.log('[DIAG-FULL-STATE] menuData:', JSON.stringify(Object.keys(menuData).map(k => k + ':' + (menuData[k]?.length || 0) + 'cats')));
+      console.log('[DIAG-FULL-STATE] events:', events.length, 'tables:', tables.length);
+      console.log('[DIAG-FULL-STATE] activeTab:', activeTab, 'searchQuery:', searchQuery, 'vegOnly:', vegOnly);
+      console.log('[DIAG-FULL-STATE] selectedTable:', selectedTable?.number, 'showReservation:', showReservation, 'showTableSelector:', showTableSelector);
+      console.log('[DIAG-FULL-STATE] cart:', cart.length, 'cartTotal:', cartTotal);
+      console.log('[DIAG-FULL-STATE] restaurantStatus:', restaurantStatus, 'happyHourTime:', happyHourTime);
+    }
+  }, [dataLoading]);
 
   const toggleCategory = (slug: string) => {
     setExpandedCategories(prev => {
@@ -576,7 +597,7 @@ export default function Home() {
               <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
                 <UtensilsCrossed className="w-4 h-4" /> View Menu
               </button>
-              <button onClick={() => { console.log('[DIAG] Reserve button clicked (hero), setting showReservation=true'); setShowReservation(true); }} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+              <button onClick={() => { console.log('[DIAG] Reserve button clicked (hero), setting showReservation=true'); console.log('[DIAG] openReservationModal: showReservation currently =', showReservation); setShowReservation(true); }} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4" /> Reserve a Table
               </button>
             </div>
@@ -650,7 +671,7 @@ export default function Home() {
                 <p className="text-sm font-medium text-[var(--color-foreground)]">Select your table to start ordering</p>
                 <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your waiter can also add items for you</p>
               </div>
-              <button onClick={() => { console.log('[DIAG] Select Table button clicked, setting showTableSelector=true'); setShowTableSelector(true); }} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+              <button onClick={() => { console.log('[DIAG] Select Table button clicked, setting showTableSelector=true'); console.log('[DIAG] tables:', tables.length, 'tables data:', tables.map(t => `T${t.number}(${t.status})`).join(', ')); setShowTableSelector(true); }} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
                 <Users className="w-4 h-4" /> Select Table
               </button>
             </motion.div>
@@ -684,6 +705,7 @@ export default function Home() {
 
           {/* Categories */}
           <div ref={menuRef} className="space-y-3">
+            {(() => { console.log('[DIAG-RENDER] Menu section rendering — dataLoading:', dataLoading, 'filteredCategories:', filteredCategories.length, 'categories:', categories.length, 'activeTab:', activeTab, 'menuData keys:', Object.keys(menuData)); return null; })()}
             {dataLoading && filteredCategories.length === 0 && (
               <div className="text-center py-16 text-[var(--color-muted-foreground)]">
                 <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
@@ -694,6 +716,7 @@ export default function Home() {
               <div className="text-center py-16 text-[var(--color-muted-foreground)]">
                 <Search className="w-8 h-8 mx-auto mb-3 opacity-40" />
                 <p className="text-sm">No items found. Try a different search.</p>
+                {(() => { console.log('[DIAG-RENDER] Showing "No items found" — menuData:', JSON.stringify(Object.keys(menuData)), 'activeTab:', activeTab, 'categories:', categories.length, 'searchQuery:', searchQuery, 'vegOnly:', vegOnly); return null; })()}
               </div>
             )}
             {filteredCategories.map((cat, idx) => {
@@ -1046,6 +1069,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
             onClick={() => { console.log('[DIAG] Table selector modal backdrop clicked, closing'); setShowTableSelector(false); }}>
+            {(() => { console.log('[DIAG-TABLES] Table selector modal is rendering — showTableSelector:', showTableSelector, 'tables:', tables.length); return null; })()}
             <motion.div variants={slideUp} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
               className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -1072,7 +1096,7 @@ export default function Home() {
                           const isAvailable = table.status === 'available';
                           return (
                             <button key={table.id} disabled={!isAvailable && !isSelected}
-                              onClick={() => { console.log('[DIAG] Table selected:', table.number, 'area:', table.area, 'status:', table.status); setSelectedTable(isSelected ? null : table); setShowTableSelector(false); }}
+                              onClick={() => { console.log('[DIAG] Table selected:', table.number, 'area:', table.area, 'status:', table.status); console.log('[DIAG] selectedTable before:', selectedTable?.number); setSelectedTable(isSelected ? null : table); setShowTableSelector(false); console.log('[DIAG] selectedTable after set:', isSelected ? null : table.number); }}
                               className={`table-card p-3 rounded-xl border text-center ${isSelected ? 'selected' : isAvailable ? 'border-[var(--color-border)] bg-white hover:border-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-secondary)] opacity-50 cursor-not-allowed'}`}>
                               <div className="flex items-center justify-center gap-1.5 mb-1">
                                 <span className={`status-dot ${isAvailable ? 'status-available' : 'status-occupied'}`} />
@@ -1233,6 +1257,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
             onClick={() => { console.log('[DIAG] Reservation modal backdrop clicked, closing'); setShowReservation(false); }}>
+            {(() => { console.log('[DIAG-RESERVE] Reservation modal is rendering — showReservation:', showReservation); return null; })()}
             <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
               className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
