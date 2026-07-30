@@ -1,0 +1,1621 @@
+     1→'use client';
+     2→
+     3→import { useState, useEffect, useRef } from 'react';
+     4→import { motion, AnimatePresence } from 'framer-motion';
+     5→import {
+     6→  Search, Phone, MapPin, Clock, ChevronDown, ChevronUp,
+     7→  Leaf, X, Menu as MenuIcon,
+     8→  CalendarDays, Music, Mic, PartyPopper, Sun, Send,
+     9→  Instagram, Mail, ArrowUp, Check, Plus, Minus, Trash2,
+    10→  Receipt, Users, UtensilsCrossed, ShoppingBag,
+    11→  Wine, Coffee, Utensils, Sparkles, Tag, Star, Navigation,
+    12→  ExternalLink, Heart, ChevronRight, RefreshCw, Key, Copy, Ticket, FileText
+    13→} from 'lucide-react';
+    14→
+    15→// ==========================================
+    16→// TYPES
+    17→// ==========================================
+    18→interface MenuItem {
+    19→  id: string; name: string; description?: string; price: number;
+    20→  isVeg: boolean; isBestseller: boolean; isNew: boolean; order: number;
+    21→}
+    22→interface MenuCategory {
+    23→  id: string; name: string; slug: string; icon: string;
+    24→  description?: string; tab: string; order: number; items: MenuItem[];
+    25→}
+    26→interface Event {
+    27→  id: string; title: string; description: string; date: string;
+    28→  time: string; type: string; isFeatured: boolean;
+    29→}
+    30→interface TableInfo {
+    31→  id: string; number: number; capacity: number; area: string; status: string;
+    32→  orders: OrderInfo[];
+    33→}
+    34→interface OrderInfo {
+    35→  id: string; status: string; total: number; createdAt: string;
+    36→  items: OrderItemInfo[];
+    37→}
+    38→interface OrderItemInfo {
+    39→  id: string; menuItemId: string; quantity: number; price: number;
+    40→  notes?: string; status: string; menuItem: MenuItem;
+    41→}
+    42→interface CartItem {
+    43→  menuItem: MenuItem; quantity: number;
+    44→}
+    45→interface ReservationForm {
+    46→  name: string; phone: string; email: string; date: string;
+    47→  time: string; guests: string; occasion: string; message: string;
+    48→}
+    49→interface ActiveReservation {
+    50→  id: string; code: string; name: string; phone: string; date: string; time: string;
+    51→  guests: number; status: string; tableId: string; table: TableInfo;
+    52→}
+    53→
+    54→// ==========================================
+    55→// CONSTANTS
+    56→// ==========================================
+    57→const PHONE = '+91 97654 00484';
+    58→const PHONE_TEL = 'tel:+919765400484';
+    59→const WHATSAPP = 'https://wa.me/919765400484';
+    60→const ADDRESS = '35A/1, Near ABC Farm, Behind Burger King, Koregaon Park, Pune 411001';
+    61→const EMAIL = 'highspiritscafe@gmail.com';
+    62→const INSTAGRAM = 'https://instagram.com/highspiritscafe/';
+    63→const GOOGLE_MAPS = 'https://maps.google.com/?q=High+Spirits+Cafe+Koregaon+Park+Pune';
+    64→const MAPS_EMBED = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3782.5!2d73.89!3d18.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTjCsDMzJzA2LjAiTiA3M8KwNTMnMjQuMCJF!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin';
+    65→
+    66→const HERO_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6916d4147cb7.jpg';
+    67→const COCKTAIL_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/262d581f9a38.jpg';
+    68→const FOOD_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/d8c9d15e152f.jpeg';
+    69→const INTERIOR_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/927a9c3c15b8.jpg';
+    70→
+    71→const TABS = [
+    72→  { key: 'offers', label: 'Happy Hour', icon: Tag },
+    73→  { key: 'coffee', label: 'Coffee', icon: Coffee },
+    74→  { key: 'food', label: 'Food', icon: Utensils },
+    75→  { key: 'bar', label: 'Bar', icon: Wine },
+    76→  { key: 'vintage', label: 'Vintage', icon: Sparkles },
+    77→] as const;
+    78→
+    79→const AREA_LABELS: Record<string, string> = {
+    80→  indoor: 'Indoor', outdoor: 'Outdoor', bar: 'Bar Counter', vip: 'VIP Lounge',
+    81→};
+    82→
+    83→// ==========================================
+    84→// HELPERS
+    85→// ==========================================
+    86→const fmt = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+    87→
+    88→function safeISTDate(): Date {
+    89→  try {
+    90→    return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    91→  } catch {
+    92→    // Fallback: UTC+5:30 offset
+    93→    const now = new Date();
+    94→    return new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    95→  }
+    96→}
+    97→
+    98→function getHappyHourEnd(): Date {
+    99→  const ist = safeISTDate();
+   100→  const end = new Date(ist);
+   101→  end.setHours(18, 0, 0, 0);
+   102→  if (ist >= end) { end.setDate(end.getDate() + 1); }
+   103→  return end;
+   104→}
+   105→
+   106→function getTimeLeft(): string {
+   107→  try {
+   108→    const now = safeISTDate();
+   109→    const end = getHappyHourEnd();
+   110→    const diff = end.getTime() - now.getTime();
+   111→    if (diff <= 0) return 'Happy Hour starts tomorrow!';
+   112→    const h = Math.floor(diff / 3600000);
+   113→    const m = Math.floor((diff % 3600000) / 60000);
+   114→    const s = Math.floor((diff % 60000) / 1000);
+   115→    return `${h}h ${m}m ${s}s`;
+   116→  } catch (err) {
+   117→    console.error('[DIAG] getTimeLeft crashed:', err);
+   118→    return '';
+   119→  }
+   120→}
+   121→
+   122→function isRestaurantOpen(): { open: boolean; closesAt: string } {
+   123→  try {
+   124→    const now = safeISTDate();
+   125→    const hour = now.getHours();
+   126→    // Open 12 PM to 1 AM (next day)
+   127→    if (hour >= 12 || hour < 1) return { open: true, closesAt: '1:00 AM' };
+   128→    return { open: false, closesAt: '12:00 PM' };
+   129→  } catch (err) {
+   130→    console.error('[DIAG] isRestaurantOpen crashed:', err);
+   131→    return { open: false, closesAt: '' };
+   132→  }
+   133→}
+   134→
+   135→// ==========================================
+   136→// ANIMATION VARIANTS
+   137→// ==========================================
+   138→const fadeUp = {
+   139→  hidden: { opacity: 0, y: 24 },
+   140→  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+   141→};
+   142→const slideInRight = {
+   143→  hidden: { x: 360, opacity: 0 },
+   144→  visible: { x: 0, opacity: 1, transition: { type: 'spring', damping: 28, stiffness: 300 } },
+   145→  exit: { x: 360, opacity: 0, transition: { duration: 0.25, ease: 'easeIn' } },
+   146→};
+   147→const slideUp = {
+   148→  hidden: { y: '100%', opacity: 0 },
+   149→  visible: { y: 0, opacity: 1, transition: { type: 'spring', damping: 30, stiffness: 300 } },
+   150→  exit: { y: '100%', opacity: 0, transition: { duration: 0.2 } },
+   151→};
+   152→const scaleIn = {
+   153→  hidden: { scale: 0.9, opacity: 0 },
+   154→  visible: { scale: 1, opacity: 1, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
+   155→  exit: { scale: 0.9, opacity: 0, transition: { duration: 0.15 } },
+   156→};
+   157→
+   158→// ==========================================
+   159→// MAIN PAGE
+   160→// ==========================================
+   161→export default function Home() {
+   162→  // Data
+   163→  const [menuData, setMenuData] = useState<Record<string, MenuCategory[]>>({});
+   164→  const [events, setEvents] = useState<Event[]>([]);
+   165→  const [tables, setTables] = useState<TableInfo[]>([]);
+   166→  const [dataLoading, setDataLoading] = useState(true);
+   167→
+   168→  // Menu state
+   169→  const [activeTab, setActiveTab] = useState<string>('food');
+   170→  const [searchQuery, setSearchQuery] = useState('');
+   171→  const [vegOnly, setVegOnly] = useState(false);
+   172→  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+   173→
+   174→  // Table & Order state — customer only sees their table number and order
+   175→  const [selectedTable, setSelectedTable] = useState<TableInfo | null>(null);
+   176→  const [cart, setCart] = useState<CartItem[]>([]);
+   177→  const [showCart, setShowCart] = useState(false);
+   178→  const [showTableSelector, setShowTableSelector] = useState(false);
+   179→  const [showBill, setShowBill] = useState(false);
+   180→  const [billData, setBillData] = useState<Record<string, unknown> | null>(null);
+   181→  const [orderSubmitting, setOrderSubmitting] = useState(false);
+   182→  const [orderSuccess, setOrderSuccess] = useState(false);
+   183→
+   184→  // Reservation
+   185→  const [showReservation, setShowReservation] = useState(false);
+   186→  const [reservationForm, setReservationForm] = useState<ReservationForm>({
+   187→    name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '',
+   188→  });
+   189→  const [reservationSubmitting, setReservationSubmitting] = useState(false);
+   190→  const [reservationSuccess, setReservationSuccess] = useState(false);
+   191→  const [reservationResult, setReservationResult] = useState<{ code: string; tableNumber: number; tableArea: string } | null>(null);
+   192→
+   193→  // Lookup Reservation (enter code to see table)
+   194→  const [showLookupModal, setShowLookupModal] = useState(false);
+   195→  const [lookupCode, setLookupCode] = useState('');
+   196→  const [lookupLoading, setLookupLoading] = useState(false);
+   197→  const [lookupError, setLookupError] = useState('');
+   198→  const [activeReservation, setActiveReservation] = useState<ActiveReservation | null>(null);
+   199→
+   200→  // Bill Request
+   201→  const [billRequested, setBillRequested] = useState(false);
+   202→  const [billRequesting, setBillRequesting] = useState(false);
+   203→
+   204→  // Happy hour & status
+   205→  const [happyHourTime, setHappyHourTime] = useState('');
+   206→  const [restaurantStatus, setRestaurantStatus] = useState({ open: false, closesAt: '' });
+   207→
+   208→  // Mobile nav
+   209→  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+   210→  const [scrolled, setScrolled] = useState(false);
+   211→
+   212→  // Refs
+   213→  const menuRef = useRef<HTMLDivElement>(null);
+   214→
+   215→  // ==========================================
+   216→  // GLOBAL ERROR INTERCEPTOR (diagnostic only - DO NOT preventDefault)
+   217→  // ==========================================
+   218→  useEffect(() => {
+   219→    const handler = (event: ErrorEvent) => {
+   220→      console.error('[DIAG] Uncaught runtime error:', event.error?.message, event.error?.stack);
+   221→      // Do NOT call event.preventDefault() — let React error boundary handle it
+   222→    };
+   223→    const rejectionHandler = (event: PromiseRejectionEvent) => {
+   224→      console.error('[DIAG] Unhandled promise rejection:', event.reason);
+   225→      // Do NOT call event.preventDefault() — let it propagate
+   226→    };
+   227→    window.addEventListener('error', handler);
+   228→    window.addEventListener('unhandledrejection', rejectionHandler);
+   229→    return () => {
+   230→      window.removeEventListener('error', handler);
+   231→      window.removeEventListener('unhandledrejection', rejectionHandler);
+   232→    };
+   233→  }, []);
+   234→
+   235→  // ==========================================
+   236→  // FETCH DATA
+   237→  // ==========================================
+   238→  useEffect(() => {
+   239→    const tick = () => {
+   240→      try {
+   241→        setHappyHourTime(getTimeLeft());
+   242→        setRestaurantStatus(isRestaurantOpen());
+   243→      } catch (err) {
+   244→        console.error('[DIAG] setInterval tick crashed:', err);
+   245→      }
+   246→    };
+   247→    tick();
+   248→    const timer = setInterval(tick, 1000);
+   249→    return () => clearInterval(timer);
+   250→  }, []);
+   251→
+   252→  useEffect(() => {
+   253→    // Prevent double-fetch in Strict Mode - only fetch once
+   254→    if (Object.keys(menuData).length > 0) return;
+   255→    
+   256→    let loadingCount = 3;
+   257→    const markLoaded = () => { loadingCount--; if (loadingCount <= 0) setDataLoading(false); };
+   258→
+   259→    console.log('[DIAG-FETCH] Starting data fetch from API...');
+   260→
+   261→    fetch('/api/menu')
+   262→      .then(r => {
+   263→        console.log('[DIAG-FETCH] /api/menu response status:', r.status, r.ok);
+   264→        if (!r.ok) throw new Error(`menu ${r.status}`);
+   265→        return r.json();
+   266→      })
+   267→      .then(data => {
+   268→        console.log('[DIAG-FETCH] menuData loaded, keys:', Object.keys(data));
+   269→        if (data && typeof data === 'object' && !Array.isArray(data)) {
+   270→          setMenuData(data);
+   271→        }
+   272→        markLoaded();
+   273→      })
+   274→      .catch(err => { console.error('[DIAG-FETCH] /api/menu failed:', err); markLoaded(); });
+   275→
+   276→    fetch('/data/events.json')
+   277→      .then(r => {
+   278→        if (!r.ok) throw new Error(`events ${r.status}`);
+   279→        return r.json();
+   280→      })
+   281→      .then(data => {
+   282→        setEvents(Array.isArray(data) ? data : []);
+   283→        markLoaded();
+   284→      })
+   285→      .catch(err => { console.error('[DIAG-FETCH] /data/events.json failed:', err); markLoaded(); });
+   286→
+   287→    fetch('/api/tables')
+   288→      .then(r => {
+   289→        console.log('[DIAG-FETCH] /api/tables response status:', r.status, r.ok);
+   290→        if (!r.ok) throw new Error(`tables ${r.status}`);
+   291→        return r.json();
+   292→      })
+   293→      .then(data => {
+   294→        console.log('[DIAG-FETCH] tables loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+   295→        setTables(Array.isArray(data) ? data : []);
+   296→        markLoaded();
+   297→      })
+   298→      .catch(err => { console.error('[DIAG-FETCH] /api/tables failed:', err); markLoaded(); });
+   299→  }, []);
+   300→
+   301→  useEffect(() => {
+   302→    const onScroll = () => setScrolled(window.scrollY > 60);
+   303→    window.addEventListener('scroll', onScroll, { passive: true });
+   304→    return () => window.removeEventListener('scroll', onScroll);
+   305→  }, []);
+   306→
+   307→  // ==========================================
+   308→  // MENU HELPERS
+   309→  // ==========================================
+   310→  const categories = menuData[activeTab] || [];
+   311→
+   312→  const filteredCategories = categories.map(cat => {
+   313→    const items = (cat.items || []).filter(item => {
+   314→      const matchSearch = !searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   315→        (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+   316→      const matchVeg = !vegOnly || item.isVeg;
+   317→      return matchSearch && matchVeg;
+   318→    });
+   319→    return { ...cat, items };
+   320→  }).filter(cat => cat.items.length > 0);
+   321→
+   322→  // Diagnostic logging for menu state — logs on every significant state change
+   323→  useEffect(() => {
+   324→    console.log('[DIAG-MENU] dataLoading:', dataLoading, 'menuData keys:', Object.keys(menuData), 'activeTab:', activeTab);
+   325→    console.log('[DIAG-MENU] categories:', categories.length, 'filteredCategories:', filteredCategories.length);
+   326→    console.log('[DIAG-MENU] searchQuery:', JSON.stringify(searchQuery), 'vegOnly:', vegOnly);
+   327→    if (categories.length > 0) {
+   328→      console.log('[DIAG-MENU] Sample category:', categories[0]?.name, 'items:', categories[0]?.items?.length);
+   329→    }
+   330→    if (filteredCategories.length > 0) {
+   331→      console.log('[DIAG-MENU] Sample filtered:', filteredCategories[0]?.name, 'items:', filteredCategories[0]?.items?.length);
+   332→    }
+   333→  }, [dataLoading, menuData, activeTab, categories.length, filteredCategories.length, searchQuery, vegOnly]);
+   334→
+   335→  // Diagnostic logging for tables and reservation state
+   336→  useEffect(() => {
+   337→    console.log('[DIAG-TABLES] tables:', tables.length, 'selectedTable:', selectedTable?.number, 'showTableSelector:', showTableSelector);
+   338→    console.log('[DIAG-RESERVE] showReservation:', showReservation, 'reservationSubmitting:', reservationSubmitting, 'reservationSuccess:', reservationSuccess);
+   339→  }, [tables.length, selectedTable, showTableSelector, showReservation, reservationSubmitting, reservationSuccess]);
+   340→
+   341→  // Diagnostic: print full state before render
+   342→  const fullStateLogged = useRef(false);
+   343→  useEffect(() => {
+   344→    if (!dataLoading && !fullStateLogged.current) {
+   345→      fullStateLogged.current = true;
+   346→      console.log('[DIAG-FULL-STATE] menuData:', JSON.stringify(Object.keys(menuData).map(k => k + ':' + (menuData[k]?.length || 0) + 'cats')));
+   347→      console.log('[DIAG-FULL-STATE] events:', events.length, 'tables:', tables.length);
+   348→      console.log('[DIAG-FULL-STATE] activeTab:', activeTab, 'searchQuery:', searchQuery, 'vegOnly:', vegOnly);
+   349→      console.log('[DIAG-FULL-STATE] selectedTable:', selectedTable?.number, 'showReservation:', showReservation, 'showTableSelector:', showTableSelector);
+   350→      console.log('[DIAG-FULL-STATE] cart:', cart.length, 'cartTotal:', cartTotal);
+   351→      console.log('[DIAG-FULL-STATE] restaurantStatus:', restaurantStatus, 'happyHourTime:', happyHourTime);
+   352→    }
+   353→  }, [dataLoading]);
+   354→
+   355→  const toggleCategory = (slug: string) => {
+   356→    setExpandedCategories(prev => {
+   357→      const next = new Set(prev);
+   358→      if (next.has(slug)) next.delete(slug); else next.add(slug);
+   359→      return next;
+   360→    });
+   361→  };
+   362→
+   363→  const handleTabChange = (tab: string) => {
+   364→    setActiveTab(tab);
+   365→    setSearchQuery('');
+   366→    setExpandedCategories(new Set());
+   367→  };
+   368→
+   369→  // ==========================================
+   370→  // CART HELPERS
+   371→  // ==========================================
+   372→  const addToCart = (item: MenuItem) => {
+   373→    console.log('[DIAG] addToCart:', item.name, 'price:', item.price);
+   374→    setCart(prev => {
+   375→      const existing = prev.find(c => c.menuItem.id === item.id);
+   376→      if (existing) return prev.map(c => c.menuItem.id === item.id ? { ...c, quantity: c.quantity + 1 } : c);
+   377→      return [...prev, { menuItem: item, quantity: 1 }];
+   378→    });
+   379→  };
+   380→
+   381→  const removeFromCart = (itemId: string) => {
+   382→    setCart(prev => prev.filter(c => c.menuItem.id !== itemId));
+   383→  };
+   384→
+   385→  const updateCartQty = (itemId: string, delta: number) => {
+   386→    setCart(prev => prev.map(c => {
+   387→      if (c.menuItem.id !== itemId) return c;
+   388→      const newQty = c.quantity + delta;
+   389→      if (newQty <= 0) return c;
+   390→      return { ...c, quantity: newQty };
+   391→    }).filter(c => c.quantity > 0));
+   392→  };
+   393→
+   394→  const cartTotal = cart.reduce((sum, c) => sum + c.menuItem.price * c.quantity, 0);
+   395→  const cartCount = cart.reduce((sum, c) => sum + c.quantity, 0);
+   396→
+   397→  // ==========================================
+   398→  // ORDER SUBMISSION
+   399→  // ==========================================
+   400→  const submitOrder = async () => {
+   401→    if (!selectedTable || cart.length === 0) return;
+   402→    console.log('[DIAG] Submit order - table:', selectedTable.number, 'items:', cart.length);
+   403→    setOrderSubmitting(true);
+   404→    try {
+   405→      const res = await fetch('/api/orders', {
+   406→        method: 'POST',
+   407→        headers: { 'Content-Type': 'application/json' },
+   408→        body: JSON.stringify({
+   409→          tableId: selectedTable.id,
+   410→          type: 'dine-in',
+   411→          items: cart.map(c => ({ menuItemId: c.menuItem.id, quantity: c.quantity })),
+   412→        }),
+   413→      });
+   414→      if (!res.ok) {
+   415→        const errData = await res.text();
+   416→        console.error('[DIAG] Order failed:', res.status, errData);
+   417→        throw new Error('Order failed');
+   418→      }
+   419→      console.log('[DIAG] Order placed successfully');
+   420→      setCart([]);
+   421→      setShowCart(false);
+   422→      setOrderSuccess(true);
+   423→      const tablesRes = await fetch('/api/tables');
+   424→      if (tablesRes.ok) {
+   425→        const tablesData = await tablesRes.json();
+   426→        setTables(Array.isArray(tablesData) ? tablesData : []);
+   427→      }
+   428→      setTimeout(() => setOrderSuccess(false), 4000);
+   429→    } catch (err) {
+   430→      console.error('[DIAG] submitOrder error:', err);
+   431→    } finally {
+   432→      setOrderSubmitting(false);
+   433→    }
+   434→  };
+   435→
+   436→  // ==========================================
+   437→  // BILL
+   438→  // ==========================================
+   439→  const fetchBill = async (tableId: string) => {
+   440→    console.log('[DIAG] fetchBill for tableId:', tableId);
+   441→    try {
+   442→      const res = await fetch(`/api/bill?tableId=${tableId}`);
+   443→      if (!res.ok) throw new Error(`bill ${res.status}`);
+   444→      const data = await res.json();
+   445→      console.log('[DIAG] Bill data:', JSON.stringify(data).substring(0, 200));
+   446→      setBillData(data);
+   447→      setShowBill(true);
+   448→    } catch (err) {
+   449→      console.error('[DIAG] fetchBill failed:', err);
+   450→    }
+   451→  };
+   452→
+   453→  const closeBill = async () => {
+   454→    if (!billData || !selectedTable) return;
+   455→    try {
+   456→      // Settle the bill via API
+   457→      const billId = (billData as Record<string, unknown>).billId as string;
+   458→      if (billId) {
+   459→        await fetch('/api/bill', {
+   460→          method: 'PATCH',
+   461→          headers: { 'Content-Type': 'application/json' },
+   462→          body: JSON.stringify({ billId }),
+   463→        });
+   464→      } else {
+   465→        // Legacy: mark orders as billed
+   466→        const orders = (billData as Record<string, unknown>).orders as { id: string }[];
+   467→        for (const order of orders) {
+   468→          await fetch('/api/orders', {
+   469→            method: 'PATCH',
+   470→            headers: { 'Content-Type': 'application/json' },
+   471→            body: JSON.stringify({ orderId: order.id, status: 'billed' }),
+   472→          });
+   473→        }
+   474→      }
+   475→      setShowBill(false);
+   476→      setBillData(null);
+   477→      setSelectedTable(null);
+   478→      setActiveReservation(null);
+   479→      setBillRequested(false);
+   480→      setCart([]);
+   481→      const tablesRes = await fetch('/api/tables');
+   482→      if (tablesRes.ok) {
+   483→        const tablesData = await tablesRes.json();
+   484→        setTables(Array.isArray(tablesData) ? tablesData : []);
+   485→      }
+   486→    } catch (err) {
+   487→      console.error(err);
+   488→    }
+   489→  };
+   490→
+   491→  // ==========================================
+   492→  // RESERVATION
+   493→  // ==========================================
+   494→  const submitReservation = async (e: React.FormEvent) => {
+   495→    e.preventDefault();
+   496→    console.log('[DIAG] Submit reservation:', reservationForm);
+   497→    setReservationSubmitting(true);
+   498→    try {
+   499→      const res = await fetch('/api/reservations', {
+   500→        method: 'POST',
+   501→        headers: { 'Content-Type': 'application/json' },
+   502→        body: JSON.stringify(reservationForm),
+   503→      });
+   504→      if (!res.ok) {
+   505→        const errData = await res.json();
+   506→        console.error('[DIAG] Reservation failed:', res.status, errData);
+   507→        throw new Error(errData.error || 'Reservation failed');
+   508→      }
+   509→      const data = await res.json();
+   510→      setReservationResult({
+   511→        code: data.code,
+   512→        tableNumber: data.table?.number || 0,
+   513→        tableArea: data.table?.area || '',
+   514→      });
+   515→      setReservationSuccess(true);
+   516→      // Refresh tables
+   517→      const tablesRes = await fetch('/api/tables');
+   518→      if (tablesRes.ok) {
+   519→        const tablesData = await tablesRes.json();
+   520→        setTables(Array.isArray(tablesData) ? tablesData : []);
+   521→      }
+   522→    } catch (err: any) {
+   523→      console.error('[DIAG] submitReservation error:', err);
+   524→      alert(err.message || 'Failed to create reservation');
+   525→    } finally {
+   526→      setReservationSubmitting(false);
+   527→    }
+   528→  };
+   529→
+   530→  // ==========================================
+   531→  // SCROLL
+   532→  // ==========================================
+   533→  const scrollTo = (id: string) => {
+   534→    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+   535→    setMobileNavOpen(false);
+   536→  };
+   537→
+   538→  // Next upcoming event
+   539→  const nextEvent = events.find(e => e.isFeatured) || events[0];
+   540→
+   541→  // ==========================================
+   542→  // LOOKUP RESERVATION
+   543→  // ==========================================
+   544→  const lookupReservation = async () => {
+   545→    if (!lookupCode.trim()) return;
+   546→    setLookupLoading(true);
+   547→    setLookupError('');
+   548→    try {
+   549→      const res = await fetch(`/api/reservations/lookup?code=${lookupCode.trim()}`);
+   550→      if (!res.ok) {
+   551→        const errData = await res.json();
+   552→        setLookupError(errData.error || 'Reservation not found');
+   553→        setActiveReservation(null);
+   554→        return;
+   555→      }
+   556→      const data = await res.json();
+   557→      setActiveReservation(data);
+   558→      // Set the selected table to the reservation's table
+   559→      setSelectedTable(data.table);
+   560→      setLookupCode('');
+   561→      setShowLookupModal(false);
+   562→    } catch (err) {
+   563→      setLookupError('Failed to look up reservation');
+   564→      setActiveReservation(null);
+   565→    } finally {
+   566→      setLookupLoading(false);
+   567→    }
+   568→  };
+   569→
+   570→  // ==========================================
+   571→  // BILL REQUEST
+   572→  // ==========================================
+   573→  const requestBill = async () => {
+   574→    if (!selectedTable) return;
+   575→    setBillRequesting(true);
+   576→    try {
+   577→      const res = await fetch('/api/bill', {
+   578→        method: 'POST',
+   579→        headers: { 'Content-Type': 'application/json' },
+   580→        body: JSON.stringify({
+   581→          tableId: selectedTable.id,
+   582→          reservationId: activeReservation?.id || null,
+   583→        }),
+   584→      });
+   585→      if (!res.ok) throw new Error('Bill request failed');
+   586→      const data = await res.json();
+   587→      setBillData(data);
+   588→      setShowBill(true);
+   589→      setBillRequested(true);
+   590→    } catch (err) {
+   591→      console.error('[DIAG] requestBill error:', err);
+   592→    } finally {
+   593→      setBillRequesting(false);
+   594→    }
+   595→  };
+   596→
+   597→  // ==========================================
+   598→  // RENDER
+   599→  // ==========================================
+   600→  return (
+   601→    <div className="min-h-screen flex flex-col">
+   602→      {/* ===== NAV ===== */}
+   603→      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'}`}>
+   604→        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+   605→          <button onClick={() => scrollTo('hero')} className="flex items-center gap-2">
+   606→            <span className={`font-[var(--font-display)] text-xl font-bold tracking-tight ${scrolled ? 'text-[var(--color-primary)]' : 'text-white'}`}>
+   607→              High Spirits
+   608→            </span>
+   609→          </button>
+   610→          <div className="hidden md:flex items-center gap-4">
+   611→            {['menu', 'events', 'about', 'contact'].map(id => (
+   612→              <button key={id} onClick={() => scrollTo(id)} className={`text-sm font-medium capitalize transition-colors ${scrolled ? 'text-[var(--color-foreground)] hover:text-[var(--color-primary)]' : 'text-white/90 hover:text-white'}`}>
+   613→                {id}
+   614→              </button>
+   615→            ))}
+   616→            <button onClick={() => setShowLookupModal(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${scrolled ? 'border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white' : 'border-white/70 text-white/90 hover:bg-white/20'}`}>
+   617→              <Key className="w-3.5 h-3.5" /> My Reservation
+   618→            </button>
+   619→            <button onClick={() => setShowReservation(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
+   620→              Reserve a Table
+   621→            </button>
+   622→          </div>
+   623→          <div className="flex items-center gap-3">
+   624→            {selectedTable && !billRequested && (
+   625→              <motion.button
+   626→                initial={{ scale: 0.8, opacity: 0 }}
+   627→                animate={{ scale: 1, opacity: 1 }}
+   628→                onClick={requestBill}
+   629→                disabled={billRequesting}
+   630→                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+   631→              >
+   632→                {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+   633→                {billRequesting ? 'Requesting...' : 'Bill Request'}
+   634→              </motion.button>
+   635→            )}
+   636→            {selectedTable && billRequested && (
+   637→              <motion.button
+   638→                initial={{ scale: 0.8, opacity: 0 }}
+   639→                animate={{ scale: 1, opacity: 1 }}
+   640→                onClick={() => fetchBill(selectedTable.id)}
+   641→                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+   642→              >
+   643→                <Receipt className="w-3.5 h-3.5" /> View Bill
+   644→              </motion.button>
+   645→            )}
+   646→            <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className={`md:hidden p-1.5 ${scrolled ? 'text-[var(--color-foreground)]' : 'text-white'}`}>
+   647→              <MenuIcon className="w-5 h-5" />
+   648→            </button>
+   649→          </div>
+   650→        </div>
+   651→      </nav>
+   652→
+   653→      {/* Mobile nav overlay */}
+   654→      <AnimatePresence>
+   655→        {mobileNavOpen && (
+   656→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+   657→            className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={() => setMobileNavOpen(false)}>
+   658→            <motion.div initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+   659→              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+   660→              className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl p-6 flex flex-col gap-6"
+   661→              onClick={e => e.stopPropagation()}>
+   662→              <div className="flex items-center justify-between">
+   663→                <span className="font-[var(--font-display)] text-lg font-bold text-[var(--color-primary)]">High Spirits</span>
+   664→                <button onClick={() => setMobileNavOpen(false)}><X className="w-5 h-5" /></button>
+   665→              </div>
+   666→              {['menu', 'events', 'about', 'contact'].map(id => (
+   667→                <button key={id} onClick={() => scrollTo(id)} className="text-left text-base font-medium text-[var(--color-foreground)] hover:text-[var(--color-primary)] capitalize">{id}</button>
+   668→              ))}
+   669→              <button onClick={() => { setShowLookupModal(true); setMobileNavOpen(false); }} className="flex items-center gap-2 text-left text-base font-medium text-[var(--color-accent)]">
+   670→                <Key className="w-4 h-4" /> My Reservation
+   671→              </button>
+   672→              <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-primary)]">
+   673→                Reserve a Table
+   674→              </button>
+   675→              {selectedTable && !billRequested && (
+   676→                <button onClick={() => { requestBill(); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+   677→                  <FileText className="w-4 h-4" /> Bill Request
+   678→                </button>
+   679→              )}
+   680→              {selectedTable && billRequested && (
+   681→                <button onClick={() => { fetchBill(selectedTable.id); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+   682→                  <Receipt className="w-4 h-4" /> View My Bill
+   683→                </button>
+   684→              )}
+   685→            </motion.div>
+   686→          </motion.div>
+   687→        )}
+   688→      </AnimatePresence>
+   689→
+   690→      {/* ===== HERO ===== */}
+   691→      <section id="hero" className="relative h-[85vh] min-h-[520px] flex items-end overflow-hidden">
+   692→        <div className="absolute inset-0">
+   693→          <img src={HERO_IMG} alt="High Spirits Cafe" className="w-full h-full object-cover" />
+   694→          <div className="hero-overlay absolute inset-0" />
+   695→        </div>
+   696→        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
+   697→          <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+   698→            <p className="section-label mb-3 text-white/70">Koregaon Park, Pune</p>
+   699→            <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.05] mb-4">
+   700→              High Spirits<br />Cafe
+   701→            </h1>
+   702→            <p className="text-white/75 text-base sm:text-lg max-w-md mb-8 leading-relaxed">
+   703→              Pune&apos;s favourite nightlife destination. Live music, craft cocktails, and unforgettable evenings — since 2005.
+   704→            </p>
+   705→            <div className="flex flex-wrap gap-3">
+   706→              <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
+   707→                <UtensilsCrossed className="w-4 h-4" /> View Menu
+   708→              </button>
+   709→              <button onClick={() => setShowLookupModal(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+   710→                <Key className="w-4 h-4" /> My Reservation
+   711→              </button>
+   712→              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+   713→                <CalendarDays className="w-4 h-4" /> Reserve a Table
+   714→              </button>
+   715→            </div>
+   716→          </motion.div>
+   717→        </div>
+   718→      </section>
+   719→
+   720→      {/* ===== HAPPY HOUR BANNER + RESTAURANT STATUS ===== */}
+   721→      <div className="bg-[var(--color-primary)] text-white">
+   722→        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-2">
+   723→          <div className="flex items-center gap-3">
+   724→            <span className="text-lg">🎉</span>
+   725→            <span className="text-sm font-medium">Happy Hour — 12 PM to 6 PM</span>
+   726→            <span className="text-xs text-white/60 hidden sm:inline">|</span>
+   727→            <span className="text-xs text-white/80 hidden sm:inline">Beer ₹100 · Cocktails ₹150 · Mimosa ₹130</span>
+   728→          </div>
+   729→          <div className="flex items-center gap-4">
+   730→            {/* Live restaurant status */}
+   731→            <span className={`flex items-center gap-1.5 text-xs font-medium ${restaurantStatus.open ? 'text-green-300' : 'text-red-300'}`}>
+   732→              <span className={`w-2 h-2 rounded-full ${restaurantStatus.open ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+   733→              {restaurantStatus.open ? `Open · Closes at ${restaurantStatus.closesAt}` : `Closed · Opens at ${restaurantStatus.closesAt}`}
+   734→            </span>
+   735→            <span className="text-xs font-mono text-white/70">{happyHourTime}</span>
+   736→          </div>
+   737→        </div>
+   738→      </div>
+   739→
+   740→      {/* ===== SELECTED TABLE BAR (subtle, customer-friendly) ===== */}
+   741→      <AnimatePresence>
+   742→        {selectedTable && (
+   743→          <motion.div
+   744→            initial={{ height: 0, opacity: 0 }}
+   745→            animate={{ height: 'auto', opacity: 1 }}
+   746→            exit={{ height: 0, opacity: 0 }}
+   747→            className="bg-[var(--color-primary)]/5 border-b border-[var(--color-primary)]/10 overflow-hidden"
+   748→          >
+   749→            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2">
+   750→              <div className="flex items-center gap-2">
+   751→                <span className="text-xs text-[var(--color-muted-foreground)]">Dining at</span>
+   752→                <span className="text-sm font-semibold text-[var(--color-primary)]">Table {selectedTable.number}</span>
+   753→                <span className="text-xs text-[var(--color-muted-foreground)]">· {AREA_LABELS[selectedTable.area]}</span>
+   754→                {activeReservation && (
+   755→                  <span className="text-xs text-[var(--color-accent)] font-medium ml-1">· Code: {activeReservation.code}</span>
+   756→                )}
+   757→              </div>
+   758→              <div className="flex items-center gap-2">
+   759→                {!billRequested ? (
+   760→                  <button onClick={requestBill} disabled={billRequesting} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-50">
+   761→                    {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+   762→                    {billRequesting ? 'Requesting...' : 'Bill Request'}
+   763→                  </button>
+   764→                ) : (
+   765→                  <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5">
+   766→                    <Receipt className="w-3.5 h-3.5" /> View Bill
+   767→                  </button>
+   768→                )}
+   769→                <button onClick={() => { setSelectedTable(null); setCart([]); setActiveReservation(null); setBillRequested(false); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
+   770→                  Leave
+   771→                </button>
+   772→              </div>
+   773→            </div>
+   774→          </motion.div>
+   775→        )}
+   776→      </AnimatePresence>
+   777→
+   778→      {/* ===== MENU ===== */}
+   779→      <section id="menu" className="py-12 sm:py-16">
+   780→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   781→          {/* Section header */}
+   782→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   783→            <p className="section-label">What We Serve</p>
+   784→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Our Menu</h2>
+   785→            <div className="divider mx-auto mt-4" />
+   786→          </motion.div>
+   787→
+   788→          {/* Table assignment prompt (if no table selected) */}
+   789→          {!selectedTable && (
+   790→            <motion.div initial="hidden" animate="visible" variants={fadeUp}
+   791→              className="mb-8 bg-[var(--color-secondary)] border border-[var(--color-border)] rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
+   792→              <div>
+   793→                <p className="text-sm font-medium text-[var(--color-foreground)]">Reserve a table or enter your code to start ordering</p>
+   794→                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your table will be auto-assigned when you reserve</p>
+   795→              </div>
+   796→              <div className="flex items-center gap-2">
+   797→                <button onClick={() => setShowLookupModal(true)} className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+   798→                  <Key className="w-4 h-4" /> My Reservation
+   799→                </button>
+   800→                <button onClick={() => setShowReservation(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+   801→                  <CalendarDays className="w-4 h-4" /> Reserve
+   802→                </button>
+   803→              </div>
+   804→            </motion.div>
+   805→          )}
+   806→
+   807→          {/* Tabs */}
+   808→          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 -mx-1 px-1">
+   809→            {TABS.map(tab => {
+   810→              const Icon = tab.icon;
+   811→              return (
+   812→                <button key={tab.key} onClick={() => handleTabChange(tab.key)}
+   813→                  className={`tab-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border ${activeTab === tab.key ? 'active border-[var(--color-primary)]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}>
+   814→                  <Icon className="w-4 h-4" /> {tab.label}
+   815→                </button>
+   816→              );
+   817→            })}
+   818→          </div>
+   819→
+   820→          {/* Search & Filter */}
+   821→          <div className="flex items-center gap-3 mb-6">
+   822→            <div className="relative flex-1">
+   823→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
+   824→              <input type="text" placeholder="Search menu..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+   825→                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all" />
+   826→            </div>
+   827→            <button onClick={() => setVegOnly(!vegOnly)}
+   828→              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${vegOnly ? 'bg-[#27AE60]/10 border-[#27AE60] text-[#27AE60]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)]'}`}>
+   829→              <Leaf className="w-4 h-4" /> Veg
+   830→            </button>
+   831→          </div>
+   832→
+   833→          {/* Categories */}
+   834→          <div ref={menuRef} className="space-y-3">
+   835→            {(() => { console.log('[DIAG-RENDER] Menu section rendering — dataLoading:', dataLoading, 'filteredCategories:', filteredCategories.length, 'categories:', categories.length, 'activeTab:', activeTab, 'menuData keys:', Object.keys(menuData)); return null; })()}
+   836→            {dataLoading && filteredCategories.length === 0 && (
+   837→              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+   838→                <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
+   839→                <p className="text-sm">Loading menu...</p>
+   840→              </div>
+   841→            )}
+   842→            {!dataLoading && filteredCategories.length === 0 && (
+   843→              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+   844→                <Search className="w-8 h-8 mx-auto mb-3 opacity-40" />
+   845→                <p className="text-sm">No items found. Try a different search.</p>
+   846→                {(() => { console.log('[DIAG-RENDER] Showing "No items found" — menuData:', JSON.stringify(Object.keys(menuData)), 'activeTab:', activeTab, 'categories:', categories.length, 'searchQuery:', searchQuery, 'vegOnly:', vegOnly); return null; })()}
+   847→              </div>
+   848→            )}
+   849→            {filteredCategories.map((cat, idx) => {
+   850→              const isOpen = expandedCategories.has(cat.slug) || searchQuery.length > 0;
+   851→              return (
+   852→                <motion.div key={cat.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.05 }}
+   853→                  className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden">
+   854→                  <button onClick={() => toggleCategory(cat.slug)}
+   855→                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--color-secondary)]/50 transition-colors">
+   856→                    <div className="flex items-center gap-3">
+   857→                      <span className="text-lg">{cat.icon}</span>
+   858→                      <div className="text-left">
+   859→                        <span className="font-semibold text-[var(--color-foreground)]">{cat.name}</span>
+   860→                        {cat.description && <span className="text-xs text-[var(--color-muted-foreground)] ml-2 hidden sm:inline">— {cat.description}</span>}
+   861→                      </div>
+   862→                      <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2 py-0.5 rounded-full">{cat.items.length}</span>
+   863→                    </div>
+   864→                    {isOpen ? <ChevronUp className="w-4 h-4 text-[var(--color-muted-foreground)]" /> : <ChevronDown className="w-4 h-4 text-[var(--color-muted-foreground)]" />}
+   865→                  </button>
+   866→                  <AnimatePresence>
+   867→                    {isOpen && (
+   868→                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+   869→                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+   870→                        <div className="border-t border-[var(--color-border)]">
+   871→                          {cat.items.map((item) => (
+   872→                            <MenuItemRow key={item.id} item={item} inCart={cart.find(c => c.menuItem.id === item.id)}
+   873→                              onAdd={addToCart} onUpdateQty={updateCartQty} tableSelected={!!selectedTable} />
+   874→                          ))}
+   875→                        </div>
+   876→                      </motion.div>
+   877→                    )}
+   878→                  </AnimatePresence>
+   879→                </motion.div>
+   880→              );
+   881→            })}
+   882→          </div>
+   883→        </div>
+   884→      </section>
+   885→
+   886→      {/* ===== EVENTS ===== */}
+   887→      <section id="events" className="py-12 sm:py-16 bg-[var(--color-secondary)]">
+   888→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   889→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   890→            <p className="section-label">What&apos;s On</p>
+   891→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Events & Nights</h2>
+   892→            <div className="divider mx-auto mt-4" />
+   893→          </motion.div>
+   894→          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   895→            {events.map((event, idx) => (
+   896→              <motion.div key={event.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.08 }}
+   897→                className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
+   898→                <div className="flex items-start gap-3 mb-3">
+   899→                  <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
+   900→                    {event.type === 'live' && <Music className="w-5 h-5 text-[var(--color-primary)]" />}
+   901→                    {event.type === 'open-mic' && <Mic className="w-5 h-5 text-[var(--color-primary)]" />}
+   902→                    {event.type === 'themed' && <PartyPopper className="w-5 h-5 text-[var(--color-primary)]" />}
+   903→                    {event.type === 'dj' && <Sun className="w-5 h-5 text-[var(--color-primary)]" />}
+   904→                  </div>
+   905→                  <div className="flex-1 min-w-0">
+   906→                    <h3 className="font-semibold text-[var(--color-foreground)] text-sm leading-snug">{event.title}</h3>
+   907→                    {event.isFeatured && <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">Featured</span>}
+   908→                  </div>
+   909→                </div>
+   910→                <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed mb-3">{event.description}</p>
+   911→                <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)]">
+   912→                  <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> {event.date}</span>
+   913→                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {event.time}</span>
+   914→                </div>
+   915→              </motion.div>
+   916→            ))}
+   917→          </div>
+   918→        </div>
+   919→      </section>
+   920→
+   921→      {/* ===== ABOUT ===== */}
+   922→      <section id="about" className="py-12 sm:py-16">
+   923→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   924→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   925→            <p className="section-label">Since 2005</p>
+   926→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Our Story</h2>
+   927→            <div className="divider mx-auto mt-4" />
+   928→          </motion.div>
+   929→          <div className="grid md:grid-cols-2 gap-8 items-center">
+   930→            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+   931→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
+   932→                In 2005, two friends had a simple idea: create a place where the music is always live, the drinks never stop flowing, and everyone feels like a regular. That place became High Spirits — a corner of Koregaon Park that turned into Pune&apos;s longest-running nightlife institution.
+   933→              </p>
+   934→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
+   935→                What makes us different? We don&apos;t do pretension. We do great cocktails at honest prices, live music that makes you stay past midnight, and food that surprises you — from Konkani Paneer Chilli to Neapolitan pizzas. Our Vintage Nights on Tuesdays and Thursdays have become legendary, and our Saturday gigs are the worst-kept secret in the city.
+   936→              </p>
+   937→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-6">
+   938→                Walk in as a stranger, walk out as family. That&apos;s the High Spirits promise.
+   939→              </p>
+   940→              {/* Trust metrics */}
+   941→              <div className="grid grid-cols-4 gap-4">
+   942→                <div className="text-center">
+   943→                  <div className="text-2xl font-bold text-[var(--color-primary)]">19+</div>
+   944→                  <div className="text-xs text-[var(--color-muted-foreground)]">Years</div>
+   945→                </div>
+   946→                <div className="text-center">
+   947→                  <div className="flex items-center justify-center gap-0.5">
+   948→                    <span className="text-2xl font-bold text-[var(--color-primary)]">4.6</span>
+   949→                    <Star className="w-4 h-4 fill-[var(--color-accent)] text-[var(--color-accent)]" />
+   950→                  </div>
+   951→                  <div className="text-xs text-[var(--color-muted-foreground)]">Rating</div>
+   952→                </div>
+   953→                <div className="text-center">
+   954→                  <div className="text-2xl font-bold text-[var(--color-primary)]">50K+</div>
+   955→                  <div className="text-xs text-[var(--color-muted-foreground)]">Guests</div>
+   956→                </div>
+   957→                <div className="text-center">
+   958→                  <div className="text-2xl font-bold text-[var(--color-primary)]">5</div>
+   959→                  <div className="text-xs text-[var(--color-muted-foreground)]">Live Events</div>
+   960→                </div>
+   961→              </div>
+   962→              {/* CTA after about */}
+   963→              <div className="mt-6 flex flex-wrap gap-3">
+   964→                <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+   965→                  <CalendarDays className="w-4 h-4" /> Reserve a Table
+   966→                </button>
+   967→                <button onClick={() => scrollTo('menu')} className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
+   968→                  View Menu <ChevronRight className="w-4 h-4" />
+   969→                </button>
+   970→              </div>
+   971→            </motion.div>
+   972→            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="grid grid-cols-2 gap-3">
+   973→              <img src={INTERIOR_IMG} alt="Interior" className="rounded-xl object-cover w-full h-48 sm:h-64" />
+   974→              <img src={COCKTAIL_IMG} alt="Cocktails" className="rounded-xl object-cover w-full h-48 sm:h-64 mt-6" />
+   975→              <img src={FOOD_IMG} alt="Food" className="rounded-xl object-cover w-full h-48 sm:h-64 -mt-6" />
+   976→              {/* Replace green card with Google Rating card */}
+   977→              <div className="rounded-xl bg-[var(--color-primary)] text-white flex flex-col items-center justify-center p-5 h-48 sm:h-64">
+   978→                <div className="flex items-center gap-1 mb-2">
+   979→                  {[1,2,3,4,5].map(i => (
+   980→                    <Star key={i} className={`w-5 h-5 ${i <= 4 ? 'fill-[var(--color-accent)] text-[var(--color-accent)]' : 'fill-white/30 text-white/30'}`} />
+   981→                  ))}
+   982→                </div>
+   983→                <p className="font-[var(--font-display)] text-lg font-bold">4.6 on Google</p>
+   984→                <p className="text-xs text-white/60 mt-1">Based on 2,800+ reviews</p>
+   985→                <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer" className="mt-3 text-xs text-white/80 underline hover:text-white transition-colors">
+   986→                  Read Reviews →
+   987→                </a>
+   988→              </div>
+   989→            </motion.div>
+   990→          </div>
+   991→        </div>
+   992→      </section>
+   993→
+   994→      {/* ===== CONTACT ===== */}
+   995→      <section id="contact" className="py-12 sm:py-16 bg-[var(--color-secondary)]">
+   996→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   997→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   998→            <p className="section-label">Get In Touch</p>
+   999→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Find Us</h2>
+  1000→            <div className="divider mx-auto mt-4" />
+  1001→          </motion.div>
+  1002→
+  1003→          {/* Contact cards with actionable links */}
+  1004→          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  1005→            {/* Address — opens Google Maps */}
+  1006→            <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer"
+  1007→              className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow group cursor-pointer">
+  1008→              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mb-3">
+  1009→                <MapPin className="w-5 h-5 text-[var(--color-primary)]" />
+  1010→              </div>
+  1011→              <h3 className="font-semibold text-sm mb-1">Address</h3>
+  1012→              <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed mb-2">{ADDRESS}</p>
+  1013→              <span className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1 group-hover:underline">
+  1014→                <Navigation className="w-3 h-3" /> Get Directions
+  1015→              </span>
+  1016→            </a>
+  1017→
+  1018→            {/* Call — highlighted as primary action */}
+  1019→            <a href={PHONE_TEL}
+  1020→              className="bg-[var(--color-primary)] text-white rounded-xl p-5 hover:opacity-90 transition-opacity group cursor-pointer shadow-md">
+  1021→              <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center mb-3">
+  1022→                <Phone className="w-5 h-5 text-white" />
+  1023→              </div>
+  1024→              <h3 className="font-semibold text-sm mb-1">Call Us</h3>
+  1025→              <p className="text-xs text-white/80 mb-2">{PHONE}</p>
+  1026→              <span className="text-xs text-white font-medium flex items-center gap-1 group-hover:underline">
+  1027→                <Phone className="w-3 h-3" /> Call Now
+  1028→              </span>
+  1029→            </a>
+  1030→
+  1031→            {/* Hours — with live status */}
+  1032→            <div className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
+  1033→              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mb-3">
+  1034→                <Clock className="w-5 h-5 text-[var(--color-primary)]" />
+  1035→              </div>
+  1036→              <h3 className="font-semibold text-sm mb-1">Hours</h3>
+  1037→              <p className="text-xs text-[var(--color-muted-foreground)]">Mon–Sun: 12 PM – 1 AM</p>
+  1038→              <span className={`inline-flex items-center gap-1.5 mt-2 text-xs font-medium ${restaurantStatus.open ? 'text-[#27AE60]' : 'text-[var(--color-destructive)]'}`}>
+  1039→                <span className={`w-2 h-2 rounded-full ${restaurantStatus.open ? 'bg-[#27AE60] animate-pulse' : 'bg-[var(--color-destructive)]'}`} />
+  1040→                {restaurantStatus.open ? `Open · Closes at ${restaurantStatus.closesAt}` : `Closed · Opens at ${restaurantStatus.closesAt}`}
+  1041→              </span>
+  1042→            </div>
+  1043→
+  1044→            {/* Email */}
+  1045→            <a href={`mailto:${EMAIL}`}
+  1046→              className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow group cursor-pointer">
+  1047→              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mb-3">
+  1048→                <Mail className="w-5 h-5 text-[var(--color-primary)]" />
+  1049→              </div>
+  1050→              <h3 className="font-semibold text-sm mb-1">Email</h3>
+  1051→              <p className="text-xs text-[var(--color-muted-foreground)] mb-2">{EMAIL}</p>
+  1052→              <span className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1 group-hover:underline">
+  1053→                <ExternalLink className="w-3 h-3" /> Send Email
+  1054→              </span>
+  1055→            </a>
+  1056→          </div>
+  1057→
+  1058→          {/* Reservation CTA in contact section */}
+  1059→          <div className="bg-white rounded-xl border border-[var(--color-border)] p-6 mb-8 flex items-center justify-between flex-wrap gap-4">
+  1060→            <div>
+  1061→              <h3 className="font-semibold text-[var(--color-foreground)]">Ready to visit?</h3>
+  1062→              <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Reserve your table or just walk in — we&apos;d love to host you.</p>
+  1063→            </div>
+  1064→            <div className="flex gap-3">
+  1065→              <button onClick={() => { console.log('[DIAG] Reserve button clicked (contact)'); setShowReservation(true); }} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+  1066→                <CalendarDays className="w-4 h-4" /> Reserve a Table
+  1067→              </button>
+  1068→              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
+  1069→                <Send className="w-4 h-4" /> WhatsApp
+  1070→              </a>
+  1071→            </div>
+  1072→          </div>
+  1073→
+  1074→          {/* Google Maps */}
+  1075→          <div className="rounded-xl overflow-hidden border border-[var(--color-border)] shadow-sm">
+  1076→            <iframe
+  1077→              src={MAPS_EMBED}
+  1078→              width="100%"
+  1079→              height="300"
+  1080→              style={{ border: 0 }}
+  1081→              allowFullScreen
+  1082→              loading="lazy"
+  1083→              referrerPolicy="no-referrer-when-downgrade"
+  1084→              title="High Spirits Cafe Location"
+  1085→              className="w-full"
+  1086→            />
+  1087→            <div className="bg-white p-4 flex items-center justify-between flex-wrap gap-3">
+  1088→              <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)]">
+  1089→                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> Koregaon Park, Pune</span>
+  1090→                <span className="flex items-center gap-1"><Navigation className="w-3.5 h-3.5" /> Near ABC Farm</span>
+  1091→                <span className="flex items-center gap-1"><Car className="w-3.5 h-3.5" /> Street parking available</span>
+  1092→              </div>
+  1093→              <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer"
+  1094→                className="text-xs font-medium text-[var(--color-primary)] hover:underline flex items-center gap-1">
+  1095→                <Navigation className="w-3.5 h-3.5" /> Get Directions
+  1096→              </a>
+  1097→            </div>
+  1098→          </div>
+  1099→
+  1100→          {/* Social proof */}
+  1101→          <div className="mt-8 flex items-center justify-center gap-6">
+  1102→            <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer"
+  1103→              className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors">
+  1104→              <Instagram className="w-4 h-4" /> @highspiritscafe
+  1105→            </a>
+  1106→            <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer"
+  1107→              className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors">
+  1108→              <Star className="w-4 h-4 fill-[var(--color-accent)] text-[var(--color-accent)]" /> 4.6 on Google
+  1109→            </a>
+  1110→          </div>
+  1111→        </div>
+  1112→      </section>
+  1113→
+  1114→      {/* ===== FOOTER ===== */}
+  1115→      <footer className="bg-[var(--color-primary)] text-white py-10">
+  1116→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+  1117→          <div className="grid sm:grid-cols-3 gap-8 mb-8">
+  1118→            {/* Brand */}
+  1119→            <div>
+  1120→              <span className="font-[var(--font-display)] text-xl font-bold">High Spirits Cafe</span>
+  1121→              <p className="text-white/50 text-xs mt-2 leading-relaxed">Pune&apos;s favourite nightlife destination since 2005. Live music, craft cocktails, and unforgettable evenings in the heart of Koregaon Park.</p>
+  1122→            </div>
+  1123→            {/* Quick Links */}
+  1124→            <div>
+  1125→              <h4 className="text-sm font-semibold mb-3">Quick Links</h4>
+  1126→              <div className="flex flex-col gap-2">
+  1127→                {[
+  1128→                  { label: 'Menu', action: () => scrollTo('menu') },
+  1129→                  { label: 'Events', action: () => scrollTo('events') },
+  1130→                  { label: 'About', action: () => scrollTo('about') },
+  1131→                  { label: 'Reservations', action: () => setShowReservation(true) },
+  1132→                  { label: 'My Reservation', action: () => setShowLookupModal(true) },
+  1133→                ].map(link => (
+  1134→                  <button key={link.label} onClick={link.action} className="text-xs text-white/60 hover:text-white transition-colors text-left">
+  1135→                    {link.label}
+  1136→                  </button>
+  1137→                ))}
+  1138→              </div>
+  1139→            </div>
+  1140→            {/* Contact & Social */}
+  1141→            <div>
+  1142→              <h4 className="text-sm font-semibold mb-3">Contact</h4>
+  1143→              <div className="flex flex-col gap-2">
+  1144→                <a href={PHONE_TEL} className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+  1145→                  <Phone className="w-3.5 h-3.5" /> {PHONE}
+  1146→                </a>
+  1147→                <a href={`mailto:${EMAIL}`} className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+  1148→                  <Mail className="w-3.5 h-3.5" /> {EMAIL}
+  1149→                </a>
+  1150→                <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+  1151→                  <Instagram className="w-3.5 h-3.5" /> @highspiritscafe
+  1152→                </a>
+  1153→              </div>
+  1154→              <button onClick={() => setShowReservation(true)} className="mt-4 px-4 py-2 bg-white/15 rounded-lg text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-2">
+  1155→                <CalendarDays className="w-3.5 h-3.5" /> Reserve a Table
+  1156→              </button>
+  1157→            </div>
+  1158→          </div>
+  1159→          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+  1160→            <p className="text-xs text-white/40">&copy; {new Date().getFullYear()} High Spirits Cafe. All rights reserved.</p>
+  1161→            <div className="flex items-center gap-4 text-xs text-white/40">
+  1162→              <span>Payment: Cash · UPI · Cards</span>
+  1163→            </div>
+  1164→          </div>
+  1165→        </div>
+  1166→      </footer>
+  1167→
+  1168→      {/* ===== FLOATING CART BUTTON ===== */}
+  1169→      <AnimatePresence>
+  1170→        {cartCount > 0 && selectedTable && (
+  1171→          <motion.button
+  1172→            initial={{ scale: 0, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0, y: 20 }}
+  1173→            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+  1174→            onClick={() => setShowCart(true)}
+  1175→            className="fixed bottom-6 right-6 z-40 bg-[var(--color-primary)] text-white px-5 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+  1176→            <ShoppingBag className="w-5 h-5" />
+  1177→            <span className="font-semibold text-sm">{cartCount} items</span>
+  1178→            <span className="text-xs text-white/70">· {fmt(cartTotal)}</span>
+  1179→          </motion.button>
+  1180→        )}
+  1181→      </AnimatePresence>
+  1182→
+  1183→      {/* ===== ORDER SUCCESS TOAST ===== */}
+  1184→      <AnimatePresence>
+  1185→        {orderSuccess && (
+  1186→          <motion.div initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+  1187→            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#27AE60] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
+  1188→            <Check className="w-5 h-5" />
+  1189→            <span className="font-medium text-sm">Order placed! Your waiter will bring it shortly.</span>
+  1190→          </motion.div>
+  1191→        )}
+  1192→      </AnimatePresence>
+  1193→
+  1194→      {/* ===== TABLE SELECTOR MODAL ===== */}
+  1195→      <AnimatePresence>
+  1196→        {showTableSelector && (
+  1197→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1198→            className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
+  1199→            onClick={() => { console.log('[DIAG] Table selector modal backdrop clicked, closing'); setShowTableSelector(false); }}>
+  1200→            {(() => { console.log('[DIAG-TABLES] Table selector modal is rendering — showTableSelector:', showTableSelector, 'tables:', tables.length); return null; })()}
+  1201→            <motion.div variants={slideUp} initial="hidden" animate="visible" exit="exit"
+  1202→              onClick={e => e.stopPropagation()}
+  1203→              className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col">
+  1204→              <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
+  1205→                <div>
+  1206→                  <h2 className="font-semibold text-lg">Select Your Table</h2>
+  1207→                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Choose your table to start ordering. Your waiter can also add items for you.</p>
+  1208→                </div>
+  1209→                <button onClick={() => setShowTableSelector(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+  1210→                  <X className="w-5 h-5" />
+  1211→                </button>
+  1212→              </div>
+  1213→              <div className="overflow-y-auto p-5 flex-1">
+  1214→                {(() => { console.log('[DIAG] Rendering table selector, tables:', tables.length, 'selectedTable:', selectedTable?.number); return null; })()}
+  1215→                {(['indoor', 'outdoor', 'bar', 'vip'] as const).map(area => {
+  1216→                  const areaTables = tables.filter(t => t.area === area);
+  1217→                  if (areaTables.length === 0) return null;
+  1218→                  return (
+  1219→                    <div key={area} className="mb-6 last:mb-0">
+  1220→                      <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] mb-3">{AREA_LABELS[area]}</h3>
+  1221→                      <div className="grid grid-cols-4 gap-2">
+  1222→                        {areaTables.map(table => {
+  1223→                          const isSelected = selectedTable?.id === table.id;
+  1224→                          const isAvailable = table.status === 'available';
+  1225→                          return (
+  1226→                            <button key={table.id} disabled={!isAvailable && !isSelected}
+  1227→                              onClick={() => { console.log('[DIAG] Table selected:', table.number, 'area:', table.area, 'status:', table.status); console.log('[DIAG] selectedTable before:', selectedTable?.number); setSelectedTable(isSelected ? null : table); setShowTableSelector(false); console.log('[DIAG] selectedTable after set:', isSelected ? null : table.number); }}
+  1228→                              className={`table-card p-3 rounded-xl border text-center ${isSelected ? 'selected' : isAvailable ? 'border-[var(--color-border)] bg-white hover:border-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-secondary)] opacity-50 cursor-not-allowed'}`}>
+  1229→                              <div className="flex items-center justify-center gap-1.5 mb-1">
+  1230→                                <span className={`status-dot ${isAvailable ? 'status-available' : 'status-occupied'}`} />
+  1231→                                <span className="text-base font-bold text-[var(--color-foreground)]">T{table.number}</span>
+  1232→                              </div>
+  1233→                              <div className="text-[10px] text-[var(--color-muted-foreground)]">{table.capacity} seats</div>
+  1234→                              {!isAvailable && <div className="text-[10px] text-[var(--color-destructive)] font-medium mt-0.5">Occupied</div>}
+  1235→                            </button>
+  1236→                          );
+  1237→                        })}
+  1238→                      </div>
+  1239→                    </div>
+  1240→                  );
+  1241→                })}
+  1242→              </div>
+  1243→            </motion.div>
+  1244→          </motion.div>
+  1245→        )}
+  1246→      </AnimatePresence>
+  1247→
+  1248→      {/* ===== CART SIDEBAR ===== */}
+  1249→      <AnimatePresence>
+  1250→        {showCart && (
+  1251→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1252→            className="fixed inset-0 z-50 bg-black/50" onClick={() => setShowCart(false)}>
+  1253→            <motion.div variants={slideInRight} initial="hidden" animate="visible" exit="exit"
+  1254→              onClick={e => e.stopPropagation()}
+  1255→              className="absolute right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
+  1256→              <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
+  1257→                <div>
+  1258→                  <h2 className="font-semibold text-lg">Your Order</h2>
+  1259→                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+  1260→                    {selectedTable ? `Table ${selectedTable.number}` : 'No table selected'}
+  1261→                  </p>
+  1262→                </div>
+  1263→                <button onClick={() => setShowCart(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+  1264→                  <X className="w-5 h-5" />
+  1265→                </button>
+  1266→              </div>
+  1267→              <div className="flex-1 overflow-y-auto p-5">
+  1268→                {cart.length === 0 ? (
+  1269→                  <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+  1270→                    <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-30" />
+  1271→                    <p className="text-sm">Your cart is empty</p>
+  1272→                    <p className="text-xs mt-1">Add items from the menu to get started</p>
+  1273→                  </div>
+  1274→                ) : (
+  1275→                  <div className="space-y-3">
+  1276→                    {cart.map(item => (
+  1277→                      <div key={item.menuItem.id} className="flex items-start gap-3 p-3 bg-[var(--color-secondary)]/50 rounded-xl">
+  1278→                        <div className={`mt-1 ${item.menuItem.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} />
+  1279→                        <div className="flex-1 min-w-0">
+  1280→                          <p className="text-sm font-medium leading-snug">{item.menuItem.name}</p>
+  1281→                          <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">{fmt(item.menuItem.price)}</p>
+  1282→                        </div>
+  1283→                        <div className="flex items-center gap-1.5">
+  1284→                          <button onClick={() => updateCartQty(item.menuItem.id, -1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1285→                            <Minus className="w-3 h-3" />
+  1286→                          </button>
+  1287→                          <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+  1288→                          <button onClick={() => updateCartQty(item.menuItem.id, 1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1289→                            <Plus className="w-3 h-3" />
+  1290→                          </button>
+  1291→                          <button onClick={() => removeFromCart(item.menuItem.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-destructive)] hover:bg-red-50 transition-colors ml-1">
+  1292→                            <Trash2 className="w-3.5 h-3.5" />
+  1293→                          </button>
+  1294→                        </div>
+  1295→                      </div>
+  1296→                    ))}
+  1297→                  </div>
+  1298→                )}
+  1299→              </div>
+  1300→              {cart.length > 0 && (
+  1301→                <div className="border-t border-[var(--color-border)] p-5">
+  1302→                  <div className="flex items-center justify-between mb-4">
+  1303→                    <span className="text-sm text-[var(--color-muted-foreground)]">Subtotal</span>
+  1304→                    <span className="text-lg font-bold">{fmt(cartTotal)}</span>
+  1305→                  </div>
+  1306→                  {!selectedTable ? (
+  1307→                    <button onClick={() => { setShowCart(false); setShowLookupModal(true); }} className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+  1308→                      <Key className="w-4 h-4" /> Enter Reservation Code
+  1309→                    </button>
+  1310→                  ) : (
+  1311→                    <button onClick={submitOrder} disabled={orderSubmitting}
+  1312→                      className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
+  1313→                      {orderSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+  1314→                      {orderSubmitting ? 'Placing Order...' : 'Place Order'}
+  1315→                    </button>
+  1316→                  )}
+  1317→                </div>
+  1318→              )}
+  1319→            </motion.div>
+  1320→          </motion.div>
+  1321→        )}
+  1322→      </AnimatePresence>
+  1323→
+  1324→      {/* ===== BILL MODAL ===== */}
+  1325→      <AnimatePresence>
+  1326→        {showBill && billData && (
+  1327→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1328→            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+  1329→            onClick={() => setShowBill(false)}>
+  1330→            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+  1331→              onClick={e => e.stopPropagation()}
+  1332→              className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+  1333→              <div className="bg-[var(--color-primary)] text-white p-6 text-center">
+  1334→                <p className="font-[var(--font-display)] text-xl font-bold">High Spirits Cafe</p>
+  1335→                <p className="text-xs text-white/60 mt-1">Koregaon Park, Pune</p>
+  1336→                <div className="mt-3 flex items-center justify-center gap-2">
+  1337→                  <span className="px-3 py-1 bg-white/15 rounded-full text-sm font-medium">Table {(billData as Record<string, unknown>).tableNumber}</span>
+  1338→                  <span className="px-3 py-1 bg-white/15 rounded-full text-xs">{AREA_LABELS[(billData as Record<string, unknown>).tableArea as string] || ''}</span>
+  1339→                </div>
+  1340→              </div>
+  1341→              <div className="p-5">
+  1342→                <div className="space-y-2 mb-4">
+  1343→                  {((billData as Record<string, unknown>).items as { name: string; isVeg: boolean; quantity: number; price: number; total: number; status: string }[]).map((item, idx) => (
+  1344→                    <div key={idx} className="flex items-start gap-2 text-sm">
+  1345→                      <div className={`mt-1.5 ${item.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} style={{ flexShrink: 0 }} />
+  1346→                      <div className="flex-1 min-w-0">
+  1347→                        <span className="font-medium">{item.name}</span>
+  1348→                        <span className="text-[var(--color-muted-foreground)] ml-1">×{item.quantity}</span>
+  1349→                      </div>
+  1350→                      <span className="text-[var(--color-muted-foreground)] whitespace-nowrap">{fmt(item.total)}</span>
+  1351→                    </div>
+  1352→                  ))}
+  1353→                </div>
+  1354→                <div className="border-t border-dashed border-[var(--color-border)] pt-3 space-y-1.5">
+  1355→                  <div className="flex items-center justify-between text-sm">
+  1356→                    <span className="text-[var(--color-muted-foreground)]">Subtotal</span>
+  1357→                    <span>{fmt((billData as Record<string, unknown>).subtotal as number)}</span>
+  1358→                  </div>
+  1359→                  <div className="flex items-center justify-between text-sm">
+  1360→                    <span className="text-[var(--color-muted-foreground)]">GST (5%)</span>
+  1361→                    <span>{fmt((billData as Record<string, unknown>).gst as number)}</span>
+  1362→                  </div>
+  1363→                  <div className="flex items-center justify-between text-base font-bold pt-2 border-t border-[var(--color-border)]">
+  1364→                    <span>Total</span>
+  1365→                    <span>{fmt((billData as Record<string, unknown>).total as number)}</span>
+  1366→                  </div>
+  1367→                </div>
+  1368→              </div>
+  1369→              <div className="p-5 pt-0 flex gap-2">
+  1370→                <button onClick={() => setShowBill(false)} className="flex-1 py-2.5 border border-[var(--color-border)] rounded-xl text-sm font-medium hover:bg-[var(--color-secondary)] transition-colors">
+  1371→                  Close
+  1372→                </button>
+  1373→                <button onClick={closeBill} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+  1374→                  Settle Bill
+  1375→                </button>
+  1376→              </div>
+  1377→            </motion.div>
+  1378→          </motion.div>
+  1379→        )}
+  1380→      </AnimatePresence>
+  1381→
+  1382→      {/* ===== LOOKUP RESERVATION MODAL ===== */}
+  1383→      <AnimatePresence>
+  1384→        {showLookupModal && (
+  1385→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1386→            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+  1387→            onClick={() => { setShowLookupModal(false); setLookupError(''); }}>
+  1388→            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+  1389→              onClick={e => e.stopPropagation()}
+  1390→              className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+  1391→              <div className="p-6">
+  1392→                <div className="flex items-center justify-between mb-6">
+  1393→                  <div>
+  1394→                    <h2 className="font-semibold text-lg">My Reservation</h2>
+  1395→                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Enter your reservation code to view your table and order</p>
+  1396→                  </div>
+  1397→                  <button onClick={() => { setShowLookupModal(false); setLookupError(''); }} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+  1398→                    <X className="w-5 h-5" />
+  1399→                  </button>
+  1400→                </div>
+  1401→                <div className="space-y-4">
+  1402→                  <div className="bg-[var(--color-secondary)] rounded-xl p-4 flex items-center gap-3">
+  1403→                    <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
+  1404→                      <Ticket className="w-5 h-5 text-[var(--color-accent)]" />
+  1405→                    </div>
+  1406→                    <div>
+  1407→                      <p className="text-sm font-medium">Have a reservation code?</p>
+  1408→                      <p className="text-xs text-[var(--color-muted-foreground)]">Enter the 6-digit code you received when you reserved</p>
+  1409→                    </div>
+  1410→                  </div>
+  1411→                  <div>
+  1412→                    <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Reservation Code</label>
+  1413→                    <input
+  1414→                      type="text"
+  1415→                      value={lookupCode}
+  1416→                      onChange={e => { setLookupCode(e.target.value); setLookupError(''); }}
+  1417→                      placeholder="Enter 6-digit code"
+  1418→                      maxLength={6}
+  1419→                      className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl text-lg font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
+  1420→                      onKeyDown={e => { if (e.key === 'Enter') lookupReservation(); }}
+  1421→                    />
+  1422→                  </div>
+  1423→                  {lookupError && (
+  1424→                    <p className="text-sm text-[var(--color-destructive)] text-center">{lookupError}</p>
+  1425→                  )}
+  1426→                  <button
+  1427→                    onClick={lookupReservation}
+  1428→                    disabled={lookupLoading || !lookupCode.trim()}
+  1429→                    className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+  1430→                  >
+  1431→                    {lookupLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
+  1432→                    {lookupLoading ? 'Looking up...' : 'Find My Reservation'}
+  1433→                  </button>
+  1434→                </div>
+  1435→              </div>
+  1436→            </motion.div>
+  1437→          </motion.div>
+  1438→        )}
+  1439→      </AnimatePresence>
+  1440→
+  1441→      {/* ===== RESERVATION MODAL ===== */}
+  1442→      <AnimatePresence>
+  1443→        {showReservation && (
+  1444→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1445→            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+  1446→            onClick={() => { setShowReservation(false); setReservationSuccess(false); setReservationResult(null); }}>
+  1447→            {(() => { console.log('[DIAG-RESERVE] Reservation modal is rendering — showReservation:', showReservation); return null; })()}
+  1448→            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+  1449→              onClick={e => e.stopPropagation()}
+  1450→              className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+  1451→              <div className="p-6">
+  1452→                <div className="flex items-center justify-between mb-6">
+  1453→                  <div>
+  1454→                    <h2 className="font-semibold text-lg">Reserve a Table</h2>
+  1455→                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">A table will be auto-assigned to you</p>
+  1456→                  </div>
+  1457→                  <button onClick={() => { setShowReservation(false); setReservationSuccess(false); setReservationResult(null); }} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+  1458→                    <X className="w-5 h-5" />
+  1459→                  </button>
+  1460→                </div>
+  1461→                {reservationSuccess && reservationResult ? (
+  1462→                  <div className="text-center py-6">
+  1463→                    <div className="w-14 h-14 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-4">
+  1464→                      <Check className="w-7 h-7 text-[#27AE60]" />
+  1465→                    </div>
+  1466→                    <p className="font-semibold text-lg">Reservation Confirmed!</p>
+  1467→                    <p className="text-sm text-[var(--color-muted-foreground)] mt-1 mb-4">Your table has been assigned</p>
+  1468→                    <div className="bg-[var(--color-secondary)] rounded-xl p-4 mb-4">
+  1469→                      <p className="text-xs text-[var(--color-muted-foreground)] mb-1">Your Reservation Code</p>
+  1470→                      <div className="flex items-center justify-center gap-2">
+  1471→                        <p className="text-3xl font-bold font-mono tracking-widest text-[var(--color-primary)]">{reservationResult.code}</p>
+  1472→                        <button onClick={() => navigator.clipboard?.writeText(reservationResult.code)} className="p-1.5 hover:bg-[var(--color-border)] rounded-lg transition-colors" title="Copy code">
+  1473→                          <Copy className="w-4 h-4 text-[var(--color-muted-foreground)]" />
+  1474→                        </button>
+  1475→                      </div>
+  1476→                    </div>
+  1477→                    <div className="bg-[var(--color-secondary)] rounded-xl p-4 mb-4">
+  1478→                      <div className="flex items-center justify-center gap-3">
+  1479→                        <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
+  1480→                          <Users className="w-5 h-5 text-[var(--color-primary)]" />
+  1481→                        </div>
+  1482→                        <div className="text-left">
+  1483→                          <p className="text-sm font-semibold">Table {reservationResult.tableNumber}</p>
+  1484→                          <p className="text-xs text-[var(--color-muted-foreground)]">{AREA_LABELS[reservationResult.tableArea] || reservationResult.tableArea}</p>
+  1485→                        </div>
+  1486→                      </div>
+  1487→                    </div>
+  1488→                    <p className="text-xs text-[var(--color-muted-foreground)] mb-4">Save this code! You&apos;ll need it to view your reservation and order items.</p>
+  1489→                    <button onClick={() => {
+  1490→                      setShowReservation(false);
+  1491→                      setReservationSuccess(false);
+  1492→                      setReservationResult(null);
+  1493→                      setReservationForm({ name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '' });
+  1494→                      // Auto-set the table from the reservation
+  1495→                      const table = tables.find(t => t.number === reservationResult.tableNumber);
+  1496→                      if (table) setSelectedTable(table);
+  1497→                    }} className="w-full py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+  1498→                      Start Ordering
+  1499→                    </button>
+  1500→                  </div>
+  1501→                ) : (
+  1502→                  <form onSubmit={submitReservation} className="space-y-4">
+  1503→                    <div>
+  1504→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Name *</label>
+  1505→                      <input type="text" required value={reservationForm.name} onChange={e => setReservationForm(p => ({ ...p, name: e.target.value }))}
+  1506→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1507→                    </div>
+  1508→                    <div>
+  1509→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Phone *</label>
+  1510→                      <input type="tel" required value={reservationForm.phone} onChange={e => setReservationForm(p => ({ ...p, phone: e.target.value }))}
+  1511→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1512→                    </div>
+  1513→                    <div className="grid grid-cols-2 gap-3">
+  1514→                      <div>
+  1515→                        <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Date *</label>
+  1516→                        <input type="date" required value={reservationForm.date} onChange={e => setReservationForm(p => ({ ...p, date: e.target.value }))}
+  1517→                          className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1518→                      </div>
+  1519→                      <div>
+  1520→                        <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Time *</label>
+  1521→                        <input type="time" required value={reservationForm.time} onChange={e => setReservationForm(p => ({ ...p, time: e.target.value }))}
+  1522→                          className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1523→                      </div>
+  1524→                    </div>
+  1525→                    <div>
+  1526→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Guests</label>
+  1527→                      <select value={reservationForm.guests} onChange={e => setReservationForm(p => ({ ...p, guests: e.target.value }))}
+  1528→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+  1529→                        {[1,2,3,4,5,6,7,8,10,12,15,20].map(n => <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>)}
+  1530→                      </select>
+  1531→                    </div>
+  1532→                    <div>
+  1533→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Occasion</label>
+  1534→                      <select value={reservationForm.occasion} onChange={e => setReservationForm(p => ({ ...p, occasion: e.target.value }))}
+  1535→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+  1536→                        <option value="">Select (optional)</option>
+  1537→                        <option value="birthday">Birthday</option>
+  1538→                        <option value="anniversary">Anniversary</option>
+  1539→                        <option value="corporate">Corporate</option>
+  1540→                        <option value="casual">Casual</option>
+  1541→                      </select>
+  1542→                    </div>
+  1543→                    <button type="submit" disabled={reservationSubmitting}
+  1544→                      className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+  1545→                      {reservationSubmitting ? 'Confirming...' : 'Confirm Reservation'}
+  1546→                    </button>
+  1547→                  </form>
+  1548→                )}
+  1549→              </div>
+  1550→            </motion.div>
+  1551→          </motion.div>
+  1552→        )}
+  1553→      </AnimatePresence>
+  1554→
+  1555→      {/* ===== SCROLL TO TOP ===== */}
+  1556→      <AnimatePresence>
+  1557→        {scrolled && (
+  1558→          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+  1559→            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+  1560→            className="fixed bottom-6 left-6 z-40 w-10 h-10 bg-white border border-[var(--color-border)] rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-shadow">
+  1561→            <ArrowUp className="w-4 h-4 text-[var(--color-foreground)]" />
+  1562→          </motion.button>
+  1563→        )}
+  1564→      </AnimatePresence>
+  1565→    </div>
+  1566→  );
+  1567→}
+  1568→
+  1569→// ==========================================
+  1570→// MENU ITEM ROW COMPONENT
+  1571→// ==========================================
+  1572→function MenuItemRow({ item, inCart, onAdd, onUpdateQty, tableSelected }: {
+  1573→  item: MenuItem; inCart?: CartItem; onAdd: (item: MenuItem) => void;
+  1574→  onUpdateQty: (id: string, delta: number) => void; tableSelected: boolean;
+  1575→}) {
+  1576→  return (
+  1577→    <div className="menu-row px-5 py-3 flex items-start gap-3 border-b border-[var(--color-border)] last:border-b-0">
+  1578→      <div className={`mt-1.5 ${item.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} style={{ flexShrink: 0 }} />
+  1579→      <div className="flex-1 min-w-0">
+  1580→        <div className="flex items-start gap-2">
+  1581→          <span className="text-sm font-medium leading-snug">{item.name}</span>
+  1582→          {item.isBestseller && <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)] bg-[var(--color-accent)]/10 px-1.5 py-0.5 rounded">Bestseller</span>}
+  1583→          {item.isNew && <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#27AE60] bg-[#27AE60]/10 px-1.5 py-0.5 rounded">New</span>}
+  1584→        </div>
+  1585→        {item.description && <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5 leading-relaxed">{item.description}</p>}
+  1586→      </div>
+  1587→      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+  1588→        <span className="text-sm font-semibold text-[var(--color-foreground)]">{fmt(item.price)}</span>
+  1589→        {tableSelected && (
+  1590→          inCart ? (
+  1591→            <div className="flex items-center gap-1">
+  1592→              <button onClick={() => onUpdateQty(item.id, -1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1593→                <Minus className="w-3 h-3" />
+  1594→              </button>
+  1595→              <span className="qty-badge bg-[var(--color-primary)] text-white">{inCart.quantity}</span>
+  1596→              <button onClick={() => onUpdateQty(item.id, 1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1597→                <Plus className="w-3 h-3" />
+  1598→              </button>
+  1599→            </div>
+  1600→          ) : (
+  1601→            <button onClick={() => onAdd(item)} className="w-7 h-7 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center hover:opacity-90 transition-opacity">
+  1602→              <Plus className="w-3.5 h-3.5" />
+  1603→            </button>
+  1604→          )
+  1605→        )}
+  1606→      </div>
+  1607→    </div>
+  1608→  );
+  1609→}
+  1610→
+  1611→// Car icon for parking info
+  1612→function Car({ className }: { className?: string }) {
+  1613→  return (
+  1614→    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+  1615→      <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2" />
+  1616→      <circle cx="6.5" cy="16.5" r="2.5" />
+  1617→      <circle cx="16.5" cy="16.5" r="2.5" />
+  1618→    </svg>
+  1619→  );
+  1620→}
+  1621→

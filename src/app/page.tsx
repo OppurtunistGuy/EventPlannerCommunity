@@ -175,7 +175,6 @@ export default function Home() {
   const [selectedTable, setSelectedTable] = useState<TableInfo | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
-  const [showTableSelector, setShowTableSelector] = useState(false);
   const [showBill, setShowBill] = useState(false);
   const [billData, setBillData] = useState<Record<string, unknown> | null>(null);
   const [orderSubmitting, setOrderSubmitting] = useState(false);
@@ -334,9 +333,9 @@ export default function Home() {
 
   // Diagnostic logging for tables and reservation state
   useEffect(() => {
-    console.log('[DIAG-TABLES] tables:', tables.length, 'selectedTable:', selectedTable?.number, 'showTableSelector:', showTableSelector);
+    console.log('[DIAG-TABLES] tables:', tables.length, 'selectedTable:', selectedTable?.number);
     console.log('[DIAG-RESERVE] showReservation:', showReservation, 'reservationSubmitting:', reservationSubmitting, 'reservationSuccess:', reservationSuccess);
-  }, [tables.length, selectedTable, showTableSelector, showReservation, reservationSubmitting, reservationSuccess]);
+  }, [tables.length, selectedTable, showReservation, reservationSubmitting, reservationSuccess]);
 
   // Diagnostic: print full state before render
   const fullStateLogged = useRef(false);
@@ -346,7 +345,7 @@ export default function Home() {
       console.log('[DIAG-FULL-STATE] menuData:', JSON.stringify(Object.keys(menuData).map(k => k + ':' + (menuData[k]?.length || 0) + 'cats')));
       console.log('[DIAG-FULL-STATE] events:', events.length, 'tables:', tables.length);
       console.log('[DIAG-FULL-STATE] activeTab:', activeTab, 'searchQuery:', searchQuery, 'vegOnly:', vegOnly);
-      console.log('[DIAG-FULL-STATE] selectedTable:', selectedTable?.number, 'showReservation:', showReservation, 'showTableSelector:', showTableSelector);
+      console.log('[DIAG-FULL-STATE] selectedTable:', selectedTable?.number, 'showReservation:', showReservation);
       console.log('[DIAG-FULL-STATE] cart:', cart.length, 'cartTotal:', cartTotal);
       console.log('[DIAG-FULL-STATE] restaurantStatus:', restaurantStatus, 'happyHourTime:', happyHourTime);
     }
@@ -513,6 +512,19 @@ export default function Home() {
         tableArea: data.table?.area || '',
       });
       setReservationSuccess(true);
+      // Set activeReservation so the code shows in the table bar
+      setActiveReservation({
+        id: data.id,
+        code: data.code,
+        name: data.name,
+        phone: data.phone,
+        date: data.date,
+        time: data.time,
+        guests: data.guests,
+        status: data.status,
+        tableId: data.tableId,
+        table: data.table,
+      });
       // Refresh tables
       const tablesRes = await fetch('/api/tables');
       if (tablesRes.ok) {
@@ -706,11 +718,11 @@ export default function Home() {
               <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
                 <UtensilsCrossed className="w-4 h-4" /> View Menu
               </button>
+              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-[var(--color-accent)] text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-colors flex items-center gap-2">
+                <CalendarDays className="w-4 h-4" /> Reserve a Table
+              </button>
               <button onClick={() => setShowLookupModal(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
                 <Key className="w-4 h-4" /> My Reservation
-              </button>
-              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
-                <CalendarDays className="w-4 h-4" /> Reserve a Table
               </button>
             </div>
           </motion.div>
@@ -767,7 +779,7 @@ export default function Home() {
                   </button>
                 )}
                 <button onClick={() => { setSelectedTable(null); setCart([]); setActiveReservation(null); setBillRequested(false); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
-                  Leave
+                  End Session
                 </button>
               </div>
             </div>
@@ -785,21 +797,29 @@ export default function Home() {
             <div className="divider mx-auto mt-4" />
           </motion.div>
 
-          {/* Table assignment prompt (if no table selected) */}
+          {/* Table assignment prompt (if no table selected) — prominent CTA */}
           {!selectedTable && (
             <motion.div initial="hidden" animate="visible" variants={fadeUp}
-              className="mb-8 bg-[var(--color-secondary)] border border-[var(--color-border)] rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <p className="text-sm font-medium text-[var(--color-foreground)]">Reserve a table or enter your code to start ordering</p>
-                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your table will be auto-assigned when you reserve</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setShowLookupModal(true)} className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
-                  <Key className="w-4 h-4" /> My Reservation
-                </button>
-                <button onClick={() => setShowReservation(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4" /> Reserve
-                </button>
+              className="mb-8 bg-gradient-to-r from-[var(--color-primary)]/5 to-[var(--color-accent)]/5 border-2 border-[var(--color-primary)]/20 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <UtensilsCrossed className="w-6 h-6 text-[var(--color-primary)]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-base font-semibold text-[var(--color-foreground)]">Browse our menu — reserve a table to start ordering!</p>
+                  <p className="text-sm text-[var(--color-muted-foreground)] mt-1">You need a reservation to place orders. Your table will be auto-assigned when you reserve. Already have a code? Enter it below.</p>
+                  <div className="flex items-center gap-3 mt-4 flex-wrap">
+                    <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm">
+                      <CalendarDays className="w-4 h-4" /> Reserve a Table
+                    </button>
+                    <button onClick={() => setShowLookupModal(true)} className="px-5 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm">
+                      <Key className="w-4 h-4" /> Enter Reservation Code
+                    </button>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777 (Table 7)</span>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -1191,59 +1211,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* ===== TABLE SELECTOR MODAL ===== */}
-      <AnimatePresence>
-        {showTableSelector && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
-            onClick={() => { console.log('[DIAG] Table selector modal backdrop clicked, closing'); setShowTableSelector(false); }}>
-            {(() => { console.log('[DIAG-TABLES] Table selector modal is rendering — showTableSelector:', showTableSelector, 'tables:', tables.length); return null; })()}
-            <motion.div variants={slideUp} initial="hidden" animate="visible" exit="exit"
-              onClick={e => e.stopPropagation()}
-              className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col">
-              <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold text-lg">Select Your Table</h2>
-                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Choose your table to start ordering. Your waiter can also add items for you.</p>
-                </div>
-                <button onClick={() => setShowTableSelector(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="overflow-y-auto p-5 flex-1">
-                {(() => { console.log('[DIAG] Rendering table selector, tables:', tables.length, 'selectedTable:', selectedTable?.number); return null; })()}
-                {(['indoor', 'outdoor', 'bar', 'vip'] as const).map(area => {
-                  const areaTables = tables.filter(t => t.area === area);
-                  if (areaTables.length === 0) return null;
-                  return (
-                    <div key={area} className="mb-6 last:mb-0">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] mb-3">{AREA_LABELS[area]}</h3>
-                      <div className="grid grid-cols-4 gap-2">
-                        {areaTables.map(table => {
-                          const isSelected = selectedTable?.id === table.id;
-                          const isAvailable = table.status === 'available';
-                          return (
-                            <button key={table.id} disabled={!isAvailable && !isSelected}
-                              onClick={() => { console.log('[DIAG] Table selected:', table.number, 'area:', table.area, 'status:', table.status); console.log('[DIAG] selectedTable before:', selectedTable?.number); setSelectedTable(isSelected ? null : table); setShowTableSelector(false); console.log('[DIAG] selectedTable after set:', isSelected ? null : table.number); }}
-                              className={`table-card p-3 rounded-xl border text-center ${isSelected ? 'selected' : isAvailable ? 'border-[var(--color-border)] bg-white hover:border-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-secondary)] opacity-50 cursor-not-allowed'}`}>
-                              <div className="flex items-center justify-center gap-1.5 mb-1">
-                                <span className={`status-dot ${isAvailable ? 'status-available' : 'status-occupied'}`} />
-                                <span className="text-base font-bold text-[var(--color-foreground)]">T{table.number}</span>
-                              </div>
-                              <div className="text-[10px] text-[var(--color-muted-foreground)]">{table.capacity} seats</div>
-                              {!isAvailable && <div className="text-[10px] text-[var(--color-destructive)] font-medium mt-0.5">Occupied</div>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ===== TABLE SELECTOR MODAL (removed — tables are auto-assigned via reservation or code lookup) ===== */}
 
       {/* ===== CART SIDEBAR ===== */}
       <AnimatePresence>
@@ -1420,6 +1388,9 @@ export default function Home() {
                       onKeyDown={e => { if (e.key === 'Enter') lookupReservation(); }}
                     />
                   </div>
+                  <div className="flex items-center gap-2 justify-center">
+                    <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777</span>
+                  </div>
                   {lookupError && (
                     <p className="text-sm text-[var(--color-destructive)] text-center">{lookupError}</p>
                   )}
@@ -1465,14 +1436,15 @@ export default function Home() {
                     </div>
                     <p className="font-semibold text-lg">Reservation Confirmed!</p>
                     <p className="text-sm text-[var(--color-muted-foreground)] mt-1 mb-4">Your table has been assigned</p>
-                    <div className="bg-[var(--color-secondary)] rounded-xl p-4 mb-4">
-                      <p className="text-xs text-[var(--color-muted-foreground)] mb-1">Your Reservation Code</p>
+                    <div className="bg-[var(--color-primary)]/5 border-2 border-[var(--color-primary)]/20 rounded-xl p-5 mb-4">
+                      <p className="text-xs text-[var(--color-muted-foreground)] mb-2">Your Reservation Code</p>
                       <div className="flex items-center justify-center gap-2">
-                        <p className="text-3xl font-bold font-mono tracking-widest text-[var(--color-primary)]">{reservationResult.code}</p>
-                        <button onClick={() => navigator.clipboard?.writeText(reservationResult.code)} className="p-1.5 hover:bg-[var(--color-border)] rounded-lg transition-colors" title="Copy code">
-                          <Copy className="w-4 h-4 text-[var(--color-muted-foreground)]" />
+                        <p className="text-4xl font-bold font-mono tracking-[0.3em] text-[var(--color-primary)]">{reservationResult.code}</p>
+                        <button onClick={() => navigator.clipboard?.writeText(reservationResult.code)} className="p-2 hover:bg-[var(--color-border)] rounded-lg transition-colors" title="Copy code">
+                          <Copy className="w-5 h-5 text-[var(--color-muted-foreground)]" />
                         </button>
                       </div>
+                      <p className="text-xs text-[var(--color-muted-foreground)] mt-2">Save this code! Use it to view your reservation and order from your table anytime.</p>
                     </div>
                     <div className="bg-[var(--color-secondary)] rounded-xl p-4 mb-4">
                       <div className="flex items-center justify-center gap-3">
@@ -1485,7 +1457,15 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                    <p className="text-xs text-[var(--color-muted-foreground)] mb-4">Save this code! You&apos;ll need it to view your reservation and order items.</p>
+                    <div className="bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/20 rounded-xl p-3 mb-4 text-left">
+                      <p className="text-xs font-medium text-[var(--color-foreground)]">How to use your code:</p>
+                      <ol className="text-xs text-[var(--color-muted-foreground)] mt-1 space-y-1 list-decimal list-inside">
+                        <li>Enter your 6-digit code on the landing page</li>
+                        <li>Your table and current orders will appear</li>
+                        <li>Add items from the menu to your order</li>
+                        <li>Click &quot;Bill Request&quot; when you&apos;re done</li>
+                      </ol>
+                    </div>
                     <button onClick={() => {
                       setShowReservation(false);
                       setReservationSuccess(false);
@@ -1500,6 +1480,9 @@ export default function Home() {
                   </div>
                 ) : (
                   <form onSubmit={submitReservation} className="space-y-4">
+                    <div className="bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/20 rounded-xl p-3">
+                      <p className="text-xs text-[var(--color-foreground)]">After confirmation, you&apos;ll receive a <strong>6-digit code</strong> to access your table and order. Save this code — you&apos;ll need it each time you visit!</p>
+                    </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Name *</label>
                       <input type="text" required value={reservationForm.name} onChange={e => setReservationForm(p => ({ ...p, name: e.target.value }))}
@@ -1574,7 +1557,7 @@ function MenuItemRow({ item, inCart, onAdd, onUpdateQty, tableSelected }: {
   onUpdateQty: (id: string, delta: number) => void; tableSelected: boolean;
 }) {
   return (
-    <div className="menu-row px-5 py-3 flex items-start gap-3 border-b border-[var(--color-border)] last:border-b-0">
+    <div className={`menu-row px-5 py-3 flex items-start gap-3 border-b border-[var(--color-border)] last:border-b-0 ${!tableSelected ? 'opacity-80' : ''}`}>
       <div className={`mt-1.5 ${item.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} style={{ flexShrink: 0 }} />
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-2">
@@ -1586,22 +1569,24 @@ function MenuItemRow({ item, inCart, onAdd, onUpdateQty, tableSelected }: {
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 ml-2">
         <span className="text-sm font-semibold text-[var(--color-foreground)]">{fmt(item.price)}</span>
-        {tableSelected && (
-          inCart ? (
-            <div className="flex items-center gap-1">
-              <button onClick={() => onUpdateQty(item.id, -1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
-                <Minus className="w-3 h-3" />
-              </button>
-              <span className="qty-badge bg-[var(--color-primary)] text-white">{inCart.quantity}</span>
-              <button onClick={() => onUpdateQty(item.id, 1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
-                <Plus className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => onAdd(item)} className="w-7 h-7 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center hover:opacity-90 transition-opacity">
-              <Plus className="w-3.5 h-3.5" />
+        {tableSelected && inCart && (
+          <div className="flex items-center gap-1">
+            <button onClick={() => onUpdateQty(item.id, -1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+              <Minus className="w-3 h-3" />
             </button>
-          )
+            <span className="qty-badge bg-[var(--color-primary)] text-white">{inCart.quantity}</span>
+            <button onClick={() => onUpdateQty(item.id, 1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+              <Plus className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+        {tableSelected && !inCart && (
+          <button onClick={() => onAdd(item)} className="w-7 h-7 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center hover:opacity-90 transition-opacity">
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {!tableSelected && (
+          <span className="text-[10px] text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2 py-1 rounded-full whitespace-nowrap">Reserve to order</span>
         )}
       </div>
     </div>

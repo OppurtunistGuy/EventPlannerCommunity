@@ -1,0 +1,502 @@
+     1→   500→        method: 'POST',
+     2→   501→        headers: { 'Content-Type': 'application/json' },
+     3→   502→        body: JSON.stringify(reservationForm),
+     4→   503→      });
+     5→   504→      if (!res.ok) {
+     6→   505→        const errData = await res.json();
+     7→   506→        console.error('[DIAG] Reservation failed:', res.status, errData);
+     8→   507→        throw new Error(errData.error || 'Reservation failed');
+     9→   508→      }
+    10→   509→      const data = await res.json();
+    11→   510→      setReservationResult({
+    12→   511→        code: data.code,
+    13→   512→        tableNumber: data.table?.number || 0,
+    14→   513→        tableArea: data.table?.area || '',
+    15→   514→      });
+    16→   515→      setReservationSuccess(true);
+    17→   516→      // Refresh tables
+    18→   517→      const tablesRes = await fetch('/api/tables');
+    19→   518→      if (tablesRes.ok) {
+    20→   519→        const tablesData = await tablesRes.json();
+    21→   520→        setTables(Array.isArray(tablesData) ? tablesData : []);
+    22→   521→      }
+    23→   522→    } catch (err: any) {
+    24→   523→      console.error('[DIAG] submitReservation error:', err);
+    25→   524→      alert(err.message || 'Failed to create reservation');
+    26→   525→    } finally {
+    27→   526→      setReservationSubmitting(false);
+    28→   527→    }
+    29→   528→  };
+    30→   529→
+    31→   530→  // ==========================================
+    32→   531→  // SCROLL
+    33→   532→  // ==========================================
+    34→   533→  const scrollTo = (id: string) => {
+    35→   534→    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    36→   535→    setMobileNavOpen(false);
+    37→   536→  };
+    38→   537→
+    39→   538→  // Next upcoming event
+    40→   539→  const nextEvent = events.find(e => e.isFeatured) || events[0];
+    41→   540→
+    42→   541→  // ==========================================
+    43→   542→  // LOOKUP RESERVATION
+    44→   543→  // ==========================================
+    45→   544→  const lookupReservation = async () => {
+    46→   545→    if (!lookupCode.trim()) return;
+    47→   546→    setLookupLoading(true);
+    48→   547→    setLookupError('');
+    49→   548→    try {
+    50→   549→      const res = await fetch(`/api/reservations/lookup?code=${lookupCode.trim()}`);
+    51→   550→      if (!res.ok) {
+    52→   551→        const errData = await res.json();
+    53→   552→        setLookupError(errData.error || 'Reservation not found');
+    54→   553→        setActiveReservation(null);
+    55→   554→        return;
+    56→   555→      }
+    57→   556→      const data = await res.json();
+    58→   557→      setActiveReservation(data);
+    59→   558→      // Set the selected table to the reservation's table
+    60→   559→      setSelectedTable(data.table);
+    61→   560→      setLookupCode('');
+    62→   561→      setShowLookupModal(false);
+    63→   562→    } catch (err) {
+    64→   563→      setLookupError('Failed to look up reservation');
+    65→   564→      setActiveReservation(null);
+    66→   565→    } finally {
+    67→   566→      setLookupLoading(false);
+    68→   567→    }
+    69→   568→  };
+    70→   569→
+    71→   570→  // ==========================================
+    72→   571→  // BILL REQUEST
+    73→   572→  // ==========================================
+    74→   573→  const requestBill = async () => {
+    75→   574→    if (!selectedTable) return;
+    76→   575→    setBillRequesting(true);
+    77→   576→    try {
+    78→   577→      const res = await fetch('/api/bill', {
+    79→   578→        method: 'POST',
+    80→   579→        headers: { 'Content-Type': 'application/json' },
+    81→   580→        body: JSON.stringify({
+    82→   581→          tableId: selectedTable.id,
+    83→   582→          reservationId: activeReservation?.id || null,
+    84→   583→        }),
+    85→   584→      });
+    86→   585→      if (!res.ok) throw new Error('Bill request failed');
+    87→   586→      const data = await res.json();
+    88→   587→      setBillData(data);
+    89→   588→      setShowBill(true);
+    90→   589→      setBillRequested(true);
+    91→   590→    } catch (err) {
+    92→   591→      console.error('[DIAG] requestBill error:', err);
+    93→   592→    } finally {
+    94→   593→      setBillRequesting(false);
+    95→   594→    }
+    96→   595→  };
+    97→   596→
+    98→   597→  // ==========================================
+    99→   598→  // RENDER
+   100→   599→  // ==========================================
+   101→   600→  return (
+   102→   601→    <div className="min-h-screen flex flex-col">
+   103→   602→      {/* ===== NAV ===== */}
+   104→   603→      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'}`}>
+   105→   604→        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+   106→   605→          <button onClick={() => scrollTo('hero')} className="flex items-center gap-2">
+   107→   606→            <span className={`font-[var(--font-display)] text-xl font-bold tracking-tight ${scrolled ? 'text-[var(--color-primary)]' : 'text-white'}`}>
+   108→   607→              High Spirits
+   109→   608→            </span>
+   110→   609→          </button>
+   111→   610→          <div className="hidden md:flex items-center gap-4">
+   112→   611→            {['menu', 'events', 'about', 'contact'].map(id => (
+   113→   612→              <button key={id} onClick={() => scrollTo(id)} className={`text-sm font-medium capitalize transition-colors ${scrolled ? 'text-[var(--color-foreground)] hover:text-[var(--color-primary)]' : 'text-white/90 hover:text-white'}`}>
+   114→   613→                {id}
+   115→   614→              </button>
+   116→   615→            ))}
+   117→   616→            <button onClick={() => setShowLookupModal(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${scrolled ? 'border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white' : 'border-white/70 text-white/90 hover:bg-white/20'}`}>
+   118→   617→              <Key className="w-3.5 h-3.5" /> My Reservation
+   119→   618→            </button>
+   120→   619→            <button onClick={() => setShowReservation(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
+   121→   620→              Reserve a Table
+   122→   621→            </button>
+   123→   622→          </div>
+   124→   623→          <div className="flex items-center gap-3">
+   125→   624→            {selectedTable && !billRequested && (
+   126→   625→              <motion.button
+   127→   626→                initial={{ scale: 0.8, opacity: 0 }}
+   128→   627→                animate={{ scale: 1, opacity: 1 }}
+   129→   628→                onClick={requestBill}
+   130→   629→                disabled={billRequesting}
+   131→   630→                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+   132→   631→              >
+   133→   632→                {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+   134→   633→                {billRequesting ? 'Requesting...' : 'Bill Request'}
+   135→   634→              </motion.button>
+   136→   635→            )}
+   137→   636→            {selectedTable && billRequested && (
+   138→   637→              <motion.button
+   139→   638→                initial={{ scale: 0.8, opacity: 0 }}
+   140→   639→                animate={{ scale: 1, opacity: 1 }}
+   141→   640→                onClick={() => fetchBill(selectedTable.id)}
+   142→   641→                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+   143→   642→              >
+   144→   643→                <Receipt className="w-3.5 h-3.5" /> View Bill
+   145→   644→              </motion.button>
+   146→   645→            )}
+   147→   646→            <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className={`md:hidden p-1.5 ${scrolled ? 'text-[var(--color-foreground)]' : 'text-white'}`}>
+   148→   647→              <MenuIcon className="w-5 h-5" />
+   149→   648→            </button>
+   150→   649→          </div>
+   151→   650→        </div>
+   152→   651→      </nav>
+   153→   652→
+   154→   653→      {/* Mobile nav overlay */}
+   155→   654→      <AnimatePresence>
+   156→   655→        {mobileNavOpen && (
+   157→   656→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+   158→   657→            className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={() => setMobileNavOpen(false)}>
+   159→   658→            <motion.div initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+   160→   659→              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+   161→   660→              className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl p-6 flex flex-col gap-6"
+   162→   661→              onClick={e => e.stopPropagation()}>
+   163→   662→              <div className="flex items-center justify-between">
+   164→   663→                <span className="font-[var(--font-display)] text-lg font-bold text-[var(--color-primary)]">High Spirits</span>
+   165→   664→                <button onClick={() => setMobileNavOpen(false)}><X className="w-5 h-5" /></button>
+   166→   665→              </div>
+   167→   666→              {['menu', 'events', 'about', 'contact'].map(id => (
+   168→   667→                <button key={id} onClick={() => scrollTo(id)} className="text-left text-base font-medium text-[var(--color-foreground)] hover:text-[var(--color-primary)] capitalize">{id}</button>
+   169→   668→              ))}
+   170→   669→              <button onClick={() => { setShowLookupModal(true); setMobileNavOpen(false); }} className="flex items-center gap-2 text-left text-base font-medium text-[var(--color-accent)]">
+   171→   670→                <Key className="w-4 h-4" /> My Reservation
+   172→   671→              </button>
+   173→   672→              <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-primary)]">
+   174→   673→                Reserve a Table
+   175→   674→              </button>
+   176→   675→              {selectedTable && !billRequested && (
+   177→   676→                <button onClick={() => { requestBill(); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+   178→   677→                  <FileText className="w-4 h-4" /> Bill Request
+   179→   678→                </button>
+   180→   679→              )}
+   181→   680→              {selectedTable && billRequested && (
+   182→   681→                <button onClick={() => { fetchBill(selectedTable.id); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+   183→   682→                  <Receipt className="w-4 h-4" /> View My Bill
+   184→   683→                </button>
+   185→   684→              )}
+   186→   685→            </motion.div>
+   187→   686→          </motion.div>
+   188→   687→        )}
+   189→   688→      </AnimatePresence>
+   190→   689→
+   191→   690→      {/* ===== HERO ===== */}
+   192→   691→      <section id="hero" className="relative h-[85vh] min-h-[520px] flex items-end overflow-hidden">
+   193→   692→        <div className="absolute inset-0">
+   194→   693→          <img src={HERO_IMG} alt="High Spirits Cafe" className="w-full h-full object-cover" />
+   195→   694→          <div className="hero-overlay absolute inset-0" />
+   196→   695→        </div>
+   197→   696→        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
+   198→   697→          <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+   199→   698→            <p className="section-label mb-3 text-white/70">Koregaon Park, Pune</p>
+   200→   699→            <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.05] mb-4">
+   201→   700→              High Spirits<br />Cafe
+   202→   701→            </h1>
+   203→   702→            <p className="text-white/75 text-base sm:text-lg max-w-md mb-8 leading-relaxed">
+   204→   703→              Pune&apos;s favourite nightlife destination. Live music, craft cocktails, and unforgettable evenings — since 2005.
+   205→   704→            </p>
+   206→   705→            <div className="flex flex-wrap gap-3">
+   207→   706→              <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
+   208→   707→                <UtensilsCrossed className="w-4 h-4" /> View Menu
+   209→   708→              </button>
+   210→   709→              <button onClick={() => setShowLookupModal(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+   211→   710→                <Key className="w-4 h-4" /> My Reservation
+   212→   711→              </button>
+   213→   712→              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+   214→   713→                <CalendarDays className="w-4 h-4" /> Reserve a Table
+   215→   714→              </button>
+   216→   715→            </div>
+   217→   716→          </motion.div>
+   218→   717→        </div>
+   219→   718→      </section>
+   220→   719→
+   221→   720→      {/* ===== HAPPY HOUR BANNER + RESTAURANT STATUS ===== */}
+   222→   721→      <div className="bg-[var(--color-primary)] text-white">
+   223→   722→        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-2">
+   224→   723→          <div className="flex items-center gap-3">
+   225→   724→            <span className="text-lg">🎉</span>
+   226→   725→            <span className="text-sm font-medium">Happy Hour — 12 PM to 6 PM</span>
+   227→   726→            <span className="text-xs text-white/60 hidden sm:inline">|</span>
+   228→   727→            <span className="text-xs text-white/80 hidden sm:inline">Beer ₹100 · Cocktails ₹150 · Mimosa ₹130</span>
+   229→   728→          </div>
+   230→   729→          <div className="flex items-center gap-4">
+   231→   730→            {/* Live restaurant status */}
+   232→   731→            <span className={`flex items-center gap-1.5 text-xs font-medium ${restaurantStatus.open ? 'text-green-300' : 'text-red-300'}`}>
+   233→   732→              <span className={`w-2 h-2 rounded-full ${restaurantStatus.open ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+   234→   733→              {restaurantStatus.open ? `Open · Closes at ${restaurantStatus.closesAt}` : `Closed · Opens at ${restaurantStatus.closesAt}`}
+   235→   734→            </span>
+   236→   735→            <span className="text-xs font-mono text-white/70">{happyHourTime}</span>
+   237→   736→          </div>
+   238→   737→        </div>
+   239→   738→      </div>
+   240→   739→
+   241→   740→      {/* ===== SELECTED TABLE BAR (subtle, customer-friendly) ===== */}
+   242→   741→      <AnimatePresence>
+   243→   742→        {selectedTable && (
+   244→   743→          <motion.div
+   245→   744→            initial={{ height: 0, opacity: 0 }}
+   246→   745→            animate={{ height: 'auto', opacity: 1 }}
+   247→   746→            exit={{ height: 0, opacity: 0 }}
+   248→   747→            className="bg-[var(--color-primary)]/5 border-b border-[var(--color-primary)]/10 overflow-hidden"
+   249→   748→          >
+   250→   749→            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2">
+   251→   750→              <div className="flex items-center gap-2">
+   252→   751→                <span className="text-xs text-[var(--color-muted-foreground)]">Dining at</span>
+   253→   752→                <span className="text-sm font-semibold text-[var(--color-primary)]">Table {selectedTable.number}</span>
+   254→   753→                <span className="text-xs text-[var(--color-muted-foreground)]">· {AREA_LABELS[selectedTable.area]}</span>
+   255→   754→                {activeReservation && (
+   256→   755→                  <span className="text-xs text-[var(--color-accent)] font-medium ml-1">· Code: {activeReservation.code}</span>
+   257→   756→                )}
+   258→   757→              </div>
+   259→   758→              <div className="flex items-center gap-2">
+   260→   759→                {!billRequested ? (
+   261→   760→                  <button onClick={requestBill} disabled={billRequesting} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-50">
+   262→   761→                    {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+   263→   762→                    {billRequesting ? 'Requesting...' : 'Bill Request'}
+   264→   763→                  </button>
+   265→   764→                ) : (
+   266→   765→                  <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5">
+   267→   766→                    <Receipt className="w-3.5 h-3.5" /> View Bill
+   268→   767→                  </button>
+   269→   768→                )}
+   270→   769→                <button onClick={() => { setSelectedTable(null); setCart([]); setActiveReservation(null); setBillRequested(false); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
+   271→   770→                  Leave
+   272→   771→                </button>
+   273→   772→              </div>
+   274→   773→            </div>
+   275→   774→          </motion.div>
+   276→   775→        )}
+   277→   776→      </AnimatePresence>
+   278→   777→
+   279→   778→      {/* ===== MENU ===== */}
+   280→   779→      <section id="menu" className="py-12 sm:py-16">
+   281→   780→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   282→   781→          {/* Section header */}
+   283→   782→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   284→   783→            <p className="section-label">What We Serve</p>
+   285→   784→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Our Menu</h2>
+   286→   785→            <div className="divider mx-auto mt-4" />
+   287→   786→          </motion.div>
+   288→   787→
+   289→   788→          {/* Table assignment prompt (if no table selected) */}
+   290→   789→          {!selectedTable && (
+   291→   790→            <motion.div initial="hidden" animate="visible" variants={fadeUp}
+   292→   791→              className="mb-8 bg-[var(--color-secondary)] border border-[var(--color-border)] rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
+   293→   792→              <div>
+   294→   793→                <p className="text-sm font-medium text-[var(--color-foreground)]">Reserve a table or enter your code to start ordering</p>
+   295→   794→                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your table will be auto-assigned when you reserve</p>
+   296→   795→              </div>
+   297→   796→              <div className="flex items-center gap-2">
+   298→   797→                <button onClick={() => setShowLookupModal(true)} className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+   299→   798→                  <Key className="w-4 h-4" /> My Reservation
+   300→   799→                </button>
+   301→   800→                <button onClick={() => setShowReservation(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+   302→   801→                  <CalendarDays className="w-4 h-4" /> Reserve
+   303→   802→                </button>
+   304→   803→              </div>
+   305→   804→            </motion.div>
+   306→   805→          )}
+   307→   806→
+   308→   807→          {/* Tabs */}
+   309→   808→          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 -mx-1 px-1">
+   310→   809→            {TABS.map(tab => {
+   311→   810→              const Icon = tab.icon;
+   312→   811→              return (
+   313→   812→                <button key={tab.key} onClick={() => handleTabChange(tab.key)}
+   314→   813→                  className={`tab-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border ${activeTab === tab.key ? 'active border-[var(--color-primary)]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}>
+   315→   814→                  <Icon className="w-4 h-4" /> {tab.label}
+   316→   815→                </button>
+   317→   816→              );
+   318→   817→            })}
+   319→   818→          </div>
+   320→   819→
+   321→   820→          {/* Search & Filter */}
+   322→   821→          <div className="flex items-center gap-3 mb-6">
+   323→   822→            <div className="relative flex-1">
+   324→   823→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
+   325→   824→              <input type="text" placeholder="Search menu..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+   326→   825→                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all" />
+   327→   826→            </div>
+   328→   827→            <button onClick={() => setVegOnly(!vegOnly)}
+   329→   828→              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${vegOnly ? 'bg-[#27AE60]/10 border-[#27AE60] text-[#27AE60]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)]'}`}>
+   330→   829→              <Leaf className="w-4 h-4" /> Veg
+   331→   830→            </button>
+   332→   831→          </div>
+   333→   832→
+   334→   833→          {/* Categories */}
+   335→   834→          <div ref={menuRef} className="space-y-3">
+   336→   835→            {(() => { console.log('[DIAG-RENDER] Menu section rendering — dataLoading:', dataLoading, 'filteredCategories:', filteredCategories.length, 'categories:', categories.length, 'activeTab:', activeTab, 'menuData keys:', Object.keys(menuData)); return null; })()}
+   337→   836→            {dataLoading && filteredCategories.length === 0 && (
+   338→   837→              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+   339→   838→                <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
+   340→   839→                <p className="text-sm">Loading menu...</p>
+   341→   840→              </div>
+   342→   841→            )}
+   343→   842→            {!dataLoading && filteredCategories.length === 0 && (
+   344→   843→              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+   345→   844→                <Search className="w-8 h-8 mx-auto mb-3 opacity-40" />
+   346→   845→                <p className="text-sm">No items found. Try a different search.</p>
+   347→   846→                {(() => { console.log('[DIAG-RENDER] Showing "No items found" — menuData:', JSON.stringify(Object.keys(menuData)), 'activeTab:', activeTab, 'categories:', categories.length, 'searchQuery:', searchQuery, 'vegOnly:', vegOnly); return null; })()}
+   348→   847→              </div>
+   349→   848→            )}
+   350→   849→            {filteredCategories.map((cat, idx) => {
+   351→   850→              const isOpen = expandedCategories.has(cat.slug) || searchQuery.length > 0;
+   352→   851→              return (
+   353→   852→                <motion.div key={cat.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.05 }}
+   354→   853→                  className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden">
+   355→   854→                  <button onClick={() => toggleCategory(cat.slug)}
+   356→   855→                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--color-secondary)]/50 transition-colors">
+   357→   856→                    <div className="flex items-center gap-3">
+   358→   857→                      <span className="text-lg">{cat.icon}</span>
+   359→   858→                      <div className="text-left">
+   360→   859→                        <span className="font-semibold text-[var(--color-foreground)]">{cat.name}</span>
+   361→   860→                        {cat.description && <span className="text-xs text-[var(--color-muted-foreground)] ml-2 hidden sm:inline">— {cat.description}</span>}
+   362→   861→                      </div>
+   363→   862→                      <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2 py-0.5 rounded-full">{cat.items.length}</span>
+   364→   863→                    </div>
+   365→   864→                    {isOpen ? <ChevronUp className="w-4 h-4 text-[var(--color-muted-foreground)]" /> : <ChevronDown className="w-4 h-4 text-[var(--color-muted-foreground)]" />}
+   366→   865→                  </button>
+   367→   866→                  <AnimatePresence>
+   368→   867→                    {isOpen && (
+   369→   868→                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+   370→   869→                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+   371→   870→                        <div className="border-t border-[var(--color-border)]">
+   372→   871→                          {cat.items.map((item) => (
+   373→   872→                            <MenuItemRow key={item.id} item={item} inCart={cart.find(c => c.menuItem.id === item.id)}
+   374→   873→                              onAdd={addToCart} onUpdateQty={updateCartQty} tableSelected={!!selectedTable} />
+   375→   874→                          ))}
+   376→   875→                        </div>
+   377→   876→                      </motion.div>
+   378→   877→                    )}
+   379→   878→                  </AnimatePresence>
+   380→   879→                </motion.div>
+   381→   880→              );
+   382→   881→            })}
+   383→   882→          </div>
+   384→   883→        </div>
+   385→   884→      </section>
+   386→   885→
+   387→   886→      {/* ===== EVENTS ===== */}
+   388→   887→      <section id="events" className="py-12 sm:py-16 bg-[var(--color-secondary)]">
+   389→   888→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   390→   889→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   391→   890→            <p className="section-label">What&apos;s On</p>
+   392→   891→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Events & Nights</h2>
+   393→   892→            <div className="divider mx-auto mt-4" />
+   394→   893→          </motion.div>
+   395→   894→          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   396→   895→            {events.map((event, idx) => (
+   397→   896→              <motion.div key={event.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.08 }}
+   398→   897→                className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
+   399→   898→                <div className="flex items-start gap-3 mb-3">
+   400→   899→                  <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
+   401→   900→                    {event.type === 'live' && <Music className="w-5 h-5 text-[var(--color-primary)]" />}
+   402→   901→                    {event.type === 'open-mic' && <Mic className="w-5 h-5 text-[var(--color-primary)]" />}
+   403→   902→                    {event.type === 'themed' && <PartyPopper className="w-5 h-5 text-[var(--color-primary)]" />}
+   404→   903→                    {event.type === 'dj' && <Sun className="w-5 h-5 text-[var(--color-primary)]" />}
+   405→   904→                  </div>
+   406→   905→                  <div className="flex-1 min-w-0">
+   407→   906→                    <h3 className="font-semibold text-[var(--color-foreground)] text-sm leading-snug">{event.title}</h3>
+   408→   907→                    {event.isFeatured && <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">Featured</span>}
+   409→   908→                  </div>
+   410→   909→                </div>
+   411→   910→                <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed mb-3">{event.description}</p>
+   412→   911→                <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)]">
+   413→   912→                  <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> {event.date}</span>
+   414→   913→                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {event.time}</span>
+   415→   914→                </div>
+   416→   915→              </motion.div>
+   417→   916→            ))}
+   418→   917→          </div>
+   419→   918→        </div>
+   420→   919→      </section>
+   421→   920→
+   422→   921→      {/* ===== ABOUT ===== */}
+   423→   922→      <section id="about" className="py-12 sm:py-16">
+   424→   923→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   425→   924→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   426→   925→            <p className="section-label">Since 2005</p>
+   427→   926→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Our Story</h2>
+   428→   927→            <div className="divider mx-auto mt-4" />
+   429→   928→          </motion.div>
+   430→   929→          <div className="grid md:grid-cols-2 gap-8 items-center">
+   431→   930→            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+   432→   931→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
+   433→   932→                In 2005, two friends had a simple idea: create a place where the music is always live, the drinks never stop flowing, and everyone feels like a regular. That place became High Spirits — a corner of Koregaon Park that turned into Pune&apos;s longest-running nightlife institution.
+   434→   933→              </p>
+   435→   934→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
+   436→   935→                What makes us different? We don&apos;t do pretension. We do great cocktails at honest prices, live music that makes you stay past midnight, and food that surprises you — from Konkani Paneer Chilli to Neapolitan pizzas. Our Vintage Nights on Tuesdays and Thursdays have become legendary, and our Saturday gigs are the worst-kept secret in the city.
+   437→   936→              </p>
+   438→   937→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-6">
+   439→   938→                Walk in as a stranger, walk out as family. That&apos;s the High Spirits promise.
+   440→   939→              </p>
+   441→   940→              {/* Trust metrics */}
+   442→   941→              <div className="grid grid-cols-4 gap-4">
+   443→   942→                <div className="text-center">
+   444→   943→                  <div className="text-2xl font-bold text-[var(--color-primary)]">19+</div>
+   445→   944→                  <div className="text-xs text-[var(--color-muted-foreground)]">Years</div>
+   446→   945→                </div>
+   447→   946→                <div className="text-center">
+   448→   947→                  <div className="flex items-center justify-center gap-0.5">
+   449→   948→                    <span className="text-2xl font-bold text-[var(--color-primary)]">4.6</span>
+   450→   949→                    <Star className="w-4 h-4 fill-[var(--color-accent)] text-[var(--color-accent)]" />
+   451→   950→                  </div>
+   452→   951→                  <div className="text-xs text-[var(--color-muted-foreground)]">Rating</div>
+   453→   952→                </div>
+   454→   953→                <div className="text-center">
+   455→   954→                  <div className="text-2xl font-bold text-[var(--color-primary)]">50K+</div>
+   456→   955→                  <div className="text-xs text-[var(--color-muted-foreground)]">Guests</div>
+   457→   956→                </div>
+   458→   957→                <div className="text-center">
+   459→   958→                  <div className="text-2xl font-bold text-[var(--color-primary)]">5</div>
+   460→   959→                  <div className="text-xs text-[var(--color-muted-foreground)]">Live Events</div>
+   461→   960→                </div>
+   462→   961→              </div>
+   463→   962→              {/* CTA after about */}
+   464→   963→              <div className="mt-6 flex flex-wrap gap-3">
+   465→   964→                <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+   466→   965→                  <CalendarDays className="w-4 h-4" /> Reserve a Table
+   467→   966→                </button>
+   468→   967→                <button onClick={() => scrollTo('menu')} className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
+   469→   968→                  View Menu <ChevronRight className="w-4 h-4" />
+   470→   969→                </button>
+   471→   970→              </div>
+   472→   971→            </motion.div>
+   473→   972→            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="grid grid-cols-2 gap-3">
+   474→   973→              <img src={INTERIOR_IMG} alt="Interior" className="rounded-xl object-cover w-full h-48 sm:h-64" />
+   475→   974→              <img src={COCKTAIL_IMG} alt="Cocktails" className="rounded-xl object-cover w-full h-48 sm:h-64 mt-6" />
+   476→   975→              <img src={FOOD_IMG} alt="Food" className="rounded-xl object-cover w-full h-48 sm:h-64 -mt-6" />
+   477→   976→              {/* Replace green card with Google Rating card */}
+   478→   977→              <div className="rounded-xl bg-[var(--color-primary)] text-white flex flex-col items-center justify-center p-5 h-48 sm:h-64">
+   479→   978→                <div className="flex items-center gap-1 mb-2">
+   480→   979→                  {[1,2,3,4,5].map(i => (
+   481→   980→                    <Star key={i} className={`w-5 h-5 ${i <= 4 ? 'fill-[var(--color-accent)] text-[var(--color-accent)]' : 'fill-white/30 text-white/30'}`} />
+   482→   981→                  ))}
+   483→   982→                </div>
+   484→   983→                <p className="font-[var(--font-display)] text-lg font-bold">4.6 on Google</p>
+   485→   984→                <p className="text-xs text-white/60 mt-1">Based on 2,800+ reviews</p>
+   486→   985→                <a href={GOOGLE_MAPS} target="_blank" rel="noopener noreferrer" className="mt-3 text-xs text-white/80 underline hover:text-white transition-colors">
+   487→   986→                  Read Reviews →
+   488→   987→                </a>
+   489→   988→              </div>
+   490→   989→            </motion.div>
+   491→   990→          </div>
+   492→   991→        </div>
+   493→   992→      </section>
+   494→   993→
+   495→   994→      {/* ===== CONTACT ===== */}
+   496→   995→      <section id="contact" className="py-12 sm:py-16 bg-[var(--color-secondary)]">
+   497→   996→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   498→   997→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   499→   998→            <p className="section-label">Get In Touch</p>
+   500→   999→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Find Us</h2>
+   501→
+   502→[showing lines 500-999 of 1621; use offset=1000 with limit to continue reading]
