@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     "preview-chat-b2d57456-beda-4244-be65-be3271a45c8f.space-z.ai",
     ".space-z.ai",
+    "127.0.0.1",
+    "localhost",
   ],
 };
 

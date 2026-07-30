@@ -1,0 +1,273 @@
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: true filteredCategories: 0 categories: 0 activeTab: food menuData keys: []
+[log] [DIAG-FETCH] Starting data fetch...
+[log] [DIAG-MENU] dataLoading: true menuData keys: [] activeTab: food
+[log] [DIAG-MENU] categories: 0 filteredCategories: 0
+[log] [DIAG-MENU] searchQuery: "" vegOnly: false
+[log] [DIAG-TABLES] tables: 0 selectedTable: undefined showTableSelector: false
+[log] [DIAG-RESERVE] showReservation: false reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-FETCH] /api/menu response status: 200 true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: true filteredCategories: 0 categories: 0 activeTab: food menuData keys: []
+[log] [DIAG-FETCH] /api/events response status: 200 true
+[log] [DIAG-FETCH] /api/tables response status: 200 true
+[log] [DIAG-FETCH] menuData loaded, keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-FETCH] menuData["food"]: 9 categories
+[log] [DIAG-FETCH] menuData["coffee"]: 1 categories
+[log] [DIAG-FETCH] menuData["bar"]: 7 categories
+[log] [DIAG-FETCH] menuData["offers"]: 1 categories
+[log] [DIAG-FETCH] menuData["vintage"]: 2 categories
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: true filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-MENU] dataLoading: true menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food
+[log] [DIAG-MENU] categories: 9 filteredCategories: 9
+[log] [DIAG-MENU] searchQuery: "" vegOnly: false
+[log] [DIAG-MENU] Sample category: Eggs to Order items: 7
+[log] [DIAG-MENU] Sample filtered: Eggs to Order items: 7
+[log] [DIAG-FETCH] events loaded, count: 5
+[log] [DIAG-FETCH] tables loaded, count: 20
+[log] [DIAG-FETCH] tables: [{"id":"cms55ki06006tqezn524q1hhs","number":1,"capacity":2,"area":"indoor","status":"occupied","orders":[{"id":"cms6euf900002shu71n156pdf","tableId":"cms55ki06006tqezn524q1hhs","status":"pending","type":"dine-in","notes":null,"total":1895,"createdAt":"2026-07-29T18:20:46.645Z","updatedAt":"2026-07-2
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-MENU] dataLoading: false menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food
+[log] [DIAG-MENU] categories: 9 filteredCategories: 9
+[log] [DIAG-MENU] searchQuery: "" vegOnly: false
+[log] [DIAG-MENU] Sample category: Eggs to Order items: 7
+[log] [DIAG-MENU] Sample filtered: Eggs to Order items: 7
+[log] [DIAG-TABLES] tables: 20 selectedTable: undefined showTableSelector: false
+[log] [DIAG-RESERVE] showReservation: false reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-FULL-STATE] menuData: ["coffee:1cats","offers:1cats","food:9cats","bar:7cats","vintage:2cats"]
+[log] [DIAG-FULL-STATE] events: 5 tables: 20
+[log] [DIAG-FULL-STATE] activeTab: food searchQuery:  vegOnly: false
+[log] [DIAG-FULL-STATE] selectedTable: undefined showReservation: false showTableSelector: false
+[log] [DIAG-FULL-STATE] cart: 0 cartTotal: 0
+[log] [DIAG-FULL-STATE] restaurantStatus: {open: false, closesAt: ""} happyHourTime: 
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: true filteredCategories: 0 categories: 0 activeTab: food menuData keys: []
+[log] [DIAG-FETCH] Starting data fetch...
+[log] [DIAG-MENU] dataLoading: true menuData keys: [] activeTab: food
+[log] [DIAG-MENU] categories: 0 filteredCategories: 0
+[log] [DIAG-MENU] searchQuery: "" vegOnly: false
+[log] [DIAG-TABLES] tables: 0 selectedTable: undefined showTableSelector: false
+[log] [DIAG-RESERVE] showReservation: false reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: true filteredCategories: 0 categories: 0 activeTab: food menuData keys: []
+[log] [DIAG-FETCH] /api/events response status: 200 true
+[log] [DIAG-FETCH] events loaded, count: 5
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: true filteredCategories: 0 categories: 0 activeTab: food menuData keys: []
+[log] [DIAG-FETCH] /api/menu response status: 200 true
+[log] [DIAG-FETCH] /api/tables response status: 200 true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: true filteredCategories: 0 categories: 0 activeTab: food menuData keys: []
+[log] [DIAG-FETCH] menuData loaded, keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-FETCH] menuData["food"]: 9 categories
+[log] [DIAG-FETCH] menuData["coffee"]: 1 categories
+[log] [DIAG-FETCH] menuData["bar"]: 7 categories
+[log] [DIAG-FETCH] menuData["offers"]: 1 categories
+[log] [DIAG-FETCH] menuData["vintage"]: 2 categories
+[log] [DIAG-FETCH] tables loaded, count: 20
+[log] [DIAG-FETCH] tables: [{"id":"cms55ki06006tqezn524q1hhs","number":1,"capacity":2,"area":"indoor","status":"occupied","orders":[{"id":"cms6euf900002shu71n156pdf","tableId":"cms55ki06006tqezn524q1hhs","status":"pending","type":"dine-in","notes":null,"total":1895,"createdAt":"2026-07-29T18:20:46.645Z","updatedAt":"2026-07-2
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-MENU] dataLoading: false menuData keys: ["coffee", "offers", "food", "bar", "vintage"] activeTab: food
+[log] [DIAG-MENU] categories: 9 filteredCategories: 9
+[log] [DIAG-MENU] searchQuery: "" vegOnly: false
+[log] [DIAG-MENU] Sample category: Eggs to Order items: 7
+[log] [DIAG-MENU] Sample filtered: Eggs to Order items: 7
+[log] [DIAG-TABLES] tables: 20 selectedTable: undefined showTableSelector: false
+[log] [DIAG-RESERVE] showReservation: false reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-FULL-STATE] menuData: ["coffee:1cats","offers:1cats","food:9cats","bar:7cats","vintage:2cats"]
+[log] [DIAG-FULL-STATE] events: 5 tables: 20
+[log] [DIAG-FULL-STATE] activeTab: food searchQuery:  vegOnly: false
+[log] [DIAG-FULL-STATE] selectedTable: undefined showReservation: false showTableSelector: false
+[log] [DIAG-FULL-STATE] cart: 0 cartTotal: 0
+[log] [DIAG-FULL-STATE] restaurantStatus: {open: false, closesAt: "12:00 PM"} happyHourTime: 6h 18m 27s
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG] Reserve button clicked (nav), setting showReservation=true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-TABLES] tables: 20 selectedTable: undefined showTableSelector: false
+[log] [DIAG-RESERVE] showReservation: true reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RESERVE] Reservation modal is rendering — showReservation: true
+[log] [DIAG] Reservation modal backdrop clicked, closing
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] tables: 20 selectedTable: undefined showTableSelector: false
+[log] [DIAG-RESERVE] showReservation: false reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG] Select Table button clicked, setting showTableSelector=true
+[log] [DIAG] tables: 20 tables data: T1(occupied), T2(occupied), T3(available), T4(available), T5(available), T6(available), T7(available), T8(available), T9(available), T10(available), T11(available), T12(occupied), T13(available), T14(available), T15(available), T16(available), T17(available), T18(available), T19(available), T20(available)
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-TABLES] tables: 20 selectedTable: undefined showTableSelector: true
+[log] [DIAG-RESERVE] showReservation: false reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] Table selector modal is rendering — showTableSelector: true tables: 20
+[log] [DIAG] Rendering table selector, tables: 20 selectedTable: undefined
+[log] [DIAG] Table selected: 3 area: indoor status: available
+[log] [DIAG] selectedTable before: undefined
+[log] [DIAG] selectedTable after set: 3
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-TABLES] tables: 20 selectedTable: 3 showTableSelector: false
+[log] [DIAG-RESERVE] showReservation: false reservationSubmitting: false reservationSuccess: false
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
+[log] [DIAG-RENDER] Menu section rendering — dataLoading: false filteredCategories: 9 categories: 9 activeTab: food menuData keys: ["coffee", "offers", "food", "bar", "vintage"]
