@@ -9,28 +9,15 @@ import {
   Home, UtensilsCrossed, BookOpen, Camera, MapPin, Info, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { useBusiness } from '@/lib/business-config';
+import { useApp } from '@/lib/app-context';
 
-interface NavProps {
-  selectedTable?: { id: string; number: number; area: string } | null;
-  activeReservation?: { code: string } | null;
-  billRequested?: boolean;
-  billRequesting?: boolean;
-  onBillRequest?: () => void;
-  onViewBill?: () => void;
-  onShowLookup?: () => void;
-  onShowReservation?: () => void;
-}
+export default function Navigation() {
+  const {
+    selectedTable, billRequested, billRequesting,
+    requestBill, fetchBill,
+    setShowLookupModal, setShowReservation,
+  } = useApp();
 
-export default function Navigation({
-  selectedTable,
-  activeReservation,
-  billRequested,
-  billRequesting,
-  onBillRequest,
-  onViewBill,
-  onShowLookup,
-  onShowReservation,
-}: NavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const pathname = usePathname();
@@ -56,9 +43,19 @@ export default function Navigation({
     return pathname.startsWith(href);
   };
 
+  const handleBillRequest = () => {
+    requestBill();
+    setMobileNavOpen(false);
+  };
+
+  const handleViewBill = () => {
+    if (selectedTable) fetchBill(selectedTable.id);
+    setMobileNavOpen(false);
+  };
+
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-white/95 backdrop-blur-md shadow-sm'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-sm`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
             <span className="font-[var(--font-display)] text-xl font-bold tracking-tight text-[var(--color-primary)]">
@@ -107,7 +104,7 @@ export default function Navigation({
               <motion.button
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                onClick={onBillRequest}
+                onClick={handleBillRequest}
                 disabled={billRequesting}
                 className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
               >
@@ -119,17 +116,17 @@ export default function Navigation({
               <motion.button
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                onClick={onViewBill}
+                onClick={handleViewBill}
                 className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
               >
                 <Receipt className="w-3.5 h-3.5" /> View bill
               </motion.button>
             )}
 
-            <button onClick={onShowLookup} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white transition-all">
+            <button onClick={() => setShowLookupModal(true)} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white transition-all">
               <Key className="w-3.5 h-3.5" /> My Reservation
             </button>
-            <button onClick={onShowReservation} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-all">
+            <button onClick={() => setShowReservation(true)} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-all">
               <CalendarDays className="w-3.5 h-3.5" /> Reserve
             </button>
 
@@ -173,19 +170,19 @@ export default function Navigation({
               })}
 
               <div className="border-t border-[var(--color-border)] pt-4 flex flex-col gap-3">
-                <button onClick={() => { onShowLookup?.(); setMobileNavOpen(false); }} className="flex items-center gap-3 text-left text-base font-medium text-[var(--color-accent)]">
+                <button onClick={() => { setShowLookupModal(true); setMobileNavOpen(false); }} className="flex items-center gap-3 text-left text-base font-medium text-[var(--color-accent)]">
                   <Key className="w-4 h-4" /> My Reservation
                 </button>
-                <button onClick={() => { onShowReservation?.(); setMobileNavOpen(false); }} className="flex items-center gap-3 text-left text-base font-medium text-[var(--color-primary)]">
+                <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="flex items-center gap-3 text-left text-base font-medium text-[var(--color-primary)]">
                   <CalendarDays className="w-4 h-4" /> Reserve a Table
                 </button>
                 {selectedTable && !billRequested && (
-                  <button onClick={() => { onBillRequest?.(); setMobileNavOpen(false); }} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
+                  <button onClick={handleBillRequest} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
                     <FileText className="w-4 h-4" /> Bill Request
                   </button>
                 )}
                 {selectedTable && billRequested && (
-                  <button onClick={() => { onViewBill?.(); setMobileNavOpen(false); }} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
+                  <button onClick={handleViewBill} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
                     <Receipt className="w-4 h-4" /> View My Bill
                   </button>
                 )}

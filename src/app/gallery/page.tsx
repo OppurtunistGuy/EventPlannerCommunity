@@ -18,12 +18,8 @@ const GALLERY_IMAGES = [
 
 export default function GalleryPage() {
   const {
-    selectedTable, activeReservation,
     showReservation, setShowReservation,
     showLookupModal, setShowLookupModal,
-    billRequested, billRequesting,
-    setBillData, setShowBill,
-    setBillRequested, setBillRequesting,
   } = useApp();
 
   const [scrolled, setScrolled] = useState(false);
@@ -35,47 +31,9 @@ export default function GalleryPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const fetchBill = async (tableId: string) => {
-    try {
-      const res = await fetch(`/api/bill?tableId=${tableId}`);
-      if (!res.ok) throw new Error(`bill ${res.status}`);
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-    } catch {}
-  };
-
-  const requestBill = async () => {
-    if (!selectedTable) return;
-    setBillRequesting(true);
-    try {
-      const res = await fetch('/api/bill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tableId: selectedTable.id, reservationId: activeReservation?.id || null }),
-      });
-      if (!res.ok) throw new Error('Bill request failed');
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-      setBillRequested(true);
-    } catch {} finally {
-      setBillRequesting(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation
-        selectedTable={selectedTable}
-        activeReservation={activeReservation}
-        billRequested={billRequested}
-        billRequesting={billRequesting}
-        onBillRequest={requestBill}
-        onViewBill={() => selectedTable && fetchBill(selectedTable.id)}
-        onShowLookup={() => setShowLookupModal(true)}
-        onShowReservation={() => setShowReservation(true)}
-      />
+      <Navigation />
 
       <TableBar />
 

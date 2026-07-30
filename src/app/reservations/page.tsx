@@ -21,11 +21,9 @@ export default function ReservationsPage() {
     selectedTable, activeReservation,
     showReservation, setShowReservation,
     showLookupModal, setShowLookupModal,
-    billRequested, billRequesting,
     setActiveReservation, setSelectedTable,
     setCart,
-    setBillData, setShowBill,
-    setBillRequested, setBillRequesting,
+    lookupReservationByCode,
   } = useApp();
 
   const [restaurantStatus] = useState(isRestaurantOpen());
@@ -41,74 +39,25 @@ export default function ReservationsPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const lookupReservation = async () => {
+  const handleLookup = async () => {
     if (!lookupCode.trim()) return;
     setLookupLoading(true);
     setLookupError('');
     setLookupSuccess(false);
-    try {
-      const res = await fetch(`/api/reservations/lookup?code=${lookupCode.trim()}`);
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ error: 'Reservation not found' }));
-        setLookupError(errData.error || 'Reservation not found');
-        setActiveReservation(null);
-        return;
-      }
-      const data = await res.json();
-      setActiveReservation(data);
-      setSelectedTable(data.table);
+    const success = await lookupReservationByCode(lookupCode);
+    setLookupLoading(false);
+    if (success) {
       setLookupCode('');
       setLookupSuccess(true);
       setTimeout(() => setLookupSuccess(false), 3000);
-    } catch (err) {
-      setLookupError('Failed to look up reservation. Please try again.');
-      setActiveReservation(null);
-    } finally {
-      setLookupLoading(false);
-    }
-  };
-
-  const fetchBill = async (tableId: string) => {
-    try {
-      const res = await fetch(`/api/bill?tableId=${tableId}`);
-      if (!res.ok) throw new Error(`bill ${res.status}`);
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-    } catch {}
-  };
-
-  const requestBill = async () => {
-    if (!selectedTable) return;
-    setBillRequesting(true);
-    try {
-      const res = await fetch('/api/bill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tableId: selectedTable.id, reservationId: activeReservation?.id || null }),
-      });
-      if (!res.ok) throw new Error('Bill request failed');
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-      setBillRequested(true);
-    } catch {} finally {
-      setBillRequesting(false);
+    } else {
+      setLookupError('Reservation not found. Please check your code.');
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation
-        selectedTable={selectedTable}
-        activeReservation={activeReservation}
-        billRequested={billRequested}
-        billRequesting={billRequesting}
-        onBillRequest={requestBill}
-        onViewBill={() => selectedTable && fetchBill(selectedTable.id)}
-        onShowLookup={() => setShowLookupModal(true)}
-        onShowReservation={() => setShowReservation(true)}
-      />
+      <Navigation />
 
       <HappyHoursAnnouncement />
       <TableBar />
@@ -172,7 +121,7 @@ export default function ReservationsPage() {
                     placeholder="Enter 6-digit code"
                     maxLength={6}
                     className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl text-lg font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
-                    onKeyDown={e => { if (e.key === 'Enter') lookupReservation(); }}
+                    onKeyDown={e => { if (e.key === 'Enter') handleLookup(); }}
                   />
                 </div>
                 <div className="flex items-center gap-2 justify-center">
@@ -185,7 +134,7 @@ export default function ReservationsPage() {
                   <p className="text-sm text-[#27AE60] text-center">Reservation found! You can now order from the menu.</p>
                 )}
                 <button
-                  onClick={lookupReservation}
+                  onClick={handleLookup}
                   disabled={lookupLoading || !lookupCode.trim()}
                   className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                 >

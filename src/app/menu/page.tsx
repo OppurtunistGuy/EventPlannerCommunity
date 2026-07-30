@@ -28,9 +28,6 @@ export default function MenuPage() {
     cart, setCart,
     showReservation, setShowReservation,
     showLookupModal, setShowLookupModal,
-    billRequested, billRequesting,
-    setBillData, setShowBill,
-    setBillRequested, setBillRequesting,
   } = useApp();
 
   const [menuData, setMenuData] = useState<Record<string, MenuCategory[]>>({});
@@ -135,16 +132,7 @@ export default function MenuPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation
-        selectedTable={selectedTable}
-        activeReservation={activeReservation}
-        billRequested={billRequested}
-        billRequesting={billRequesting}
-        onBillRequest={requestBill}
-        onViewBill={() => selectedTable && fetchBill(selectedTable.id)}
-        onShowLookup={() => setShowLookupModal(true)}
-        onShowReservation={() => setShowReservation(true)}
-      />
+      <Navigation />
 
       <HappyHoursAnnouncement />
       <TableBar />

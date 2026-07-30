@@ -25,7 +25,6 @@ export default function Footer() {
             <div className="flex flex-col gap-2">
               {[
                 { href: '/menu', label: 'Menu' },
-                { href: '/reservations', label: 'Reservations' },
                 { href: '/about', label: 'About' },
                 { href: '/gallery', label: 'Gallery' },
                 { href: '/contact', label: 'Contact' },

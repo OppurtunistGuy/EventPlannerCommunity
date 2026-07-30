@@ -25,6 +25,17 @@ export function ReservationModal() {
 
   const [tables, setTables] = useState<TableInfo[]>([]);
 
+  // Set default date/time on mount
+  useEffect(() => {
+    if (showReservation && !reservationForm.date) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      setReservationForm(p => ({ ...p, date: `${yyyy}-${mm}-${dd}`, time: '19:00' }));
+    }
+  }, [showReservation]);
+
   useEffect(() => {
     fetch('/api/tables')
       .then(r => r.ok ? r.json() : [])
@@ -36,6 +47,10 @@ export function ReservationModal() {
     e.preventDefault();
     setReservationSubmitting(true);
     try {
+      // Validate form before submission
+      if (!reservationForm.name || !reservationForm.phone || !reservationForm.date || !reservationForm.time) {
+        throw new Error('Please fill in all required fields (Name, Phone, Date, Time)');
+      }
       const res = await fetch('/api/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -162,7 +177,7 @@ export function ReservationModal() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Date *</label>
-                      <input type="date" required value={reservationForm.date} onChange={e => setReservationForm(p => ({ ...p, date: e.target.value }))}
+                      <input type="date" required value={reservationForm.date} min={new Date().toISOString().split('T')[0]} onChange={e => setReservationForm(p => ({ ...p, date: e.target.value }))}
                         className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
                     </div>
                     <div>
@@ -210,33 +225,14 @@ export function LookupModal() {
   const {
     showLookupModal, setShowLookupModal,
     lookupCode, setLookupCode,
-    lookupLoading, setLookupLoading,
-    lookupError, setLookupError,
-    setActiveReservation, setSelectedTable,
+    lookupLoading, lookupError, setLookupError,
+    lookupReservationByCode,
   } = useApp();
 
-  const lookupReservation = async () => {
-    if (!lookupCode.trim()) return;
-    setLookupLoading(true);
-    setLookupError('');
-    try {
-      const res = await fetch(`/api/reservations/lookup?code=${lookupCode.trim()}`);
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ error: 'Reservation not found' }));
-        setLookupError(errData.error || 'Reservation not found');
-        setActiveReservation(null);
-        return;
-      }
-      const data = await res.json();
-      setActiveReservation(data);
-      setSelectedTable(data.table);
-      setLookupCode('');
+  const handleLookup = async () => {
+    const success = await lookupReservationByCode(lookupCode);
+    if (success) {
       setShowLookupModal(false);
-    } catch (err) {
-      setLookupError('Failed to look up reservation');
-      setActiveReservation(null);
-    } finally {
-      setLookupLoading(false);
     }
   };
 
@@ -278,7 +274,7 @@ export function LookupModal() {
                     placeholder="Enter 6-digit code"
                     maxLength={6}
                     className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl text-lg font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
-                    onKeyDown={e => { if (e.key === 'Enter') lookupReservation(); }}
+                    onKeyDown={e => { if (e.key === 'Enter') handleLookup(); }}
                   />
                 </div>
                 <div className="flex items-center gap-2 justify-center">
@@ -288,7 +284,7 @@ export function LookupModal() {
                   <p className="text-sm text-[var(--color-destructive)] text-center">{lookupError}</p>
                 )}
                 <button
-                  onClick={lookupReservation}
+                  onClick={handleLookup}
                   disabled={lookupLoading || !lookupCode.trim()}
                   className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                 >
@@ -310,10 +306,11 @@ export function LookupModal() {
 export function CartSidebar() {
   const {
     cart, setCart, showCart, setShowCart,
-    selectedTable, setSelectedTable,
-    orderSubmitting, setOrderSubmitting,
-    orderSuccess, setOrderSuccess,
+    selectedTable,
+    orderSubmitting,
+    orderSuccess,
     setShowLookupModal,
+    submitOrder,
   } = useApp();
 
   const cartTotal = cart.reduce((sum, c) => sum + c.menuItem.price * c.quantity, 0);
@@ -330,31 +327,6 @@ export function CartSidebar() {
       if (newQty <= 0) return c;
       return { ...c, quantity: newQty };
     }).filter(c => c.quantity > 0));
-  };
-
-  const submitOrder = async () => {
-    if (!selectedTable || cart.length === 0) return;
-    setOrderSubmitting(true);
-    try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tableId: selectedTable.id,
-          type: 'dine-in',
-          items: cart.map(c => ({ menuItemId: c.menuItem.id, quantity: c.quantity })),
-        }),
-      });
-      if (!res.ok) throw new Error('Order failed');
-      setCart([]);
-      setShowCart(false);
-      setOrderSuccess(true);
-      setTimeout(() => setOrderSuccess(false), 4000);
-    } catch (err) {
-      console.error('submitOrder error:', err);
-    } finally {
-      setOrderSubmitting(false);
-    }
   };
 
   return (
@@ -441,11 +413,10 @@ export function CartSidebar() {
 export function BillModal() {
   const {
     showBill, setShowBill, billData, setBillData,
-    selectedTable, setSelectedTable,
-    setActiveReservation, setBillRequested, setCart,
+    selectedTable, endSession,
   } = useApp();
 
-  const closeBill = async () => {
+  const settleBill = async () => {
     if (!billData || !selectedTable) return;
     try {
       const billId = (billData as Record<string, unknown>).billId as string;
@@ -467,10 +438,7 @@ export function BillModal() {
       }
       setShowBill(false);
       setBillData(null);
-      setSelectedTable(null);
-      setActiveReservation(null);
-      setBillRequested(false);
-      setCart([]);
+      endSession();
     } catch (err) {
       console.error(err);
     }
@@ -525,7 +493,7 @@ export function BillModal() {
               <button onClick={() => setShowBill(false)} className="flex-1 py-2.5 border border-[var(--color-border)] rounded-xl text-sm font-medium hover:bg-[var(--color-secondary)] transition-colors">
                 Close
               </button>
-              <button onClick={closeBill} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+              <button onClick={settleBill} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
                 Settle Bill
               </button>
             </div>
@@ -541,49 +509,10 @@ export function BillModal() {
 // ==========================================
 export function TableBar() {
   const {
-    selectedTable, setSelectedTable,
-    activeReservation, setActiveReservation,
-    billRequested, setBillRequested,
-    billRequesting, setBillRequesting,
-    setBillData, setShowBill,
-    setCart,
+    selectedTable, activeReservation,
+    billRequested, billRequesting,
+    requestBill, fetchBill, endSession,
   } = useApp();
-
-  const fetchBill = async (tableId: string) => {
-    try {
-      const res = await fetch(`/api/bill?tableId=${tableId}`);
-      if (!res.ok) throw new Error(`bill ${res.status}`);
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-    } catch (err) {
-      console.error('fetchBill failed:', err);
-    }
-  };
-
-  const requestBill = async () => {
-    if (!selectedTable) return;
-    setBillRequesting(true);
-    try {
-      const res = await fetch('/api/bill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tableId: selectedTable.id,
-          reservationId: activeReservation?.id || null,
-        }),
-      });
-      if (!res.ok) throw new Error('Bill request failed');
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-      setBillRequested(true);
-    } catch (err) {
-      console.error('requestBill error:', err);
-    } finally {
-      setBillRequesting(false);
-    }
-  };
 
   if (!selectedTable) return null;
 
@@ -615,7 +544,7 @@ export function TableBar() {
                 <Receipt className="w-3.5 h-3.5" /> View bill
               </button>
             )}
-            <button onClick={() => { setSelectedTable(null); setCart([]); setActiveReservation(null); setBillRequested(false); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
+            <button onClick={endSession} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
               End Session
             </button>
           </div>

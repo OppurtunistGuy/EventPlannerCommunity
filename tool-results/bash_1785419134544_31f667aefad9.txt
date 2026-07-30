@@ -1135,6 +1135,7 @@
 /home/z/my-project/skills/xlsx/templates/base.py
 /home/z/my-project/skills/xlsx/templates/palettes.py
 /home/z/my-project/skills/xlsx/xlsx.py
+/home/z/my-project/src/app/about/page.tsx
 /home/z/my-project/src/app/api/bill/route.ts
 /home/z/my-project/src/app/api/events/route.ts
 /home/z/my-project/src/app/api/menu/route.ts
@@ -1143,12 +1144,20 @@
 /home/z/my-project/src/app/api/reservations/route.ts
 /home/z/my-project/src/app/api/route.ts
 /home/z/my-project/src/app/api/tables/route.ts
+/home/z/my-project/src/app/contact/page.tsx
 /home/z/my-project/src/app/error.tsx
+/home/z/my-project/src/app/gallery/page.tsx
 /home/z/my-project/src/app/globals.css
 /home/z/my-project/src/app/layout.tsx
 /home/z/my-project/src/app/loading.tsx
+/home/z/my-project/src/app/menu/page.tsx
 /home/z/my-project/src/app/page.tsx
+/home/z/my-project/src/app/reservations/page.tsx
 /home/z/my-project/src/components/DiagnosticErrorBoundary.tsx
+/home/z/my-project/src/components/Footer.tsx
+/home/z/my-project/src/components/HappyHoursAnnouncement.tsx
+/home/z/my-project/src/components/Modals.tsx
+/home/z/my-project/src/components/Navigation.tsx
 /home/z/my-project/src/components/ui/accordion.tsx
 /home/z/my-project/src/components/ui/alert-dialog.tsx
 /home/z/my-project/src/components/ui/alert.tsx
@@ -1199,7 +1208,10 @@
 /home/z/my-project/src/components/ui/tooltip.tsx
 /home/z/my-project/src/hooks/use-mobile.ts
 /home/z/my-project/src/hooks/use-toast.ts
+/home/z/my-project/src/lib/app-context.tsx
+/home/z/my-project/src/lib/business-config.tsx
 /home/z/my-project/src/lib/db.ts
+/home/z/my-project/src/lib/shared.ts
 /home/z/my-project/src/lib/utils.ts
 /home/z/my-project/tailwind.config.ts
 /home/z/my-project/tests/database-runtime-build.sh
@@ -1215,6 +1227,7 @@
 /home/z/my-project/tool-results/bash_1785359800418_4a5d6840fc09.txt
 /home/z/my-project/tool-results/bash_1785360849445_55e49a9d043f.txt
 /home/z/my-project/tool-results/bash_1785392000958_aa73682b12f5.txt
+/home/z/my-project/tool-results/bash_1785403553133_5f6ab2400d4f.txt
 /home/z/my-project/tool-results/read_1785263033198_2418aa8347a6.txt
 /home/z/my-project/tool-results/read_1785263035371_4350e70d897a.txt
 /home/z/my-project/tool-results/read_1785265469031_65b953830c77.txt
@@ -1255,6 +1268,11 @@
 /home/z/my-project/tool-results/read_1785402013141_05aa1f25ac39.txt
 /home/z/my-project/tool-results/read_1785402016743_0f2cdd30f4ba.txt
 /home/z/my-project/tool-results/read_1785402020280_da9ae7f92258.txt
+/home/z/my-project/tool-results/read_1785403557965_06ae70fcc7c4.txt
+/home/z/my-project/tool-results/read_1785403571482_753268a99a83.txt
+/home/z/my-project/tool-results/read_1785403643615_06ae70fcc7c4.txt
+/home/z/my-project/tool-results/read_1785403648819_0ec40ec58883.txt
+/home/z/my-project/tool-results/read_1785403651505_d0aa649a26d2.txt
 /home/z/my-project/tsconfig.json
 /home/z/my-project/upload/Few Improvements.md
 /home/z/my-project/upload/Screenshot_2026-07-30-12-26-02-65_40deb401b9ffe8e1df2f1cc5ba480b12.jpg
