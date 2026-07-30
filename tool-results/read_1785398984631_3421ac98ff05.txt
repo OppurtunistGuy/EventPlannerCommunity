@@ -1,0 +1,404 @@
+  1000→              <div className="flex flex-col gap-2">
+  1001→                {[
+  1002→                  { label: 'Menu', action: () => scrollTo('menu') },
+  1003→                  { label: 'Events', action: () => scrollTo('events') },
+  1004→                  { label: 'About', action: () => scrollTo('about') },
+  1005→                  { label: 'Reservations', action: () => { console.log('[DIAG] Reserve button clicked (footer links)'); setShowReservation(true); } },
+  1006→                ].map(link => (
+  1007→                  <button key={link.label} onClick={link.action} className="text-xs text-white/60 hover:text-white transition-colors text-left">
+  1008→                    {link.label}
+  1009→                  </button>
+  1010→                ))}
+  1011→              </div>
+  1012→            </div>
+  1013→            {/* Contact & Social */}
+  1014→            <div>
+  1015→              <h4 className="text-sm font-semibold mb-3">Contact</h4>
+  1016→              <div className="flex flex-col gap-2">
+  1017→                <a href={PHONE_TEL} className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+  1018→                  <Phone className="w-3.5 h-3.5" /> {PHONE}
+  1019→                </a>
+  1020→                <a href={`mailto:${EMAIL}`} className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+  1021→                  <Mail className="w-3.5 h-3.5" /> {EMAIL}
+  1022→                </a>
+  1023→                <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-2">
+  1024→                  <Instagram className="w-3.5 h-3.5" /> @highspiritscafe
+  1025→                </a>
+  1026→              </div>
+  1027→              <button onClick={() => { console.log('[DIAG] Reserve button clicked (footer)'); setShowReservation(true); }} className="mt-4 px-4 py-2 bg-white/15 rounded-lg text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-2">
+  1028→                <CalendarDays className="w-3.5 h-3.5" /> Reserve a Table
+  1029→              </button>
+  1030→            </div>
+  1031→          </div>
+  1032→          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+  1033→            <p className="text-xs text-white/40">&copy; {new Date().getFullYear()} High Spirits Cafe. All rights reserved.</p>
+  1034→            <div className="flex items-center gap-4 text-xs text-white/40">
+  1035→              <span>Payment: Cash · UPI · Cards</span>
+  1036→            </div>
+  1037→          </div>
+  1038→        </div>
+  1039→      </footer>
+  1040→
+  1041→      {/* ===== FLOATING CART BUTTON ===== */}
+  1042→      <AnimatePresence>
+  1043→        {cartCount > 0 && selectedTable && (
+  1044→          <motion.button
+  1045→            initial={{ scale: 0, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0, y: 20 }}
+  1046→            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+  1047→            onClick={() => setShowCart(true)}
+  1048→            className="fixed bottom-6 right-6 z-40 bg-[var(--color-primary)] text-white px-5 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+  1049→            <ShoppingBag className="w-5 h-5" />
+  1050→            <span className="font-semibold text-sm">{cartCount} items</span>
+  1051→            <span className="text-xs text-white/70">· {fmt(cartTotal)}</span>
+  1052→          </motion.button>
+  1053→        )}
+  1054→      </AnimatePresence>
+  1055→
+  1056→      {/* ===== ORDER SUCCESS TOAST ===== */}
+  1057→      <AnimatePresence>
+  1058→        {orderSuccess && (
+  1059→          <motion.div initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+  1060→            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#27AE60] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
+  1061→            <Check className="w-5 h-5" />
+  1062→            <span className="font-medium text-sm">Order placed! Your waiter will bring it shortly.</span>
+  1063→          </motion.div>
+  1064→        )}
+  1065→      </AnimatePresence>
+  1066→
+  1067→      {/* ===== TABLE SELECTOR MODAL ===== */}
+  1068→      <AnimatePresence>
+  1069→        {showTableSelector && (
+  1070→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1071→            className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
+  1072→            onClick={() => { console.log('[DIAG] Table selector modal backdrop clicked, closing'); setShowTableSelector(false); }}>
+  1073→            {(() => { console.log('[DIAG-TABLES] Table selector modal is rendering — showTableSelector:', showTableSelector, 'tables:', tables.length); return null; })()}
+  1074→            <motion.div variants={slideUp} initial="hidden" animate="visible" exit="exit"
+  1075→              onClick={e => e.stopPropagation()}
+  1076→              className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col">
+  1077→              <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
+  1078→                <div>
+  1079→                  <h2 className="font-semibold text-lg">Select Your Table</h2>
+  1080→                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Choose your table to start ordering. Your waiter can also add items for you.</p>
+  1081→                </div>
+  1082→                <button onClick={() => setShowTableSelector(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+  1083→                  <X className="w-5 h-5" />
+  1084→                </button>
+  1085→              </div>
+  1086→              <div className="overflow-y-auto p-5 flex-1">
+  1087→                {(() => { console.log('[DIAG] Rendering table selector, tables:', tables.length, 'selectedTable:', selectedTable?.number); return null; })()}
+  1088→                {(['indoor', 'outdoor', 'bar', 'vip'] as const).map(area => {
+  1089→                  const areaTables = tables.filter(t => t.area === area);
+  1090→                  if (areaTables.length === 0) return null;
+  1091→                  return (
+  1092→                    <div key={area} className="mb-6 last:mb-0">
+  1093→                      <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] mb-3">{AREA_LABELS[area]}</h3>
+  1094→                      <div className="grid grid-cols-4 gap-2">
+  1095→                        {areaTables.map(table => {
+  1096→                          const isSelected = selectedTable?.id === table.id;
+  1097→                          const isAvailable = table.status === 'available';
+  1098→                          return (
+  1099→                            <button key={table.id} disabled={!isAvailable && !isSelected}
+  1100→                              onClick={() => { console.log('[DIAG] Table selected:', table.number, 'area:', table.area, 'status:', table.status); console.log('[DIAG] selectedTable before:', selectedTable?.number); setSelectedTable(isSelected ? null : table); setShowTableSelector(false); console.log('[DIAG] selectedTable after set:', isSelected ? null : table.number); }}
+  1101→                              className={`table-card p-3 rounded-xl border text-center ${isSelected ? 'selected' : isAvailable ? 'border-[var(--color-border)] bg-white hover:border-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-secondary)] opacity-50 cursor-not-allowed'}`}>
+  1102→                              <div className="flex items-center justify-center gap-1.5 mb-1">
+  1103→                                <span className={`status-dot ${isAvailable ? 'status-available' : 'status-occupied'}`} />
+  1104→                                <span className="text-base font-bold text-[var(--color-foreground)]">T{table.number}</span>
+  1105→                              </div>
+  1106→                              <div className="text-[10px] text-[var(--color-muted-foreground)]">{table.capacity} seats</div>
+  1107→                              {!isAvailable && <div className="text-[10px] text-[var(--color-destructive)] font-medium mt-0.5">Occupied</div>}
+  1108→                            </button>
+  1109→                          );
+  1110→                        })}
+  1111→                      </div>
+  1112→                    </div>
+  1113→                  );
+  1114→                })}
+  1115→              </div>
+  1116→            </motion.div>
+  1117→          </motion.div>
+  1118→        )}
+  1119→      </AnimatePresence>
+  1120→
+  1121→      {/* ===== CART SIDEBAR ===== */}
+  1122→      <AnimatePresence>
+  1123→        {showCart && (
+  1124→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1125→            className="fixed inset-0 z-50 bg-black/50" onClick={() => setShowCart(false)}>
+  1126→            <motion.div variants={slideInRight} initial="hidden" animate="visible" exit="exit"
+  1127→              onClick={e => e.stopPropagation()}
+  1128→              className="absolute right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
+  1129→              <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
+  1130→                <div>
+  1131→                  <h2 className="font-semibold text-lg">Your Order</h2>
+  1132→                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+  1133→                    {selectedTable ? `Table ${selectedTable.number}` : 'No table selected'}
+  1134→                  </p>
+  1135→                </div>
+  1136→                <button onClick={() => setShowCart(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+  1137→                  <X className="w-5 h-5" />
+  1138→                </button>
+  1139→              </div>
+  1140→              <div className="flex-1 overflow-y-auto p-5">
+  1141→                {cart.length === 0 ? (
+  1142→                  <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+  1143→                    <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-30" />
+  1144→                    <p className="text-sm">Your cart is empty</p>
+  1145→                    <p className="text-xs mt-1">Add items from the menu to get started</p>
+  1146→                  </div>
+  1147→                ) : (
+  1148→                  <div className="space-y-3">
+  1149→                    {cart.map(item => (
+  1150→                      <div key={item.menuItem.id} className="flex items-start gap-3 p-3 bg-[var(--color-secondary)]/50 rounded-xl">
+  1151→                        <div className={`mt-1 ${item.menuItem.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} />
+  1152→                        <div className="flex-1 min-w-0">
+  1153→                          <p className="text-sm font-medium leading-snug">{item.menuItem.name}</p>
+  1154→                          <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">{fmt(item.menuItem.price)}</p>
+  1155→                        </div>
+  1156→                        <div className="flex items-center gap-1.5">
+  1157→                          <button onClick={() => updateCartQty(item.menuItem.id, -1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1158→                            <Minus className="w-3 h-3" />
+  1159→                          </button>
+  1160→                          <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+  1161→                          <button onClick={() => updateCartQty(item.menuItem.id, 1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1162→                            <Plus className="w-3 h-3" />
+  1163→                          </button>
+  1164→                          <button onClick={() => removeFromCart(item.menuItem.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-destructive)] hover:bg-red-50 transition-colors ml-1">
+  1165→                            <Trash2 className="w-3.5 h-3.5" />
+  1166→                          </button>
+  1167→                        </div>
+  1168→                      </div>
+  1169→                    ))}
+  1170→                  </div>
+  1171→                )}
+  1172→              </div>
+  1173→              {cart.length > 0 && (
+  1174→                <div className="border-t border-[var(--color-border)] p-5">
+  1175→                  <div className="flex items-center justify-between mb-4">
+  1176→                    <span className="text-sm text-[var(--color-muted-foreground)]">Subtotal</span>
+  1177→                    <span className="text-lg font-bold">{fmt(cartTotal)}</span>
+  1178→                  </div>
+  1179→                  {!selectedTable ? (
+  1180→                    <button onClick={() => { setShowCart(false); setShowTableSelector(true); }} className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+  1181→                      <Users className="w-4 h-4" /> Select a Table First
+  1182→                    </button>
+  1183→                  ) : (
+  1184→                    <button onClick={submitOrder} disabled={orderSubmitting}
+  1185→                      className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
+  1186→                      {orderSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+  1187→                      {orderSubmitting ? 'Placing Order...' : 'Place Order'}
+  1188→                    </button>
+  1189→                  )}
+  1190→                </div>
+  1191→              )}
+  1192→            </motion.div>
+  1193→          </motion.div>
+  1194→        )}
+  1195→      </AnimatePresence>
+  1196→
+  1197→      {/* ===== BILL MODAL ===== */}
+  1198→      <AnimatePresence>
+  1199→        {showBill && billData && (
+  1200→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1201→            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+  1202→            onClick={() => setShowBill(false)}>
+  1203→            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+  1204→              onClick={e => e.stopPropagation()}
+  1205→              className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+  1206→              <div className="bg-[var(--color-primary)] text-white p-6 text-center">
+  1207→                <p className="font-[var(--font-display)] text-xl font-bold">High Spirits Cafe</p>
+  1208→                <p className="text-xs text-white/60 mt-1">Koregaon Park, Pune</p>
+  1209→                <div className="mt-3 flex items-center justify-center gap-2">
+  1210→                  <span className="px-3 py-1 bg-white/15 rounded-full text-sm font-medium">Table {(billData as Record<string, unknown>).tableNumber}</span>
+  1211→                  <span className="px-3 py-1 bg-white/15 rounded-full text-xs">{AREA_LABELS[(billData as Record<string, unknown>).tableArea as string] || ''}</span>
+  1212→                </div>
+  1213→              </div>
+  1214→              <div className="p-5">
+  1215→                <div className="space-y-2 mb-4">
+  1216→                  {((billData as Record<string, unknown>).items as { name: string; isVeg: boolean; quantity: number; price: number; total: number; status: string }[]).map((item, idx) => (
+  1217→                    <div key={idx} className="flex items-start gap-2 text-sm">
+  1218→                      <div className={`mt-1.5 ${item.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} style={{ flexShrink: 0 }} />
+  1219→                      <div className="flex-1 min-w-0">
+  1220→                        <span className="font-medium">{item.name}</span>
+  1221→                        <span className="text-[var(--color-muted-foreground)] ml-1">×{item.quantity}</span>
+  1222→                      </div>
+  1223→                      <span className="text-[var(--color-muted-foreground)] whitespace-nowrap">{fmt(item.total)}</span>
+  1224→                    </div>
+  1225→                  ))}
+  1226→                </div>
+  1227→                <div className="border-t border-dashed border-[var(--color-border)] pt-3 space-y-1.5">
+  1228→                  <div className="flex items-center justify-between text-sm">
+  1229→                    <span className="text-[var(--color-muted-foreground)]">Subtotal</span>
+  1230→                    <span>{fmt((billData as Record<string, unknown>).subtotal as number)}</span>
+  1231→                  </div>
+  1232→                  <div className="flex items-center justify-between text-sm">
+  1233→                    <span className="text-[var(--color-muted-foreground)]">GST (5%)</span>
+  1234→                    <span>{fmt((billData as Record<string, unknown>).gst as number)}</span>
+  1235→                  </div>
+  1236→                  <div className="flex items-center justify-between text-base font-bold pt-2 border-t border-[var(--color-border)]">
+  1237→                    <span>Total</span>
+  1238→                    <span>{fmt((billData as Record<string, unknown>).total as number)}</span>
+  1239→                  </div>
+  1240→                </div>
+  1241→              </div>
+  1242→              <div className="p-5 pt-0 flex gap-2">
+  1243→                <button onClick={() => setShowBill(false)} className="flex-1 py-2.5 border border-[var(--color-border)] rounded-xl text-sm font-medium hover:bg-[var(--color-secondary)] transition-colors">
+  1244→                  Close
+  1245→                </button>
+  1246→                <button onClick={closeBill} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+  1247→                  Settle Bill
+  1248→                </button>
+  1249→              </div>
+  1250→            </motion.div>
+  1251→          </motion.div>
+  1252→        )}
+  1253→      </AnimatePresence>
+  1254→
+  1255→      {/* ===== RESERVATION MODAL ===== */}
+  1256→      <AnimatePresence>
+  1257→        {showReservation && (
+  1258→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  1259→            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+  1260→            onClick={() => { console.log('[DIAG] Reservation modal backdrop clicked, closing'); setShowReservation(false); }}>
+  1261→            {(() => { console.log('[DIAG-RESERVE] Reservation modal is rendering — showReservation:', showReservation); return null; })()}
+  1262→            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+  1263→              onClick={e => e.stopPropagation()}
+  1264→              className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+  1265→              <div className="p-6">
+  1266→                <div className="flex items-center justify-between mb-6">
+  1267→                  <div>
+  1268→                    <h2 className="font-semibold text-lg">Reserve a Table</h2>
+  1269→                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">We&apos;ll confirm your booking via phone</p>
+  1270→                  </div>
+  1271→                  <button onClick={() => setShowReservation(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+  1272→                    <X className="w-5 h-5" />
+  1273→                  </button>
+  1274→                </div>
+  1275→                {reservationSuccess ? (
+  1276→                  <div className="text-center py-8">
+  1277→                    <div className="w-12 h-12 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-3">
+  1278→                      <Check className="w-6 h-6 text-[#27AE60]" />
+  1279→                    </div>
+  1280→                    <p className="font-semibold text-lg">Reservation Confirmed!</p>
+  1281→                    <p className="text-sm text-[var(--color-muted-foreground)] mt-1">We&apos;ll reach out to confirm shortly.</p>
+  1282→                  </div>
+  1283→                ) : (
+  1284→                  <form onSubmit={submitReservation} className="space-y-4">
+  1285→                    <div>
+  1286→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Name *</label>
+  1287→                      <input type="text" required value={reservationForm.name} onChange={e => setReservationForm(p => ({ ...p, name: e.target.value }))}
+  1288→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1289→                    </div>
+  1290→                    <div>
+  1291→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Phone *</label>
+  1292→                      <input type="tel" required value={reservationForm.phone} onChange={e => setReservationForm(p => ({ ...p, phone: e.target.value }))}
+  1293→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1294→                    </div>
+  1295→                    <div className="grid grid-cols-2 gap-3">
+  1296→                      <div>
+  1297→                        <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Date *</label>
+  1298→                        <input type="date" required value={reservationForm.date} onChange={e => setReservationForm(p => ({ ...p, date: e.target.value }))}
+  1299→                          className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1300→                      </div>
+  1301→                      <div>
+  1302→                        <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Time *</label>
+  1303→                        <input type="time" required value={reservationForm.time} onChange={e => setReservationForm(p => ({ ...p, time: e.target.value }))}
+  1304→                          className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+  1305→                      </div>
+  1306→                    </div>
+  1307→                    <div>
+  1308→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Guests</label>
+  1309→                      <select value={reservationForm.guests} onChange={e => setReservationForm(p => ({ ...p, guests: e.target.value }))}
+  1310→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+  1311→                        {[1,2,3,4,5,6,7,8,10,12,15,20].map(n => <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>)}
+  1312→                      </select>
+  1313→                    </div>
+  1314→                    <div>
+  1315→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Occasion</label>
+  1316→                      <select value={reservationForm.occasion} onChange={e => setReservationForm(p => ({ ...p, occasion: e.target.value }))}
+  1317→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+  1318→                        <option value="">Select (optional)</option>
+  1319→                        <option value="birthday">Birthday</option>
+  1320→                        <option value="anniversary">Anniversary</option>
+  1321→                        <option value="corporate">Corporate</option>
+  1322→                        <option value="casual">Casual</option>
+  1323→                      </select>
+  1324→                    </div>
+  1325→                    <button type="submit" disabled={reservationSubmitting}
+  1326→                      className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+  1327→                      {reservationSubmitting ? 'Confirming...' : 'Confirm Reservation'}
+  1328→                    </button>
+  1329→                  </form>
+  1330→                )}
+  1331→              </div>
+  1332→            </motion.div>
+  1333→          </motion.div>
+  1334→        )}
+  1335→      </AnimatePresence>
+  1336→
+  1337→      {/* ===== SCROLL TO TOP ===== */}
+  1338→      <AnimatePresence>
+  1339→        {scrolled && (
+  1340→          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+  1341→            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+  1342→            className="fixed bottom-6 left-6 z-40 w-10 h-10 bg-white border border-[var(--color-border)] rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-shadow">
+  1343→            <ArrowUp className="w-4 h-4 text-[var(--color-foreground)]" />
+  1344→          </motion.button>
+  1345→        )}
+  1346→      </AnimatePresence>
+  1347→    </div>
+  1348→  );
+  1349→}
+  1350→
+  1351→// ==========================================
+  1352→// MENU ITEM ROW COMPONENT
+  1353→// ==========================================
+  1354→function MenuItemRow({ item, inCart, onAdd, onUpdateQty, tableSelected }: {
+  1355→  item: MenuItem; inCart?: CartItem; onAdd: (item: MenuItem) => void;
+  1356→  onUpdateQty: (id: string, delta: number) => void; tableSelected: boolean;
+  1357→}) {
+  1358→  return (
+  1359→    <div className="menu-row px-5 py-3 flex items-start gap-3 border-b border-[var(--color-border)] last:border-b-0">
+  1360→      <div className={`mt-1.5 ${item.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} style={{ flexShrink: 0 }} />
+  1361→      <div className="flex-1 min-w-0">
+  1362→        <div className="flex items-start gap-2">
+  1363→          <span className="text-sm font-medium leading-snug">{item.name}</span>
+  1364→          {item.isBestseller && <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)] bg-[var(--color-accent)]/10 px-1.5 py-0.5 rounded">Bestseller</span>}
+  1365→          {item.isNew && <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#27AE60] bg-[#27AE60]/10 px-1.5 py-0.5 rounded">New</span>}
+  1366→        </div>
+  1367→        {item.description && <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5 leading-relaxed">{item.description}</p>}
+  1368→      </div>
+  1369→      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+  1370→        <span className="text-sm font-semibold text-[var(--color-foreground)]">{fmt(item.price)}</span>
+  1371→        {tableSelected && (
+  1372→          inCart ? (
+  1373→            <div className="flex items-center gap-1">
+  1374→              <button onClick={() => onUpdateQty(item.id, -1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1375→                <Minus className="w-3 h-3" />
+  1376→              </button>
+  1377→              <span className="qty-badge bg-[var(--color-primary)] text-white">{inCart.quantity}</span>
+  1378→              <button onClick={() => onUpdateQty(item.id, 1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+  1379→                <Plus className="w-3 h-3" />
+  1380→              </button>
+  1381→            </div>
+  1382→          ) : (
+  1383→            <button onClick={() => onAdd(item)} className="w-7 h-7 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center hover:opacity-90 transition-opacity">
+  1384→              <Plus className="w-3.5 h-3.5" />
+  1385→            </button>
+  1386→          )
+  1387→        )}
+  1388→      </div>
+  1389→    </div>
+  1390→  );
+  1391→}
+  1392→
+  1393→// Car icon for parking info
+  1394→function Car({ className }: { className?: string }) {
+  1395→  return (
+  1396→    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+  1397→      <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2" />
+  1398→      <circle cx="6.5" cy="16.5" r="2.5" />
+  1399→      <circle cx="16.5" cy="16.5" r="2.5" />
+  1400→    </svg>
+  1401→  );
+  1402→}
+  1403→

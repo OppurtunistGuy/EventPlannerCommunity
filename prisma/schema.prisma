@@ -46,6 +46,7 @@ model Event {
 
 model Reservation {
   id        String   @id @default(cuid())
+  code      String   @unique // 6-digit code for customer to look up their reservation
   name      String
   phone     String
   email     String?
@@ -54,17 +55,36 @@ model Reservation {
   guests    Int
   occasion  String?  // "birthday", "anniversary", "corporate", "casual"
   message   String?
-  status    String   @default("pending") // "pending", "confirmed", "cancelled"
+  status    String   @default("confirmed") // "pending", "confirmed", "cancelled", "seated", "completed"
+  tableId   String?  // auto-assigned table
+  table     Table?   @relation(fields: [tableId], references: [id])
+  bill      Bill?
   createdAt DateTime @default(now())
 }
 
+model Bill {
+  id           String   @id @default(cuid())
+  tableId      String
+  table        Table    @relation(fields: [tableId], references: [id])
+  reservationId String?  @unique
+  reservation  Reservation? @relation(fields: [reservationId], references: [id])
+  subtotal     Int      @default(0)
+  gst          Int      @default(0)
+  total        Int      @default(0)
+  status       String   @default("requested") // "requested", "generated", "settled"
+  createdAt    DateTime @default(now())
+  settledAt    DateTime?
+}
+
 model Table {
-  id       String  @id @default(cuid())
-  number   Int     @unique
-  capacity Int     @default(4)
-  area     String? // "indoor", "outdoor", "bar", "vip"
-  status   String  @default("available") // "available", "occupied", "reserved"
-  orders   Order[]
+  id           String        @id @default(cuid())
+  number       Int           @unique
+  capacity     Int           @default(4)
+  area         String?       // "indoor", "outdoor", "bar", "vip"
+  status       String        @default("available") // "available", "occupied", "reserved"
+  orders       Order[]
+  reservations Reservation[]
+  bills        Bill[]
 }
 
 model Order {

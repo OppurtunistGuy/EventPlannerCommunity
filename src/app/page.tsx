@@ -9,7 +9,7 @@ import {
   Instagram, Mail, ArrowUp, Check, Plus, Minus, Trash2,
   Receipt, Users, UtensilsCrossed, ShoppingBag,
   Wine, Coffee, Utensils, Sparkles, Tag, Star, Navigation,
-  ExternalLink, Heart, ChevronRight, RefreshCw
+  ExternalLink, Heart, ChevronRight, RefreshCw, Key, Copy, Ticket, FileText
 } from 'lucide-react';
 
 // ==========================================
@@ -45,6 +45,10 @@ interface CartItem {
 interface ReservationForm {
   name: string; phone: string; email: string; date: string;
   time: string; guests: string; occasion: string; message: string;
+}
+interface ActiveReservation {
+  id: string; code: string; name: string; phone: string; date: string; time: string;
+  guests: number; status: string; tableId: string; table: TableInfo;
 }
 
 // ==========================================
@@ -184,6 +188,18 @@ export default function Home() {
   });
   const [reservationSubmitting, setReservationSubmitting] = useState(false);
   const [reservationSuccess, setReservationSuccess] = useState(false);
+  const [reservationResult, setReservationResult] = useState<{ code: string; tableNumber: number; tableArea: string } | null>(null);
+
+  // Lookup Reservation (enter code to see table)
+  const [showLookupModal, setShowLookupModal] = useState(false);
+  const [lookupCode, setLookupCode] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState('');
+  const [activeReservation, setActiveReservation] = useState<ActiveReservation | null>(null);
+
+  // Bill Request
+  const [billRequested, setBillRequested] = useState(false);
+  const [billRequesting, setBillRequesting] = useState(false);
 
   // Happy hour & status
   const [happyHourTime, setHappyHourTime] = useState('');
@@ -240,46 +256,37 @@ export default function Home() {
     let loadingCount = 3;
     const markLoaded = () => { loadingCount--; if (loadingCount <= 0) setDataLoading(false); };
 
-    console.log('[DIAG-FETCH] Starting data fetch from static JSON...');
+    console.log('[DIAG-FETCH] Starting data fetch from API...');
 
-    fetch('/data/menu.json')
+    fetch('/api/menu')
       .then(r => {
-        console.log('[DIAG-FETCH] /data/menu.json response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /api/menu response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`menu ${r.status}`);
         return r.json();
       })
       .then(data => {
         console.log('[DIAG-FETCH] menuData loaded, keys:', Object.keys(data));
-        console.log('[DIAG-FETCH] menuData["food"]:', data['food'] ? `${data['food'].length} categories` : 'MISSING');
-        console.log('[DIAG-FETCH] menuData["coffee"]:', data['coffee'] ? `${data['coffee'].length} categories` : 'MISSING');
-        console.log('[DIAG-FETCH] menuData["bar"]:', data['bar'] ? `${data['bar'].length} categories` : 'MISSING');
-        console.log('[DIAG-FETCH] menuData["offers"]:', data['offers'] ? `${data['offers'].length} categories` : 'MISSING');
-        console.log('[DIAG-FETCH] menuData["vintage"]:', data['vintage'] ? `${data['vintage'].length} categories` : 'MISSING');
         if (data && typeof data === 'object' && !Array.isArray(data)) {
           setMenuData(data);
-        } else {
-          console.error('[DIAG-FETCH] /data/menu.json returned unexpected data structure:', typeof data, Array.isArray(data));
         }
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG-FETCH] /data/menu.json failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /api/menu failed:', err); markLoaded(); });
 
     fetch('/data/events.json')
       .then(r => {
-        console.log('[DIAG-FETCH] /data/events.json response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`events ${r.status}`);
         return r.json();
       })
       .then(data => {
-        console.log('[DIAG-FETCH] events loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
         setEvents(Array.isArray(data) ? data : []);
         markLoaded();
       })
       .catch(err => { console.error('[DIAG-FETCH] /data/events.json failed:', err); markLoaded(); });
 
-    fetch('/data/tables.json')
+    fetch('/api/tables')
       .then(r => {
-        console.log('[DIAG-FETCH] /data/tables.json response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /api/tables response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`tables ${r.status}`);
         return r.json();
       })
@@ -288,7 +295,7 @@ export default function Home() {
         setTables(Array.isArray(data) ? data : []);
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG-FETCH] /data/tables.json failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /api/tables failed:', err); markLoaded(); });
   }, []);
 
   useEffect(() => {
@@ -446,17 +453,31 @@ export default function Home() {
   const closeBill = async () => {
     if (!billData || !selectedTable) return;
     try {
-      const orders = (billData as Record<string, unknown>).orders as { id: string }[];
-      for (const order of orders) {
-        await fetch('/api/orders', {
+      // Settle the bill via API
+      const billId = (billData as Record<string, unknown>).billId as string;
+      if (billId) {
+        await fetch('/api/bill', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: order.id, status: 'billed' }),
+          body: JSON.stringify({ billId }),
         });
+      } else {
+        // Legacy: mark orders as billed
+        const orders = (billData as Record<string, unknown>).orders as { id: string }[];
+        for (const order of orders) {
+          await fetch('/api/orders', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: order.id, status: 'billed' }),
+          });
+        }
       }
       setShowBill(false);
       setBillData(null);
       setSelectedTable(null);
+      setActiveReservation(null);
+      setBillRequested(false);
+      setCart([]);
       const tablesRes = await fetch('/api/tables');
       if (tablesRes.ok) {
         const tablesData = await tablesRes.json();
@@ -481,18 +502,26 @@ export default function Home() {
         body: JSON.stringify(reservationForm),
       });
       if (!res.ok) {
-        const errData = await res.text();
+        const errData = await res.json();
         console.error('[DIAG] Reservation failed:', res.status, errData);
-        throw new Error('Reservation failed');
+        throw new Error(errData.error || 'Reservation failed');
       }
+      const data = await res.json();
+      setReservationResult({
+        code: data.code,
+        tableNumber: data.table?.number || 0,
+        tableArea: data.table?.area || '',
+      });
       setReservationSuccess(true);
-      setTimeout(() => {
-        setReservationSuccess(false);
-        setShowReservation(false);
-        setReservationForm({ name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '' });
-      }, 3000);
-    } catch (err) {
+      // Refresh tables
+      const tablesRes = await fetch('/api/tables');
+      if (tablesRes.ok) {
+        const tablesData = await tablesRes.json();
+        setTables(Array.isArray(tablesData) ? tablesData : []);
+      }
+    } catch (err: any) {
       console.error('[DIAG] submitReservation error:', err);
+      alert(err.message || 'Failed to create reservation');
     } finally {
       setReservationSubmitting(false);
     }
@@ -510,6 +539,62 @@ export default function Home() {
   const nextEvent = events.find(e => e.isFeatured) || events[0];
 
   // ==========================================
+  // LOOKUP RESERVATION
+  // ==========================================
+  const lookupReservation = async () => {
+    if (!lookupCode.trim()) return;
+    setLookupLoading(true);
+    setLookupError('');
+    try {
+      const res = await fetch(`/api/reservations/lookup?code=${lookupCode.trim()}`);
+      if (!res.ok) {
+        const errData = await res.json();
+        setLookupError(errData.error || 'Reservation not found');
+        setActiveReservation(null);
+        return;
+      }
+      const data = await res.json();
+      setActiveReservation(data);
+      // Set the selected table to the reservation's table
+      setSelectedTable(data.table);
+      setLookupCode('');
+      setShowLookupModal(false);
+    } catch (err) {
+      setLookupError('Failed to look up reservation');
+      setActiveReservation(null);
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
+  // ==========================================
+  // BILL REQUEST
+  // ==========================================
+  const requestBill = async () => {
+    if (!selectedTable) return;
+    setBillRequesting(true);
+    try {
+      const res = await fetch('/api/bill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tableId: selectedTable.id,
+          reservationId: activeReservation?.id || null,
+        }),
+      });
+      if (!res.ok) throw new Error('Bill request failed');
+      const data = await res.json();
+      setBillData(data);
+      setShowBill(true);
+      setBillRequested(true);
+    } catch (err) {
+      console.error('[DIAG] requestBill error:', err);
+    } finally {
+      setBillRequesting(false);
+    }
+  };
+
+  // ==========================================
   // RENDER
   // ==========================================
   return (
@@ -522,25 +607,40 @@ export default function Home() {
               High Spirits
             </span>
           </button>
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-4">
             {['menu', 'events', 'about', 'contact'].map(id => (
               <button key={id} onClick={() => scrollTo(id)} className={`text-sm font-medium capitalize transition-colors ${scrolled ? 'text-[var(--color-foreground)] hover:text-[var(--color-primary)]' : 'text-white/90 hover:text-white'}`}>
                 {id}
               </button>
             ))}
-            <button onClick={() => { console.log('[DIAG] Reserve button clicked (nav), setting showReservation=true'); setShowReservation(true); }} className={`text-sm font-medium px-4 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
+            <button onClick={() => setShowLookupModal(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${scrolled ? 'border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white' : 'border-white/70 text-white/90 hover:bg-white/20'}`}>
+              <Key className="w-3.5 h-3.5" /> My Reservation
+            </button>
+            <button onClick={() => setShowReservation(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
               Reserve a Table
             </button>
           </div>
           <div className="flex items-center gap-3">
-            {selectedTable && (
+            {selectedTable && !billRequested && (
+              <motion.button
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                onClick={requestBill}
+                disabled={billRequesting}
+                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                {billRequesting ? 'Requesting...' : 'Bill Request'}
+              </motion.button>
+            )}
+            {selectedTable && billRequested && (
               <motion.button
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 onClick={() => fetchBill(selectedTable.id)}
                 className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
               >
-                <Receipt className="w-3.5 h-3.5" /> My Bill
+                <Receipt className="w-3.5 h-3.5" /> View Bill
               </motion.button>
             )}
             <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className={`md:hidden p-1.5 ${scrolled ? 'text-[var(--color-foreground)]' : 'text-white'}`}>
@@ -566,10 +666,18 @@ export default function Home() {
               {['menu', 'events', 'about', 'contact'].map(id => (
                 <button key={id} onClick={() => scrollTo(id)} className="text-left text-base font-medium text-[var(--color-foreground)] hover:text-[var(--color-primary)] capitalize">{id}</button>
               ))}
-              <button onClick={() => { console.log('[DIAG] Reserve button clicked (mobile nav)'); setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-accent)]">
+              <button onClick={() => { setShowLookupModal(true); setMobileNavOpen(false); }} className="flex items-center gap-2 text-left text-base font-medium text-[var(--color-accent)]">
+                <Key className="w-4 h-4" /> My Reservation
+              </button>
+              <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-primary)]">
                 Reserve a Table
               </button>
-              {selectedTable && (
+              {selectedTable && !billRequested && (
+                <button onClick={() => { requestBill(); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+                  <FileText className="w-4 h-4" /> Bill Request
+                </button>
+              )}
+              {selectedTable && billRequested && (
                 <button onClick={() => { fetchBill(selectedTable.id); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
                   <Receipt className="w-4 h-4" /> View My Bill
                 </button>
@@ -598,7 +706,10 @@ export default function Home() {
               <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
                 <UtensilsCrossed className="w-4 h-4" /> View Menu
               </button>
-              <button onClick={() => { console.log('[DIAG] Reserve button clicked (hero), setting showReservation=true'); console.log('[DIAG] openReservationModal: showReservation currently =', showReservation); setShowReservation(true); }} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+              <button onClick={() => setShowLookupModal(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+                <Key className="w-4 h-4" /> My Reservation
+              </button>
+              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4" /> Reserve a Table
               </button>
             </div>
@@ -640,13 +751,23 @@ export default function Home() {
                 <span className="text-xs text-[var(--color-muted-foreground)]">Dining at</span>
                 <span className="text-sm font-semibold text-[var(--color-primary)]">Table {selectedTable.number}</span>
                 <span className="text-xs text-[var(--color-muted-foreground)]">· {AREA_LABELS[selectedTable.area]}</span>
+                {activeReservation && (
+                  <span className="text-xs text-[var(--color-accent)] font-medium ml-1">· Code: {activeReservation.code}</span>
+                )}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5">
-                  <Receipt className="w-3.5 h-3.5" /> View My Bill
-                </button>
-                <button onClick={() => { setSelectedTable(null); setCart([]); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
-                  Change
+                {!billRequested ? (
+                  <button onClick={requestBill} disabled={billRequesting} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-50">
+                    {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                    {billRequesting ? 'Requesting...' : 'Bill Request'}
+                  </button>
+                ) : (
+                  <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5">
+                    <Receipt className="w-3.5 h-3.5" /> View Bill
+                  </button>
+                )}
+                <button onClick={() => { setSelectedTable(null); setCart([]); setActiveReservation(null); setBillRequested(false); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
+                  Leave
                 </button>
               </div>
             </div>
@@ -669,12 +790,17 @@ export default function Home() {
             <motion.div initial="hidden" animate="visible" variants={fadeUp}
               className="mb-8 bg-[var(--color-secondary)] border border-[var(--color-border)] rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="text-sm font-medium text-[var(--color-foreground)]">Select your table to start ordering</p>
-                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your waiter can also add items for you</p>
+                <p className="text-sm font-medium text-[var(--color-foreground)]">Reserve a table or enter your code to start ordering</p>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Your table will be auto-assigned when you reserve</p>
               </div>
-              <button onClick={() => { console.log('[DIAG] Select Table button clicked, setting showTableSelector=true'); console.log('[DIAG] tables:', tables.length, 'tables data:', tables.map(t => `T${t.number}(${t.status})`).join(', ')); setShowTableSelector(true); }} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
-                <Users className="w-4 h-4" /> Select Table
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowLookupModal(true)} className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                  <Key className="w-4 h-4" /> My Reservation
+                </button>
+                <button onClick={() => setShowReservation(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4" /> Reserve
+                </button>
+              </div>
             </motion.div>
           )}
 
@@ -835,7 +961,7 @@ export default function Home() {
               </div>
               {/* CTA after about */}
               <div className="mt-6 flex flex-wrap gap-3">
-                <button onClick={() => { console.log('[DIAG] Reserve button clicked (about)'); setShowReservation(true); }} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
                   <CalendarDays className="w-4 h-4" /> Reserve a Table
                 </button>
                 <button onClick={() => scrollTo('menu')} className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
@@ -1002,7 +1128,8 @@ export default function Home() {
                   { label: 'Menu', action: () => scrollTo('menu') },
                   { label: 'Events', action: () => scrollTo('events') },
                   { label: 'About', action: () => scrollTo('about') },
-                  { label: 'Reservations', action: () => { console.log('[DIAG] Reserve button clicked (footer links)'); setShowReservation(true); } },
+                  { label: 'Reservations', action: () => setShowReservation(true) },
+                  { label: 'My Reservation', action: () => setShowLookupModal(true) },
                 ].map(link => (
                   <button key={link.label} onClick={link.action} className="text-xs text-white/60 hover:text-white transition-colors text-left">
                     {link.label}
@@ -1024,7 +1151,7 @@ export default function Home() {
                   <Instagram className="w-3.5 h-3.5" /> @highspiritscafe
                 </a>
               </div>
-              <button onClick={() => { console.log('[DIAG] Reserve button clicked (footer)'); setShowReservation(true); }} className="mt-4 px-4 py-2 bg-white/15 rounded-lg text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-2">
+              <button onClick={() => setShowReservation(true)} className="mt-4 px-4 py-2 bg-white/15 rounded-lg text-xs font-medium hover:bg-white/25 transition-colors flex items-center gap-2">
                 <CalendarDays className="w-3.5 h-3.5" /> Reserve a Table
               </button>
             </div>
@@ -1177,8 +1304,8 @@ export default function Home() {
                     <span className="text-lg font-bold">{fmt(cartTotal)}</span>
                   </div>
                   {!selectedTable ? (
-                    <button onClick={() => { setShowCart(false); setShowTableSelector(true); }} className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                      <Users className="w-4 h-4" /> Select a Table First
+                    <button onClick={() => { setShowCart(false); setShowLookupModal(true); }} className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                      <Key className="w-4 h-4" /> Enter Reservation Code
                     </button>
                   ) : (
                     <button onClick={submitOrder} disabled={orderSubmitting}
@@ -1252,12 +1379,71 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* ===== LOOKUP RESERVATION MODAL ===== */}
+      <AnimatePresence>
+        {showLookupModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+            onClick={() => { setShowLookupModal(false); setLookupError(''); }}>
+            <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="font-semibold text-lg">My Reservation</h2>
+                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Enter your reservation code to view your table and order</p>
+                  </div>
+                  <button onClick={() => { setShowLookupModal(false); setLookupError(''); }} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-[var(--color-secondary)] rounded-xl p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
+                      <Ticket className="w-5 h-5 text-[var(--color-accent)]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Have a reservation code?</p>
+                      <p className="text-xs text-[var(--color-muted-foreground)]">Enter the 6-digit code you received when you reserved</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Reservation Code</label>
+                    <input
+                      type="text"
+                      value={lookupCode}
+                      onChange={e => { setLookupCode(e.target.value); setLookupError(''); }}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl text-lg font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
+                      onKeyDown={e => { if (e.key === 'Enter') lookupReservation(); }}
+                    />
+                  </div>
+                  {lookupError && (
+                    <p className="text-sm text-[var(--color-destructive)] text-center">{lookupError}</p>
+                  )}
+                  <button
+                    onClick={lookupReservation}
+                    disabled={lookupLoading || !lookupCode.trim()}
+                    className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {lookupLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
+                    {lookupLoading ? 'Looking up...' : 'Find My Reservation'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ===== RESERVATION MODAL ===== */}
       <AnimatePresence>
         {showReservation && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-            onClick={() => { console.log('[DIAG] Reservation modal backdrop clicked, closing'); setShowReservation(false); }}>
+            onClick={() => { setShowReservation(false); setReservationSuccess(false); setReservationResult(null); }}>
             {(() => { console.log('[DIAG-RESERVE] Reservation modal is rendering — showReservation:', showReservation); return null; })()}
             <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
               onClick={e => e.stopPropagation()}
@@ -1266,19 +1452,51 @@ export default function Home() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="font-semibold text-lg">Reserve a Table</h2>
-                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">We&apos;ll confirm your booking via phone</p>
+                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">A table will be auto-assigned to you</p>
                   </div>
-                  <button onClick={() => setShowReservation(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+                  <button onClick={() => { setShowReservation(false); setReservationSuccess(false); setReservationResult(null); }} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                {reservationSuccess ? (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-3">
-                      <Check className="w-6 h-6 text-[#27AE60]" />
+                {reservationSuccess && reservationResult ? (
+                  <div className="text-center py-6">
+                    <div className="w-14 h-14 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-4">
+                      <Check className="w-7 h-7 text-[#27AE60]" />
                     </div>
                     <p className="font-semibold text-lg">Reservation Confirmed!</p>
-                    <p className="text-sm text-[var(--color-muted-foreground)] mt-1">We&apos;ll reach out to confirm shortly.</p>
+                    <p className="text-sm text-[var(--color-muted-foreground)] mt-1 mb-4">Your table has been assigned</p>
+                    <div className="bg-[var(--color-secondary)] rounded-xl p-4 mb-4">
+                      <p className="text-xs text-[var(--color-muted-foreground)] mb-1">Your Reservation Code</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <p className="text-3xl font-bold font-mono tracking-widest text-[var(--color-primary)]">{reservationResult.code}</p>
+                        <button onClick={() => navigator.clipboard?.writeText(reservationResult.code)} className="p-1.5 hover:bg-[var(--color-border)] rounded-lg transition-colors" title="Copy code">
+                          <Copy className="w-4 h-4 text-[var(--color-muted-foreground)]" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="bg-[var(--color-secondary)] rounded-xl p-4 mb-4">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-[var(--color-primary)]" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-semibold">Table {reservationResult.tableNumber}</p>
+                          <p className="text-xs text-[var(--color-muted-foreground)]">{AREA_LABELS[reservationResult.tableArea] || reservationResult.tableArea}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[var(--color-muted-foreground)] mb-4">Save this code! You&apos;ll need it to view your reservation and order items.</p>
+                    <button onClick={() => {
+                      setShowReservation(false);
+                      setReservationSuccess(false);
+                      setReservationResult(null);
+                      setReservationForm({ name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '' });
+                      // Auto-set the table from the reservation
+                      const table = tables.find(t => t.number === reservationResult.tableNumber);
+                      if (table) setSelectedTable(table);
+                    }} className="w-full py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+                      Start Ordering
+                    </button>
                   </div>
                 ) : (
                   <form onSubmit={submitReservation} className="space-y-4">
