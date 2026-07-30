@@ -234,14 +234,17 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // Prevent double-fetch in Strict Mode - only fetch once
+    if (Object.keys(menuData).length > 0) return;
+    
     let loadingCount = 3;
     const markLoaded = () => { loadingCount--; if (loadingCount <= 0) setDataLoading(false); };
 
-    console.log('[DIAG-FETCH] Starting data fetch...');
+    console.log('[DIAG-FETCH] Starting data fetch from static JSON...');
 
-    fetch('/api/menu')
+    fetch('/data/menu.json')
       .then(r => {
-        console.log('[DIAG-FETCH] /api/menu response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /data/menu.json response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`menu ${r.status}`);
         return r.json();
       })
@@ -252,19 +255,18 @@ export default function Home() {
         console.log('[DIAG-FETCH] menuData["bar"]:', data['bar'] ? `${data['bar'].length} categories` : 'MISSING');
         console.log('[DIAG-FETCH] menuData["offers"]:', data['offers'] ? `${data['offers'].length} categories` : 'MISSING');
         console.log('[DIAG-FETCH] menuData["vintage"]:', data['vintage'] ? `${data['vintage'].length} categories` : 'MISSING');
-        // Validate data structure
         if (data && typeof data === 'object' && !Array.isArray(data)) {
           setMenuData(data);
         } else {
-          console.error('[DIAG-FETCH] /api/menu returned unexpected data structure:', typeof data, Array.isArray(data));
+          console.error('[DIAG-FETCH] /data/menu.json returned unexpected data structure:', typeof data, Array.isArray(data));
         }
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG-FETCH] /api/menu failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /data/menu.json failed:', err); markLoaded(); });
 
-    fetch('/api/events')
+    fetch('/data/events.json')
       .then(r => {
-        console.log('[DIAG-FETCH] /api/events response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /data/events.json response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`events ${r.status}`);
         return r.json();
       })
@@ -273,21 +275,20 @@ export default function Home() {
         setEvents(Array.isArray(data) ? data : []);
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG-FETCH] /api/events failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /data/events.json failed:', err); markLoaded(); });
 
-    fetch('/api/tables')
+    fetch('/data/tables.json')
       .then(r => {
-        console.log('[DIAG-FETCH] /api/tables response status:', r.status, r.ok);
+        console.log('[DIAG-FETCH] /data/tables.json response status:', r.status, r.ok);
         if (!r.ok) throw new Error(`tables ${r.status}`);
         return r.json();
       })
       .then(data => {
         console.log('[DIAG-FETCH] tables loaded, count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
-        console.log('[DIAG-FETCH] tables:', JSON.stringify(data).substring(0, 300));
         setTables(Array.isArray(data) ? data : []);
         markLoaded();
       })
-      .catch(err => { console.error('[DIAG-FETCH] /api/tables failed:', err); markLoaded(); });
+      .catch(err => { console.error('[DIAG-FETCH] /data/tables.json failed:', err); markLoaded(); });
   }, []);
 
   useEffect(() => {

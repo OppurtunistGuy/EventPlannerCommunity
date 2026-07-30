@@ -1,21 +1,12 @@
-import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export async function GET() {
   try {
-    const tables = await db.table.findMany({
-      orderBy: { number: 'asc' },
-      include: {
-        orders: {
-          where: { status: { in: ['pending', 'preparing', 'ready', 'served'] } },
-          include: { items: { include: { menuItem: true } } },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-    return NextResponse.json(tables);
+    const data = readFileSync(join(process.cwd(), 'public/data/tables.json'), 'utf8');
+    return NextResponse.json(JSON.parse(data));
   } catch (error) {
-    console.error('Failed to fetch tables:', error);
     return NextResponse.json({ error: 'Failed to fetch tables' }, { status: 500 });
   }
 }

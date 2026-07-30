@@ -1,12 +1,11 @@
-import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export async function GET() {
   try {
-    const events = await db.event.findMany({
-      orderBy: { isFeatured: 'desc' },
-    });
-    return NextResponse.json(events);
+    const data = readFileSync(join(process.cwd(), 'public/data/events.json'), 'utf8');
+    return NextResponse.json(JSON.parse(data));
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
   }

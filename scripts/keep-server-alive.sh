@@ -4,10 +4,11 @@ while true; do
     echo "[$(date)] Server not responding, restarting..."
     pkill -f "next" 2>/dev/null
     sleep 2
-    cd /home/z/my-project && NODE_OPTIONS="--max-old-space-size=256" npx next start -p 3000 > /tmp/nextjs-prod.log 2>&1 &
+    cd /home/z/my-project && npx next start -p 3000 > /tmp/nextjs-prod.log 2>&1 &
     sleep 8
+    echo "[$(date)] Server restarted"
   else
-    echo "[$(date)] Server is running"
+    echo "[$(date)] Server OK"
   fi
-  sleep 60
+  sleep 5
 done
