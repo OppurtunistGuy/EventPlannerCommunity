@@ -1,0 +1,402 @@
+   600→      setShowBill(true);
+   601→      setBillRequested(true);
+   602→    } catch (err) {
+   603→      console.error('[DIAG] requestBill error:', err);
+   604→    } finally {
+   605→      setBillRequesting(false);
+   606→    }
+   607→  };
+   608→
+   609→  // ==========================================
+   610→  // RENDER
+   611→  // ==========================================
+   612→  return (
+   613→    <div className="min-h-screen flex flex-col">
+   614→      {/* ===== NAV ===== */}
+   615→      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'}`}>
+   616→        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+   617→          <button onClick={() => scrollTo('hero')} className="flex items-center gap-2">
+   618→            <span className={`font-[var(--font-display)] text-xl font-bold tracking-tight ${scrolled ? 'text-[var(--color-primary)]' : 'text-white'}`}>
+   619→              High Spirits
+   620→            </span>
+   621→          </button>
+   622→          <div className="hidden md:flex items-center gap-4">
+   623→            {['menu', 'events', 'about', 'contact'].map(id => (
+   624→              <button key={id} onClick={() => scrollTo(id)} className={`text-sm font-medium capitalize transition-colors ${scrolled ? 'text-[var(--color-foreground)] hover:text-[var(--color-primary)]' : 'text-white/90 hover:text-white'}`}>
+   625→                {id}
+   626→              </button>
+   627→            ))}
+   628→            <button onClick={() => setShowLookupModal(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${scrolled ? 'border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white' : 'border-white/70 text-white/90 hover:bg-white/20'}`}>
+   629→              <Key className="w-3.5 h-3.5" /> My Reservation
+   630→            </button>
+   631→            <button onClick={() => setShowReservation(true)} className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-all ${scrolled ? 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white' : 'border-white text-white hover:bg-white hover:text-[var(--color-primary)]'}`}>
+   632→              Reserve a Table
+   633→            </button>
+   634→          </div>
+   635→          <div className="flex items-center gap-3">
+   636→            {selectedTable && !billRequested && (
+   637→              <motion.button
+   638→                initial={{ scale: 0.8, opacity: 0 }}
+   639→                animate={{ scale: 1, opacity: 1 }}
+   640→                onClick={requestBill}
+   641→                disabled={billRequesting}
+   642→                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+   643→              >
+   644→                {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+   645→                {billRequesting ? 'Requesting...' : 'Bill Request'}
+   646→              </motion.button>
+   647→            )}
+   648→            {selectedTable && billRequested && (
+   649→              <motion.button
+   650→                initial={{ scale: 0.8, opacity: 0 }}
+   651→                animate={{ scale: 1, opacity: 1 }}
+   652→                onClick={() => fetchBill(selectedTable.id)}
+   653→                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+   654→              >
+   655→                <Receipt className="w-3.5 h-3.5" /> View Bill
+   656→              </motion.button>
+   657→            )}
+   658→            <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className={`md:hidden p-1.5 ${scrolled ? 'text-[var(--color-foreground)]' : 'text-white'}`}>
+   659→              <MenuIcon className="w-5 h-5" />
+   660→            </button>
+   661→          </div>
+   662→        </div>
+   663→      </nav>
+   664→
+   665→      {/* Mobile nav overlay */}
+   666→      <AnimatePresence>
+   667→        {mobileNavOpen && (
+   668→          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+   669→            className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={() => setMobileNavOpen(false)}>
+   670→            <motion.div initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+   671→              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+   672→              className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl p-6 flex flex-col gap-6"
+   673→              onClick={e => e.stopPropagation()}>
+   674→              <div className="flex items-center justify-between">
+   675→                <span className="font-[var(--font-display)] text-lg font-bold text-[var(--color-primary)]">High Spirits</span>
+   676→                <button onClick={() => setMobileNavOpen(false)}><X className="w-5 h-5" /></button>
+   677→              </div>
+   678→              {['menu', 'events', 'about', 'contact'].map(id => (
+   679→                <button key={id} onClick={() => scrollTo(id)} className="text-left text-base font-medium text-[var(--color-foreground)] hover:text-[var(--color-primary)] capitalize">{id}</button>
+   680→              ))}
+   681→              <button onClick={() => { setShowLookupModal(true); setMobileNavOpen(false); }} className="flex items-center gap-2 text-left text-base font-medium text-[var(--color-accent)]">
+   682→                <Key className="w-4 h-4" /> My Reservation
+   683→              </button>
+   684→              <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="text-left text-base font-medium text-[var(--color-primary)]">
+   685→                Reserve a Table
+   686→              </button>
+   687→              {selectedTable && !billRequested && (
+   688→                <button onClick={() => { requestBill(); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+   689→                  <FileText className="w-4 h-4" /> Bill Request
+   690→                </button>
+   691→              )}
+   692→              {selectedTable && billRequested && (
+   693→                <button onClick={() => { fetchBill(selectedTable.id); setMobileNavOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+   694→                  <Receipt className="w-4 h-4" /> View My Bill
+   695→                </button>
+   696→              )}
+   697→            </motion.div>
+   698→          </motion.div>
+   699→        )}
+   700→      </AnimatePresence>
+   701→
+   702→      {/* ===== HERO ===== */}
+   703→      <section id="hero" className="relative h-[85vh] min-h-[520px] flex items-end overflow-hidden">
+   704→        <div className="absolute inset-0">
+   705→          <img src={HERO_IMG} alt="High Spirits Cafe" className="w-full h-full object-cover" />
+   706→          <div className="hero-overlay absolute inset-0" />
+   707→        </div>
+   708→        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
+   709→          <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+   710→            <p className="section-label mb-3 text-white/70">Koregaon Park, Pune</p>
+   711→            <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.05] mb-4">
+   712→              High Spirits<br />Cafe
+   713→            </h1>
+   714→            <p className="text-white/75 text-base sm:text-lg max-w-md mb-8 leading-relaxed">
+   715→              Pune&apos;s favourite nightlife destination. Live music, craft cocktails, and unforgettable evenings — since 2005.
+   716→            </p>
+   717→            <div className="flex flex-wrap gap-3">
+   718→              <button onClick={() => scrollTo('menu')} className="px-6 py-3 bg-white text-[var(--color-primary)] rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors flex items-center gap-2">
+   719→                <UtensilsCrossed className="w-4 h-4" /> View Menu
+   720→              </button>
+   721→              <button onClick={() => setShowReservation(true)} className="px-6 py-3 bg-[var(--color-accent)] text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-colors flex items-center gap-2">
+   722→                <CalendarDays className="w-4 h-4" /> Reserve a Table
+   723→              </button>
+   724→              <button onClick={() => setShowLookupModal(true)} className="px-6 py-3 bg-white/15 text-white rounded-lg font-semibold text-sm backdrop-blur-sm hover:bg-white/25 transition-colors border border-white/20 flex items-center gap-2">
+   725→                <Key className="w-4 h-4" /> My Reservation
+   726→              </button>
+   727→            </div>
+   728→          </motion.div>
+   729→        </div>
+   730→      </section>
+   731→
+   732→      {/* ===== HAPPY HOUR BANNER + RESTAURANT STATUS ===== */}
+   733→      <div className="bg-[var(--color-primary)] text-white">
+   734→        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-2">
+   735→          <div className="flex items-center gap-3">
+   736→            <span className="text-lg">🎉</span>
+   737→            <span className="text-sm font-medium">Happy Hour — 12 PM to 6 PM</span>
+   738→            <span className="text-xs text-white/60 hidden sm:inline">|</span>
+   739→            <span className="text-xs text-white/80 hidden sm:inline">Beer ₹100 · Cocktails ₹150 · Mimosa ₹130</span>
+   740→          </div>
+   741→          <div className="flex items-center gap-4">
+   742→            {/* Live restaurant status */}
+   743→            <span className={`flex items-center gap-1.5 text-xs font-medium ${restaurantStatus.open ? 'text-green-300' : 'text-red-300'}`}>
+   744→              <span className={`w-2 h-2 rounded-full ${restaurantStatus.open ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+   745→              {restaurantStatus.open ? `Open · Closes at ${restaurantStatus.closesAt}` : `Closed · Opens at ${restaurantStatus.closesAt}`}
+   746→            </span>
+   747→            <span className="text-xs font-mono text-white/70">{happyHourTime}</span>
+   748→          </div>
+   749→        </div>
+   750→      </div>
+   751→
+   752→      {/* ===== SELECTED TABLE BAR (subtle, customer-friendly) ===== */}
+   753→      <AnimatePresence>
+   754→        {selectedTable && (
+   755→          <motion.div
+   756→            initial={{ height: 0, opacity: 0 }}
+   757→            animate={{ height: 'auto', opacity: 1 }}
+   758→            exit={{ height: 0, opacity: 0 }}
+   759→            className="bg-[var(--color-primary)]/5 border-b border-[var(--color-primary)]/10 overflow-hidden"
+   760→          >
+   761→            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2">
+   762→              <div className="flex items-center gap-2">
+   763→                <span className="text-xs text-[var(--color-muted-foreground)]">Dining at</span>
+   764→                <span className="text-sm font-semibold text-[var(--color-primary)]">Table {selectedTable.number}</span>
+   765→                <span className="text-xs text-[var(--color-muted-foreground)]">· {AREA_LABELS[selectedTable.area]}</span>
+   766→                {activeReservation && (
+   767→                  <span className="text-xs text-[var(--color-accent)] font-medium ml-1">· Code: {activeReservation.code}</span>
+   768→                )}
+   769→              </div>
+   770→              <div className="flex items-center gap-2">
+   771→                {!billRequested ? (
+   772→                  <button onClick={requestBill} disabled={billRequesting} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-50">
+   773→                    {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+   774→                    {billRequesting ? 'Requesting...' : 'Bill Request'}
+   775→                  </button>
+   776→                ) : (
+   777→                  <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5">
+   778→                    <Receipt className="w-3.5 h-3.5" /> View Bill
+   779→                  </button>
+   780→                )}
+   781→                <button onClick={() => { setSelectedTable(null); setCart([]); setActiveReservation(null); setBillRequested(false); }} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
+   782→                  End Session
+   783→                </button>
+   784→              </div>
+   785→            </div>
+   786→          </motion.div>
+   787→        )}
+   788→      </AnimatePresence>
+   789→
+   790→      {/* ===== MENU ===== */}
+   791→      <section id="menu" className="py-12 sm:py-16">
+   792→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   793→          {/* Section header */}
+   794→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   795→            <p className="section-label">What We Serve</p>
+   796→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Our Menu</h2>
+   797→            <div className="divider mx-auto mt-4" />
+   798→          </motion.div>
+   799→
+   800→          {/* Table assignment prompt (if no table selected) — prominent CTA */}
+   801→          {!selectedTable && (
+   802→            <motion.div initial="hidden" animate="visible" variants={fadeUp}
+   803→              className="mb-8 bg-gradient-to-r from-[var(--color-primary)]/5 to-[var(--color-accent)]/5 border-2 border-[var(--color-primary)]/20 rounded-xl p-6">
+   804→              <div className="flex items-start gap-4">
+   805→                <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+   806→                  <UtensilsCrossed className="w-6 h-6 text-[var(--color-primary)]" />
+   807→                </div>
+   808→                <div className="flex-1">
+   809→                  <p className="text-base font-semibold text-[var(--color-foreground)]">Browse our menu — reserve a table to start ordering!</p>
+   810→                  <p className="text-sm text-[var(--color-muted-foreground)] mt-1">You need a reservation to place orders. Your table will be auto-assigned when you reserve. Already have a code? Enter it below.</p>
+   811→                  <div className="flex items-center gap-3 mt-4 flex-wrap">
+   812→                    <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm">
+   813→                      <CalendarDays className="w-4 h-4" /> Reserve a Table
+   814→                    </button>
+   815→                    <button onClick={() => setShowLookupModal(true)} className="px-5 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm">
+   816→                      <Key className="w-4 h-4" /> Enter Reservation Code
+   817→                    </button>
+   818→                  </div>
+   819→                  <div className="mt-3 flex items-center gap-2">
+   820→                    <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777 (Table 7)</span>
+   821→                  </div>
+   822→                </div>
+   823→              </div>
+   824→            </motion.div>
+   825→          )}
+   826→
+   827→          {/* Tabs */}
+   828→          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 -mx-1 px-1">
+   829→            {TABS.map(tab => {
+   830→              const Icon = tab.icon;
+   831→              return (
+   832→                <button key={tab.key} onClick={() => handleTabChange(tab.key)}
+   833→                  className={`tab-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border ${activeTab === tab.key ? 'active border-[var(--color-primary)]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}>
+   834→                  <Icon className="w-4 h-4" /> {tab.label}
+   835→                </button>
+   836→              );
+   837→            })}
+   838→          </div>
+   839→
+   840→          {/* Search & Filter */}
+   841→          <div className="flex items-center gap-3 mb-6">
+   842→            <div className="relative flex-1">
+   843→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
+   844→              <input type="text" placeholder="Search menu..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+   845→                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all" />
+   846→            </div>
+   847→            <button onClick={() => setVegOnly(!vegOnly)}
+   848→              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${vegOnly ? 'bg-[#27AE60]/10 border-[#27AE60] text-[#27AE60]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[var(--color-primary)]'}`}>
+   849→              <Leaf className="w-4 h-4" /> Veg
+   850→            </button>
+   851→          </div>
+   852→
+   853→          {/* Categories */}
+   854→          <div ref={menuRef} className="space-y-3">
+   855→            {(() => { console.log('[DIAG-RENDER] Menu section rendering — dataLoading:', dataLoading, 'filteredCategories:', filteredCategories.length, 'categories:', categories.length, 'activeTab:', activeTab, 'menuData keys:', Object.keys(menuData)); return null; })()}
+   856→            {dataLoading && filteredCategories.length === 0 && (
+   857→              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+   858→                <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
+   859→                <p className="text-sm">Loading menu...</p>
+   860→              </div>
+   861→            )}
+   862→            {!dataLoading && filteredCategories.length === 0 && (
+   863→              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+   864→                <Search className="w-8 h-8 mx-auto mb-3 opacity-40" />
+   865→                <p className="text-sm">No items found. Try a different search.</p>
+   866→                {(() => { console.log('[DIAG-RENDER] Showing "No items found" — menuData:', JSON.stringify(Object.keys(menuData)), 'activeTab:', activeTab, 'categories:', categories.length, 'searchQuery:', searchQuery, 'vegOnly:', vegOnly); return null; })()}
+   867→              </div>
+   868→            )}
+   869→            {filteredCategories.map((cat, idx) => {
+   870→              const isOpen = expandedCategories.has(cat.slug) || searchQuery.length > 0;
+   871→              return (
+   872→                <motion.div key={cat.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.05 }}
+   873→                  className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden">
+   874→                  <button onClick={() => toggleCategory(cat.slug)}
+   875→                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--color-secondary)]/50 transition-colors">
+   876→                    <div className="flex items-center gap-3">
+   877→                      <span className="text-lg">{cat.icon}</span>
+   878→                      <div className="text-left">
+   879→                        <span className="font-semibold text-[var(--color-foreground)]">{cat.name}</span>
+   880→                        {cat.description && <span className="text-xs text-[var(--color-muted-foreground)] ml-2 hidden sm:inline">— {cat.description}</span>}
+   881→                      </div>
+   882→                      <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2 py-0.5 rounded-full">{cat.items.length}</span>
+   883→                    </div>
+   884→                    {isOpen ? <ChevronUp className="w-4 h-4 text-[var(--color-muted-foreground)]" /> : <ChevronDown className="w-4 h-4 text-[var(--color-muted-foreground)]" />}
+   885→                  </button>
+   886→                  <AnimatePresence>
+   887→                    {isOpen && (
+   888→                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+   889→                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+   890→                        <div className="border-t border-[var(--color-border)]">
+   891→                          {cat.items.map((item) => (
+   892→                            <MenuItemRow key={item.id} item={item} inCart={cart.find(c => c.menuItem.id === item.id)}
+   893→                              onAdd={addToCart} onUpdateQty={updateCartQty} tableSelected={!!selectedTable} />
+   894→                          ))}
+   895→                        </div>
+   896→                      </motion.div>
+   897→                    )}
+   898→                  </AnimatePresence>
+   899→                </motion.div>
+   900→              );
+   901→            })}
+   902→          </div>
+   903→        </div>
+   904→      </section>
+   905→
+   906→      {/* ===== EVENTS ===== */}
+   907→      <section id="events" className="py-12 sm:py-16 bg-[var(--color-secondary)]">
+   908→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   909→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   910→            <p className="section-label">What&apos;s On</p>
+   911→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Events & Nights</h2>
+   912→            <div className="divider mx-auto mt-4" />
+   913→          </motion.div>
+   914→          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   915→            {events.map((event, idx) => (
+   916→              <motion.div key={event.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.08 }}
+   917→                className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
+   918→                <div className="flex items-start gap-3 mb-3">
+   919→                  <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
+   920→                    {event.type === 'live' && <Music className="w-5 h-5 text-[var(--color-primary)]" />}
+   921→                    {event.type === 'open-mic' && <Mic className="w-5 h-5 text-[var(--color-primary)]" />}
+   922→                    {event.type === 'themed' && <PartyPopper className="w-5 h-5 text-[var(--color-primary)]" />}
+   923→                    {event.type === 'dj' && <Sun className="w-5 h-5 text-[var(--color-primary)]" />}
+   924→                  </div>
+   925→                  <div className="flex-1 min-w-0">
+   926→                    <h3 className="font-semibold text-[var(--color-foreground)] text-sm leading-snug">{event.title}</h3>
+   927→                    {event.isFeatured && <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">Featured</span>}
+   928→                  </div>
+   929→                </div>
+   930→                <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed mb-3">{event.description}</p>
+   931→                <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)]">
+   932→                  <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> {event.date}</span>
+   933→                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {event.time}</span>
+   934→                </div>
+   935→              </motion.div>
+   936→            ))}
+   937→          </div>
+   938→        </div>
+   939→      </section>
+   940→
+   941→      {/* ===== ABOUT ===== */}
+   942→      <section id="about" className="py-12 sm:py-16">
+   943→        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+   944→          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-10">
+   945→            <p className="section-label">Since 2005</p>
+   946→            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Our Story</h2>
+   947→            <div className="divider mx-auto mt-4" />
+   948→          </motion.div>
+   949→          <div className="grid md:grid-cols-2 gap-8 items-center">
+   950→            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+   951→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
+   952→                In 2005, two friends had a simple idea: create a place where the music is always live, the drinks never stop flowing, and everyone feels like a regular. That place became High Spirits — a corner of Koregaon Park that turned into Pune&apos;s longest-running nightlife institution.
+   953→              </p>
+   954→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
+   955→                What makes us different? We don&apos;t do pretension. We do great cocktails at honest prices, live music that makes you stay past midnight, and food that surprises you — from Konkani Paneer Chilli to Neapolitan pizzas. Our Vintage Nights on Tuesdays and Thursdays have become legendary, and our Saturday gigs are the worst-kept secret in the city.
+   956→              </p>
+   957→              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-6">
+   958→                Walk in as a stranger, walk out as family. That&apos;s the High Spirits promise.
+   959→              </p>
+   960→              {/* Trust metrics */}
+   961→              <div className="grid grid-cols-4 gap-4">
+   962→                <div className="text-center">
+   963→                  <div className="text-2xl font-bold text-[var(--color-primary)]">19+</div>
+   964→                  <div className="text-xs text-[var(--color-muted-foreground)]">Years</div>
+   965→                </div>
+   966→                <div className="text-center">
+   967→                  <div className="flex items-center justify-center gap-0.5">
+   968→                    <span className="text-2xl font-bold text-[var(--color-primary)]">4.6</span>
+   969→                    <Star className="w-4 h-4 fill-[var(--color-accent)] text-[var(--color-accent)]" />
+   970→                  </div>
+   971→                  <div className="text-xs text-[var(--color-muted-foreground)]">Rating</div>
+   972→                </div>
+   973→                <div className="text-center">
+   974→                  <div className="text-2xl font-bold text-[var(--color-primary)]">50K+</div>
+   975→                  <div className="text-xs text-[var(--color-muted-foreground)]">Guests</div>
+   976→                </div>
+   977→                <div className="text-center">
+   978→                  <div className="text-2xl font-bold text-[var(--color-primary)]">5</div>
+   979→                  <div className="text-xs text-[var(--color-muted-foreground)]">Live Events</div>
+   980→                </div>
+   981→              </div>
+   982→              {/* CTA after about */}
+   983→              <div className="mt-6 flex flex-wrap gap-3">
+   984→                <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+   985→                  <CalendarDays className="w-4 h-4" /> Reserve a Table
+   986→                </button>
+   987→                <button onClick={() => scrollTo('menu')} className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
+   988→                  View Menu <ChevronRight className="w-4 h-4" />
+   989→                </button>
+   990→              </div>
+   991→            </motion.div>
+   992→            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="grid grid-cols-2 gap-3">
+   993→              <img src={INTERIOR_IMG} alt="Interior" className="rounded-xl object-cover w-full h-48 sm:h-64" />
+   994→              <img src={COCKTAIL_IMG} alt="Cocktails" className="rounded-xl object-cover w-full h-48 sm:h-64 mt-6" />
+   995→              <img src={FOOD_IMG} alt="Food" className="rounded-xl object-cover w-full h-48 sm:h-64 -mt-6" />
+   996→              {/* Replace green card with Google Rating card */}
+   997→              <div className="rounded-xl bg-[var(--color-primary)] text-white flex flex-col items-center justify-center p-5 h-48 sm:h-64">
+   998→                <div className="flex items-center gap-1 mb-2">
+   999→                  {[1,2,3,4,5].map(i => (
+
+[showing lines 600-999 of 1606; use offset=1000 with limit to continue reading]
