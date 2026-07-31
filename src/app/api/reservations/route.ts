@@ -7,14 +7,37 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, phone, email, date, time, guests, occasion, message } = body;
 
-    if (!name || !phone || !date || !time || !guests) {
-      return NextResponse.json({ error: 'Missing required fields: name, phone, date, time, guests are required' }, { status: 400 });
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return NextResponse.json({ success: false, error: 'Name is required', message: 'Please enter your name' }, { status: 400 });
+    }
+    if (!phone || !phone.trim()) {
+      return NextResponse.json({ success: false, error: 'Phone number is required', message: 'Please enter your phone number' }, { status: 400 });
+    }
+    if (!date) {
+      return NextResponse.json({ success: false, error: 'Date is required', message: 'Please select a reservation date' }, { status: 400 });
+    }
+    if (!time) {
+      return NextResponse.json({ success: false, error: 'Time is required', message: 'Please select a reservation time' }, { status: 400 });
     }
 
     const guestCount = parseInt(guests);
     if (isNaN(guestCount) || guestCount < 1) {
-      return NextResponse.json({ error: 'Guest count must be a valid number (at least 1)' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Guest count must be at least 1', message: 'Please select the number of guests' }, { status: 400 });
     }
+    if (guestCount > 20) {
+      return NextResponse.json({ success: false, error: 'Large group booking required', message: 'For groups larger than 20, please call us directly for arrangements.' }, { status: 400 });
+    }
+
+    // Validate date is not in the past
+    const reservationDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (reservationDate < today) {
+      return NextResponse.json({ success: false, error: 'Date cannot be in the past', message: 'Please select a future date for your reservation' }, { status: 400 });
+    }
+
+    console.log(`[RESERVATION] Creating reservation: name=${name}, phone=${phone}, date=${date}, time=${time}, guests=${guestCount}`);
 
     // Find an available table that can fit the guest count
     // Prefer the smallest table that fits
@@ -36,13 +59,13 @@ export async function POST(request: Request) {
 
       if (!anyTableWithCapacity) {
         return NextResponse.json(
-          { error: `No tables available for ${guestCount} guests. Our largest table seats ${guestCount > 10 ? '10' : '8'}. Please call us for large group arrangements.` },
+          { success: false, error: `No tables available for ${guestCount} guests`, message: `We don't have tables that can accommodate ${guestCount} guests. Our largest table seats 10. Please call us for large group arrangements.` },
           { status: 409 }
         );
       }
 
       return NextResponse.json(
-        { error: 'All suitable tables are currently reserved or occupied. Please try a different date or time, or call us for assistance.' },
+        { success: false, error: 'All suitable tables are currently reserved', message: 'All tables for your party size are currently reserved or occupied. Please try a different date or time, or call us for assistance.' },
         { status: 409 }
       );
     }
@@ -59,7 +82,7 @@ export async function POST(request: Request) {
     }
 
     if (!isUnique) {
-      return NextResponse.json({ error: 'Failed to generate unique reservation code. Please try again.' }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to generate unique code', message: 'Something went wrong. Please try again.' }, { status: 500 });
     }
 
     // Create reservation and update table status in a transaction
@@ -67,8 +90,8 @@ export async function POST(request: Request) {
       const res = await tx.reservation.create({
         data: {
           code,
-          name,
-          phone,
+          name: name.trim(),
+          phone: phone.trim(),
           email: email || null,
           date,
           time,
@@ -92,9 +115,11 @@ export async function POST(request: Request) {
       return res;
     });
 
-    return NextResponse.json(reservation, { status: 201 });
+    console.log(`[RESERVATION] Created successfully: code=${code}, table=${availableTable.number}, name=${name}`);
+
+    return NextResponse.json({ success: true, data: reservation, message: 'Reservation confirmed! Your table has been assigned.' }, { status: 201 });
   } catch (error) {
-    console.error('Reservation creation error:', error);
-    return NextResponse.json({ error: 'Failed to create reservation. Please try again.' }, { status: 500 });
+    console.error('[RESERVATION] Creation error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create reservation', message: 'Unable to create your reservation right now. Please try again or call us.' }, { status: 500 });
   }
 }

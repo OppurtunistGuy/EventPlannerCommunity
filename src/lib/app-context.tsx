@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { ActiveReservation, CartItem, TableInfo, ReservationForm } from '@/lib/shared';
 
 // ==========================================
@@ -64,6 +64,71 @@ interface AppState {
 
 const AppContext = createContext<AppState | null>(null);
 
+// Session persistence keys
+const SESSION_KEY = 'hs-session';
+const SESSION_EXPIRY_HOURS = 4;
+
+interface SessionData {
+  reservationId: string;
+  reservationCode: string;
+  tableId: string;
+  tableName: string;
+  tableNumber: number;
+  tableArea: string;
+  tableCapacity: number;
+  tableStatus: string;
+  customerName: string;
+  savedAt: number;
+}
+
+function saveSession(reservation: ActiveReservation, table: TableInfo) {
+  try {
+    const session: SessionData = {
+      reservationId: reservation.id,
+      reservationCode: reservation.code,
+      tableId: table.id,
+      tableName: '',
+      tableNumber: table.number,
+      tableArea: table.area,
+      tableCapacity: table.capacity,
+      tableStatus: table.status,
+      customerName: reservation.name,
+      savedAt: Date.now(),
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    console.log('[SESSION] Saved session for code:', reservation.code);
+  } catch (e) {
+    console.error('[SESSION] Failed to save:', e);
+  }
+}
+
+function loadSession(): SessionData | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const session: SessionData = JSON.parse(raw);
+    // Check expiry
+    const age = Date.now() - session.savedAt;
+    if (age > SESSION_EXPIRY_HOURS * 60 * 60 * 1000) {
+      localStorage.removeItem(SESSION_KEY);
+      console.log('[SESSION] Session expired, cleared');
+      return null;
+    }
+    console.log('[SESSION] Restored session for code:', session.reservationCode);
+    return session;
+  } catch (e) {
+    console.error('[SESSION] Failed to load:', e);
+    return null;
+  }
+}
+
+function clearSession() {
+  try {
+    localStorage.removeItem(SESSION_KEY);
+    console.log('[SESSION] Session cleared');
+  } catch {}
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedTable, setSelectedTable] = useState<TableInfo | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -90,16 +155,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [billRequested, setBillRequested] = useState(false);
   const [billRequesting, setBillRequesting] = useState(false);
 
+  // Restore session on mount
+  useEffect(() => {
+    const session = loadSession();
+    if (session) {
+      const table: TableInfo = {
+        id: session.tableId,
+        number: session.tableNumber,
+        capacity: session.tableCapacity,
+        area: session.tableArea,
+        status: session.tableStatus,
+        orders: [],
+      };
+      const reservation: ActiveReservation = {
+        id: session.reservationId,
+        code: session.reservationCode,
+        name: session.customerName,
+        phone: '',
+        date: '',
+        time: '',
+        guests: 0,
+        status: 'confirmed',
+        tableId: session.tableId,
+        table,
+      };
+      setSelectedTable(table);
+      setActiveReservation(reservation);
+    }
+  }, []);
+
   // Centralized fetchBill
   const fetchBill = useCallback(async (tableId: string) => {
     try {
+      console.log('[BILL] Fetching bill for table:', tableId);
       const res = await fetch(`/api/bill?tableId=${tableId}`);
       if (!res.ok) throw new Error(`Bill fetch failed: ${res.status}`);
       const data = await res.json();
       setBillData(data);
       setShowBill(true);
     } catch (err) {
-      console.error('fetchBill error:', err);
+      console.error('[BILL] Fetch error:', err);
     }
   }, []);
 
@@ -108,6 +203,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!selectedTable) return;
     setBillRequesting(true);
     try {
+      console.log('[BILL] Requesting bill for table:', selectedTable.number);
       const res = await fetch('/api/bill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,13 +221,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setShowBill(true);
       setBillRequested(true);
     } catch (err) {
-      console.error('requestBill error:', err);
+      console.error('[BILL] Request error:', err);
       // If bill already exists, try fetching it instead
       try {
         await fetchBill(selectedTable.id);
         setBillRequested(true);
       } catch (fetchErr) {
-        console.error('fetchBill fallback error:', fetchErr);
+        console.error('[BILL] Fetch fallback error:', fetchErr);
       }
     } finally {
       setBillRequesting(false);
@@ -143,6 +239,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!selectedTable || cart.length === 0) return;
     setOrderSubmitting(true);
     try {
+      console.log('[ORDER] Submitting order:', cart.length, 'items for table', selectedTable.number);
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -152,13 +249,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
           items: cart.map(c => ({ menuItemId: c.menuItem.id, quantity: c.quantity })),
         }),
       });
-      if (!res.ok) throw new Error('Order failed');
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Order failed');
+      }
       setCart([]);
       setShowCart(false);
       setOrderSuccess(true);
       setTimeout(() => setOrderSuccess(false), 4000);
+      console.log('[ORDER] Order placed successfully');
     } catch (err) {
-      console.error('submitOrder error:', err);
+      console.error('[ORDER] Submit error:', err);
+      alert('Failed to place order. Please try again.');
     } finally {
       setOrderSubmitting(false);
     }
@@ -166,12 +268,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Centralized endSession
   const endSession = useCallback(() => {
+    console.log('[SESSION] Ending session');
     setSelectedTable(null);
     setCart([]);
     setActiveReservation(null);
     setBillRequested(false);
     setBillData(null);
     setShowBill(false);
+    clearSession();
   }, []);
 
   // Centralized lookupReservationByCode
@@ -180,20 +284,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLookupLoading(true);
     setLookupError('');
     try {
+      console.log('[RESERVATION] Looking up code:', code);
       const res = await fetch(`/api/reservations/lookup?code=${code.trim()}`);
+      const data = await res.json();
+
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({ error: 'Reservation not found' }));
-        setLookupError(errData.error || 'Reservation not found');
+        const errorMsg = data.message || data.error || 'Reservation not found';
+        setLookupError(errorMsg);
         setActiveReservation(null);
         return false;
       }
-      const data = await res.json();
-      setActiveReservation(data);
-      setSelectedTable(data.table);
+
+      // Handle both old and new API response formats
+      const reservation = data.data || data;
+      setActiveReservation(reservation);
+      setSelectedTable(reservation.table);
       setLookupCode('');
+      saveSession(reservation, reservation.table);
+      console.log('[RESERVATION] Lookup successful:', reservation.name, 'Table', reservation.table?.number);
       return true;
     } catch (err) {
-      setLookupError('Failed to look up reservation. Please try again.');
+      console.error('[RESERVATION] Lookup error:', err);
+      setLookupError('Network error. Please check your connection and try again.');
       setActiveReservation(null);
       return false;
     } finally {

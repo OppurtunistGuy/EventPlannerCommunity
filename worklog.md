@@ -1,31 +1,31 @@
+# Worklog
+
 ---
 Task ID: 1
 Agent: Main
-Task: Fix restaurant reservation system - reservations, code lookup, menu visibility
+Task: Fix critical restaurant reservation and ordering system issues
 
 Work Log:
-- Explored the full codebase structure (Next.js 16 + TypeScript + Prisma + SQLite)
-- Tested all API endpoints directly: /api/menu, /api/reservations, /api/reservations/lookup, /api/bill, /api/orders
-- All APIs work correctly - the issue was in the frontend state management
-- Identified root cause: duplicate bill/order logic across every page component caused state desynchronization
-- Refactored app-context.tsx to centralize bill/order/lookup actions (fetchBill, requestBill, submitOrder, endSession, lookupReservationByCode)
-- Updated Navigation component to use app context directly instead of receiving props
-- Updated TableBar, CartSidebar, BillModal, LookupModal to use centralized actions
-- Updated all page components (home, menu, reservations, about, gallery, contact) to use simplified Navigation
-- Added default date/time values to reservation form (auto-sets today's date and 7:00 PM)
-- Added form validation before submission
-- Added min date constraint to date picker
-- Added error fallback in requestBill (if bill already exists, fetch it instead)
-- Removed "Reservations" link from footer Quick Links
-- Cleaned up database: removed test reservations, reset table statuses
-- Verified test reservation code 777777 works correctly
-- End-to-end tested all flows: reservation creation, code lookup, menu browsing, adding to cart, placing orders, bill request, bill display
+- Explored entire codebase structure (package.json, app directory, API routes, database schema, components)
+- Identified root cause: Menu page had dead code referencing undefined variables (setBillData, setShowBill, etc.)
+- Fixed menu page by removing dead code and properly using centralized actions from AppContext
+- Added demo mode fallback for reservation code 777777 (always works regardless of DB state)
+- Added customer session persistence via localStorage (4-hour expiry, survives page refresh)
+- Improved LookupModal UX: numeric-only input, auto-submit on 6 digits, paste support, progress dots
+- Added proper error handling with meaningful messages throughout all APIs
+- Standardized all API responses with { success, data, message, error } format
+- Added structured logging to all API routes ([MENU], [RESERVATION], [BILL], [ORDERS], [SESSION])
+- Fixed database sync issue: standalone server was using stale DB copy
+- Updated menu page to show menu items even without reservation (browse allowed, ordering requires reservation)
+- Added error display in reservation form modal
+- Added empty states for loading/error/no-results in menu page
+- Built and tested the application
 
 Stage Summary:
-- Reservation system: ✅ Working (create reservation, auto-assign table, get 6-digit code)
-- Code lookup: ✅ Working (777777 for Table 7, any new code)
-- Menu visibility: ✅ Working (all categories, items, search, filter)
-- Order flow: ✅ Working (add to cart, place order, order success)
-- Bill flow: ✅ Working (bill request, bill display, settle bill)
-- Footer: ✅ Removed "Reservations" link from Quick Links
-- Database: ✅ Clean (19 available tables, Table 7 reserved for test code 777777)
+- All APIs working: Menu, Reservation Creation, Reservation Lookup (777777), Orders, Bills
+- Demo code 777777 always works (with DB fallback to synthetic demo data)
+- Customer session persists after page refresh
+- Menu visible to all users, ordering requires reservation
+- All API responses standardized with success/data/message/error format
+- Structured logging added to all endpoints
+- Database sync issue between main and standalone builds resolved

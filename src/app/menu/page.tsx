@@ -28,10 +28,12 @@ export default function MenuPage() {
     cart, setCart,
     showReservation, setShowReservation,
     showLookupModal, setShowLookupModal,
+    requestBill, fetchBill,
   } = useApp();
 
   const [menuData, setMenuData] = useState<Record<string, MenuCategory[]>>({});
   const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState('');
   const [activeTab, setActiveTab] = useState<string>('food');
   const [searchQuery, setSearchQuery] = useState('');
   const [vegOnly, setVegOnly] = useState(false);
@@ -40,16 +42,29 @@ export default function MenuPage() {
 
   // Fetch menu data
   useEffect(() => {
-    if (Object.keys(menuData).length > 0) return;
     fetch('/api/menu')
-      .then(r => r.ok ? r.json() : {})
+      .then(r => {
+        if (!r.ok) throw new Error(`Menu fetch failed: ${r.status}`);
+        return r.json();
+      })
       .then(data => {
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-          setMenuData(data);
+        // Handle both old and new API response formats
+        const menuResponse = data.data || data;
+        if (menuResponse && typeof menuResponse === 'object' && !Array.isArray(menuResponse) && !data.error) {
+          setMenuData(menuResponse);
+          // Auto-expand first category on each tab
+          const firstCat = Object.values(menuResponse).flat().find((c: MenuCategory) => c.items?.length > 0);
+          if (firstCat) setExpandedCategories(new Set([firstCat.slug]));
+        } else {
+          setDataError(data?.error || data?.message || 'Failed to load menu data');
         }
         setDataLoading(false);
       })
-      .catch(() => setDataLoading(false));
+      .catch(err => {
+        console.error('Menu fetch error:', err);
+        setDataError('Unable to load menu. Please try again.');
+        setDataLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -85,6 +100,10 @@ export default function MenuPage() {
   };
 
   const addToCart = (item: MenuItem) => {
+    if (!selectedTable) {
+      setShowReservation(true);
+      return;
+    }
     setCart(prev => {
       const existing = prev.find(c => c.menuItem.id === item.id);
       if (existing) return prev.map(c => c.menuItem.id === item.id ? { ...c, quantity: c.quantity + 1 } : c);
@@ -99,35 +118,6 @@ export default function MenuPage() {
       if (newQty <= 0) return c;
       return { ...c, quantity: newQty };
     }).filter(c => c.quantity > 0));
-  };
-
-  const fetchBill = async (tableId: string) => {
-    try {
-      const res = await fetch(`/api/bill?tableId=${tableId}`);
-      if (!res.ok) throw new Error(`bill ${res.status}`);
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-    } catch {}
-  };
-
-  const requestBill = async () => {
-    if (!selectedTable) return;
-    setBillRequesting(true);
-    try {
-      const res = await fetch('/api/bill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tableId: selectedTable.id, reservationId: activeReservation?.id || null }),
-      });
-      if (!res.ok) throw new Error('Bill request failed');
-      const data = await res.json();
-      setBillData(data);
-      setShowBill(true);
-      setBillRequested(true);
-    } catch {} finally {
-      setBillRequesting(false);
-    }
   };
 
   return (
@@ -156,8 +146,8 @@ export default function MenuPage() {
                   <Utensils className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-base font-semibold text-[var(--color-foreground)]">Browse our menu — reserve a table to start ordering!</p>
-                  <p className="text-sm text-[var(--color-muted-foreground)] mt-1">You need a reservation to place orders. Your table will be auto-assigned when you reserve. Already have a code? Enter it to view your table.</p>
+                  <p className="text-base font-semibold text-[var(--color-foreground)]">Browse our menu below — reserve a table to start ordering!</p>
+                  <p className="text-sm text-[var(--color-muted-foreground)] mt-1">You can browse the full menu and see prices. To place an order, you need a reservation. Your table will be auto-assigned when you reserve.</p>
                   <div className="flex items-center gap-3 mt-4 flex-wrap">
                     <button onClick={() => setShowReservation(true)} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm">
                       <CalendarDays className="w-4 h-4" /> Reserve a Table
@@ -202,19 +192,31 @@ export default function MenuPage() {
 
           {/* Categories */}
           <div className="space-y-3">
-            {dataLoading && filteredCategories.length === 0 && (
+            {dataLoading && (
               <div className="text-center py-16 text-[var(--color-muted-foreground)]">
                 <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
                 <p className="text-sm">Loading menu...</p>
               </div>
             )}
-            {!dataLoading && filteredCategories.length === 0 && (
+            {dataError && (
               <div className="text-center py-16 text-[var(--color-muted-foreground)]">
                 <Search className="w-8 h-8 mx-auto mb-3 opacity-40" />
-                <p className="text-sm">No items found. Try a different search.</p>
+                <p className="text-sm">{dataError}</p>
+                <button onClick={() => { setDataLoading(true); setDataError(''); window.location.reload(); }}
+                  className="mt-3 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+                  Retry
+                </button>
               </div>
             )}
-            {filteredCategories.map((cat, idx) => {
+            {!dataLoading && !dataError && filteredCategories.length === 0 && (
+              <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+                <Search className="w-8 h-8 mx-auto mb-3 opacity-40" />
+                <p className="text-sm">
+                  {searchQuery ? 'No items match your search. Try a different term.' : 'No items available in this category.'}
+                </p>
+              </div>
+            )}
+            {!dataLoading && !dataError && filteredCategories.length > 0 && filteredCategories.map((cat, idx) => {
               const isOpen = expandedCategories.has(cat.slug) || searchQuery.length > 0;
               return (
                 <motion.div key={cat.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.05 }}
@@ -268,7 +270,9 @@ export default function MenuPage() {
                                     </button>
                                   )}
                                   {!selectedTable && (
-                                    <span className="text-[10px] text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2 py-1 rounded-full whitespace-nowrap">Reserve to order</span>
+                                    <button onClick={() => addToCart(item)} className="w-7 h-7 rounded-lg bg-[var(--color-secondary)] text-[var(--color-muted-foreground)] flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white transition-all" title="Reserve a table to start ordering">
+                                      <Plus className="w-3.5 h-3.5" />
+                                    </button>
                                   )}
                                 </div>
                               </div>

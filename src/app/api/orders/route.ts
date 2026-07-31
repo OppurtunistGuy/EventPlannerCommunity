@@ -25,10 +25,10 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(orders);
+    return NextResponse.json({ success: true, data: orders, message: 'Orders fetched' });
   } catch (error) {
-    console.error('Orders fetch error:', error);
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    console.error('[ORDERS] Fetch error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch orders', message: 'Unable to fetch orders' }, { status: 500 });
   }
 }
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const { tableId, items, type, notes } = body;
 
     if (!tableId || !items || items.length === 0) {
-      return NextResponse.json({ error: 'Table ID and items are required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Table ID and items are required', message: 'Please select a table and add items to your order' }, { status: 400 });
     }
 
     // Look up menu item prices
@@ -62,6 +62,8 @@ export async function POST(request: Request) {
         status: 'pending',
       };
     });
+
+    console.log(`[ORDERS] Creating order for table ${tableId}: ${items.length} items, total ₹${total}`);
 
     // Create order and update table status in transaction
     const order = await db.$transaction(async (tx) => {
@@ -94,10 +96,12 @@ export async function POST(request: Request) {
       return newOrder;
     });
 
-    return NextResponse.json(order, { status: 201 });
+    console.log(`[ORDERS] Order ${order.id} created successfully`);
+
+    return NextResponse.json({ success: true, data: order, message: 'Order placed successfully' }, { status: 201 });
   } catch (error) {
-    console.error('Order creation error:', error);
-    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    console.error('[ORDERS] Creation error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create order', message: 'Unable to place your order. Please try again.' }, { status: 500 });
   }
 }
 
@@ -108,7 +112,7 @@ export async function PATCH(request: Request) {
     const { orderId, status } = body;
 
     if (!orderId) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Order ID is required', message: 'Order ID is required' }, { status: 400 });
     }
 
     const order = await db.order.update({
@@ -116,9 +120,11 @@ export async function PATCH(request: Request) {
       data: { status: status || 'pending' },
     });
 
-    return NextResponse.json(order);
+    console.log(`[ORDERS] Updated order ${orderId} status to ${status}`);
+
+    return NextResponse.json({ success: true, data: order, message: 'Order updated' });
   } catch (error) {
-    console.error('Order update error:', error);
-    return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
+    console.error('[ORDERS] Update error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to update order', message: 'Unable to update order status' }, { status: 500 });
   }
 }

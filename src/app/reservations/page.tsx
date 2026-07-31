@@ -40,7 +40,7 @@ export default function ReservationsPage() {
   }, []);
 
   const handleLookup = async () => {
-    if (!lookupCode.trim()) return;
+    if (!lookupCode.trim() || lookupCode.trim().length !== 6) return;
     setLookupLoading(true);
     setLookupError('');
     setLookupSuccess(false);
@@ -51,7 +51,7 @@ export default function ReservationsPage() {
       setLookupSuccess(true);
       setTimeout(() => setLookupSuccess(false), 3000);
     } else {
-      setLookupError('Reservation not found. Please check your code.');
+      setLookupError('Reservation not found. Please check your 6-digit code.');
     }
   };
 
@@ -116,8 +116,9 @@ export default function ReservationsPage() {
                   <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Reservation Code</label>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={lookupCode}
-                    onChange={e => { setLookupCode(e.target.value); setLookupError(''); }}
+                    onChange={e => { setLookupCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setLookupError(''); }}
                     placeholder="Enter 6-digit code"
                     maxLength={6}
                     className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl text-lg font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
@@ -125,7 +126,7 @@ export default function ReservationsPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2 justify-center">
-                  <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777</span>
+                  <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777 (Table 7)</span>
                 </div>
                 {lookupError && (
                   <p className="text-sm text-[var(--color-destructive)] text-center">{lookupError}</p>

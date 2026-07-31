@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 // GET /api/menu - Fetch full menu organized by tab
 export async function GET() {
   try {
+    console.log('[MENU] Fetching menu data');
     const categories = await db.menuCategory.findMany({
       orderBy: { order: 'asc' },
       include: {
@@ -20,9 +21,12 @@ export async function GET() {
       menuByTab[cat.tab].push(cat);
     }
 
-    return NextResponse.json(menuByTab);
+    const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
+    console.log(`[MENU] Loaded ${categories.length} categories, ${totalItems} items across ${Object.keys(menuByTab).length} tabs`);
+
+    return NextResponse.json({ success: true, data: menuByTab, message: 'Menu loaded' });
   } catch (error) {
-    console.error('Menu fetch error:', error);
-    return NextResponse.json({ error: 'Failed to fetch menu' }, { status: 500 });
+    console.error('[MENU] Fetch error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch menu', message: 'Unable to load menu. Please try again.' }, { status: 500 });
   }
 }

@@ -8,8 +8,10 @@ export async function GET(request: Request) {
     const tableId = searchParams.get('tableId');
 
     if (!tableId) {
-      return NextResponse.json({ error: 'Table ID is required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Table ID is required', message: 'Table ID is required' }, { status: 400 });
     }
+
+    console.log('[BILL] Fetching bill for table:', tableId);
 
     const table = await db.table.findUnique({
       where: { id: tableId },
@@ -28,7 +30,9 @@ export async function GET(request: Request) {
     });
 
     if (!table || table.orders.length === 0) {
+      console.log('[BILL] No active orders for table:', tableId);
       return NextResponse.json({
+        success: true,
         tableId,
         orders: [],
         items: [],
@@ -54,7 +58,10 @@ export async function GET(request: Request) {
     const subtotal = allItems.reduce((s: number, i: any) => s + i.total, 0);
     const gst = Math.round(subtotal * 0.05);
 
+    console.log(`[BILL] Generated bill for table ${table.number}: ${allItems.length} items, total ₹${subtotal + gst}`);
+
     return NextResponse.json({
+      success: true,
       tableId,
       tableNumber: table.number,
       tableArea: table.area,
@@ -72,8 +79,8 @@ export async function GET(request: Request) {
       total: subtotal + gst,
     });
   } catch (error) {
-    console.error('Bill generation error:', error);
-    return NextResponse.json({ error: 'Failed to generate bill' }, { status: 500 });
+    console.error('[BILL] Generation error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to generate bill', message: 'Unable to generate bill. Please try again.' }, { status: 500 });
   }
 }
 
@@ -84,8 +91,10 @@ export async function POST(request: Request) {
     const { tableId, reservationId } = body;
 
     if (!tableId) {
-      return NextResponse.json({ error: 'Table ID is required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Table ID is required', message: 'Table ID is required' }, { status: 400 });
     }
+
+    console.log('[BILL] Creating bill request for table:', tableId);
 
     // Get all active orders for this table
     const table = await db.table.findUnique({
@@ -105,7 +114,7 @@ export async function POST(request: Request) {
     });
 
     if (!table || table.orders.length === 0) {
-      return NextResponse.json({ error: 'No active orders to bill' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'No active orders to bill', message: 'No active orders found. Place an order first.' }, { status: 400 });
     }
 
     const allItems = table.orders.flatMap((o: any) =>
@@ -148,7 +157,10 @@ export async function POST(request: Request) {
       return newBill;
     });
 
+    console.log(`[BILL] Created bill ${bill.id} for table ${table.number}: ₹${total}`);
+
     return NextResponse.json({
+      success: true,
       billId: bill.id,
       tableId,
       tableNumber: table.number,
@@ -167,8 +179,8 @@ export async function POST(request: Request) {
       total,
     }, { status: 201 });
   } catch (error) {
-    console.error('Bill request error:', error);
-    return NextResponse.json({ error: 'Failed to create bill request' }, { status: 500 });
+    console.error('[BILL] Request error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create bill request', message: 'Unable to create bill. Please try again.' }, { status: 500 });
   }
 }
 

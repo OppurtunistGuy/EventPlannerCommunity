@@ -43,12 +43,33 @@ export function ReservationModal() {
       .catch(() => {});
   }, []);
 
+  const [reservationError, setReservationError] = useState('');
+
+  // Set default date/time on mount
+  useEffect(() => {
+    if (showReservation && !reservationForm.date) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      setReservationForm(p => ({ ...p, date: `${yyyy}-${mm}-${dd}`, time: '19:00' }));
+    }
+  }, [showReservation]);
+
+  useEffect(() => {
+    fetch('/api/tables')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setTables(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
   const submitReservation = async (e: React.FormEvent) => {
     e.preventDefault();
     setReservationSubmitting(true);
+    setReservationError('');
     try {
       // Validate form before submission
-      if (!reservationForm.name || !reservationForm.phone || !reservationForm.date || !reservationForm.time) {
+      if (!reservationForm.name?.trim() || !reservationForm.phone?.trim() || !reservationForm.date || !reservationForm.time) {
         throw new Error('Please fill in all required fields (Name, Phone, Date, Time)');
       }
       const res = await fetch('/api/reservations', {
@@ -56,28 +77,29 @@ export function ReservationModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reservationForm),
       });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ error: 'Reservation failed' }));
-        throw new Error(errData.error || 'Reservation failed');
-      }
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Reservation failed');
+      }
+      // Handle both old and new API response formats
+      const reservation = data.data || data;
       setReservationResult({
-        code: data.code,
-        tableNumber: data.table?.number || 0,
-        tableArea: data.table?.area || '',
+        code: reservation.code,
+        tableNumber: reservation.table?.number || 0,
+        tableArea: reservation.table?.area || '',
       });
       setReservationSuccess(true);
       setActiveReservation({
-        id: data.id,
-        code: data.code,
-        name: data.name,
-        phone: data.phone,
-        date: data.date,
-        time: data.time,
-        guests: data.guests,
-        status: data.status,
-        tableId: data.tableId,
-        table: data.table,
+        id: reservation.id,
+        code: reservation.code,
+        name: reservation.name,
+        phone: reservation.phone,
+        date: reservation.date,
+        time: reservation.time,
+        guests: reservation.guests,
+        status: reservation.status,
+        tableId: reservation.tableId,
+        table: reservation.table,
       });
       // Refresh tables
       const tablesRes = await fetch('/api/tables');
@@ -86,7 +108,7 @@ export function ReservationModal() {
         setTables(Array.isArray(tablesData) ? tablesData : []);
       }
     } catch (err: any) {
-      alert(err.message || 'Failed to create reservation');
+      setReservationError(err.message || 'Failed to create reservation');
     } finally {
       setReservationSubmitting(false);
     }
@@ -205,9 +227,14 @@ export function ReservationModal() {
                     </select>
                   </div>
                   <button type="submit" disabled={reservationSubmitting}
-                    className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
-                    {reservationSubmitting ? 'Confirming...' : 'Confirm Reservation'}
+                    className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+                    {reservationSubmitting ? <><RefreshCw className="w-4 h-4 animate-spin" /> Confirming...</> : <><CalendarDays className="w-4 h-4" /> Confirm Reservation</>}
                   </button>
+                  {reservationError && (
+                    <div className="bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/20 rounded-xl p-3 text-center">
+                      <p className="text-sm text-[var(--color-destructive)]">{reservationError}</p>
+                    </div>
+                  )}
                 </form>
               )}
             </div>
@@ -229,12 +256,34 @@ export function LookupModal() {
     lookupReservationByCode,
   } = useApp();
 
-  const handleLookup = async () => {
-    const success = await lookupReservationByCode(lookupCode);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleLookup = async (code?: string) => {
+    const codeToUse = code || lookupCode;
+    if (!codeToUse.trim() || codeToUse.trim().length !== 6) return;
+    const success = await lookupReservationByCode(codeToUse);
     if (success) {
       setShowLookupModal(false);
     }
   };
+
+  const handleCodeChange = (value: string) => {
+    // Only allow digits
+    const digits = value.replace(/\D/g, '').slice(0, 6);
+    setLookupCode(digits);
+    setLookupError('');
+    // Auto-submit when 6 digits are entered
+    if (digits.length === 6) {
+      setTimeout(() => handleLookup(digits), 100);
+    }
+  };
+
+  // Focus input when modal opens
+  useEffect(() => {
+    if (showLookupModal) {
+      setTimeout(() => inputRef.current?.focus(), 200);
+    }
+  }, [showLookupModal]);
 
   return (
     <AnimatePresence>
@@ -268,24 +317,43 @@ export function LookupModal() {
                 <div>
                   <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Reservation Code</label>
                   <input
+                    ref={inputRef}
                     type="text"
+                    inputMode="numeric"
+                    pattern="\d{6}"
                     value={lookupCode}
-                    onChange={e => { setLookupCode(e.target.value); setLookupError(''); }}
+                    onChange={e => handleCodeChange(e.target.value)}
+                    onPaste={e => {
+                      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                      if (pasted.length === 6) {
+                        setLookupCode(pasted);
+                        setTimeout(() => handleLookup(pasted), 100);
+                      } else {
+                        setLookupCode(pasted);
+                      }
+                    }}
                     placeholder="Enter 6-digit code"
                     maxLength={6}
                     className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl text-lg font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
                     onKeyDown={e => { if (e.key === 'Enter') handleLookup(); }}
                   />
+                  <div className="flex items-center justify-center gap-1 mt-2">
+                    {[0,1,2,3,4,5].map(i => (
+                      <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i < lookupCode.length ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
+                    ))}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 justify-center">
-                  <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777</span>
+                  <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777 (Table 7)</span>
                 </div>
                 {lookupError && (
-                  <p className="text-sm text-[var(--color-destructive)] text-center">{lookupError}</p>
+                  <div className="bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/20 rounded-xl p-3 text-center">
+                    <p className="text-sm text-[var(--color-destructive)]">{lookupError}</p>
+                  </div>
                 )}
                 <button
-                  onClick={handleLookup}
-                  disabled={lookupLoading || !lookupCode.trim()}
+                  onClick={() => handleLookup()}
+                  disabled={lookupLoading || lookupCode.length !== 6}
                   className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {lookupLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
