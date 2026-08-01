@@ -45,24 +45,6 @@ export function ReservationModal() {
 
   const [reservationError, setReservationError] = useState('');
 
-  // Set default date/time on mount
-  useEffect(() => {
-    if (showReservation && !reservationForm.date) {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      setReservationForm(p => ({ ...p, date: `${yyyy}-${mm}-${dd}`, time: '19:00' }));
-    }
-  }, [showReservation]);
-
-  useEffect(() => {
-    fetch('/api/tables')
-      .then(r => r.ok ? r.json() : [])
-      .then(data => setTables(Array.isArray(data) ? data : []))
-      .catch(() => {});
-  }, []);
-
   const submitReservation = async (e: React.FormEvent) => {
     e.preventDefault();
     setReservationSubmitting(true);

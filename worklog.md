@@ -29,3 +29,28 @@ Stage Summary:
 - All API responses standardized with success/data/message/error format
 - Structured logging added to all endpoints
 - Database sync issue between main and standalone builds resolved
+
+---
+Task ID: 2
+Agent: Main
+Task: Fix production deployment - database path resolution bug (ROOT CAUSE of all user-facing errors)
+
+Work Log:
+- Analyzed user screenshots showing 3 errors: reservation creation fails, lookup fails (777777), menu doesn't load
+- Verified all APIs work on localhost:3000 dev server - no code bugs
+- Discovered the ROOT CAUSE: Prisma SQLite client resolves relative DATABASE_URL paths relative to the schema.prisma location, NOT the CWD
+- In standalone builds, this causes Prisma to create an empty database at node_modules/.prisma/client/custom.db instead of using the real one
+- This is the exact same bug that affects the production deployment at ghspirit2.space-z.ai
+- Fixed schema.prisma: changed from `url = "file:./custom.db"` to `url = env("DATABASE_URL")`
+- Fixed db.ts: added automatic resolution of relative paths to absolute paths using process.cwd()
+- Fixed duplicate useEffect hooks in Modals.tsx (ReservationModal had duplicate date/time and tables fetch effects)
+- Rebuilt the production build and verified all APIs work in standalone mode
+- Ran the full build script to create deployment package
+
+Stage Summary:
+- ROOT CAUSE FIXED: Prisma SQLite relative path resolution bug in standalone builds
+- schema.prisma now uses env("DATABASE_URL") instead of hardcoded path
+- db.ts now resolves relative DATABASE_URL to absolute paths automatically
+- All APIs verified working in standalone build (Menu, Reservation, Lookup, Orders, Bills)
+- Production build package created at /tmp/build_fullstack_.tar.gz
+- Duplicate code in Modals.tsx cleaned up

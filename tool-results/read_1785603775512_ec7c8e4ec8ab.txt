@@ -1,0 +1,667 @@
+     1→'use client';
+     2→
+     3→import { motion, AnimatePresence } from 'framer-motion';
+     4→import {
+     5→  X, Check, CalendarDays, Key, Copy, Ticket, Users, RefreshCw, Send,
+     6→  Plus, Minus, Trash2, ShoppingBag, Receipt, FileText, UtensilsCrossed,
+     7→} from 'lucide-react';
+     8→import { useApp } from '@/lib/app-context';
+     9→import { ActiveReservation, CartItem, fmt, AREA_LABELS, scaleIn, slideInRight } from '@/lib/shared';
+    10→import { useState, useEffect, useRef } from 'react';
+    11→import { TableInfo, MenuItem } from '@/lib/shared';
+    12→
+    13→// ==========================================
+    14→// RESERVATION MODAL
+    15→// ==========================================
+    16→export function ReservationModal() {
+    17→  const {
+    18→    showReservation, setShowReservation,
+    19→    reservationForm, setReservationForm,
+    20→    reservationSubmitting, setReservationSubmitting,
+    21→    reservationSuccess, setReservationSuccess,
+    22→    reservationResult, setReservationResult,
+    23→    setActiveReservation, setSelectedTable,
+    24→  } = useApp();
+    25→
+    26→  const [tables, setTables] = useState<TableInfo[]>([]);
+    27→
+    28→  // Set default date/time on mount
+    29→  useEffect(() => {
+    30→    if (showReservation && !reservationForm.date) {
+    31→      const today = new Date();
+    32→      const yyyy = today.getFullYear();
+    33→      const mm = String(today.getMonth() + 1).padStart(2, '0');
+    34→      const dd = String(today.getDate()).padStart(2, '0');
+    35→      setReservationForm(p => ({ ...p, date: `${yyyy}-${mm}-${dd}`, time: '19:00' }));
+    36→    }
+    37→  }, [showReservation]);
+    38→
+    39→  useEffect(() => {
+    40→    fetch('/api/tables')
+    41→      .then(r => r.ok ? r.json() : [])
+    42→      .then(data => setTables(Array.isArray(data) ? data : []))
+    43→      .catch(() => {});
+    44→  }, []);
+    45→
+    46→  const [reservationError, setReservationError] = useState('');
+    47→
+    48→  // Set default date/time on mount
+    49→  useEffect(() => {
+    50→    if (showReservation && !reservationForm.date) {
+    51→      const today = new Date();
+    52→      const yyyy = today.getFullYear();
+    53→      const mm = String(today.getMonth() + 1).padStart(2, '0');
+    54→      const dd = String(today.getDate()).padStart(2, '0');
+    55→      setReservationForm(p => ({ ...p, date: `${yyyy}-${mm}-${dd}`, time: '19:00' }));
+    56→    }
+    57→  }, [showReservation]);
+    58→
+    59→  useEffect(() => {
+    60→    fetch('/api/tables')
+    61→      .then(r => r.ok ? r.json() : [])
+    62→      .then(data => setTables(Array.isArray(data) ? data : []))
+    63→      .catch(() => {});
+    64→  }, []);
+    65→
+    66→  const submitReservation = async (e: React.FormEvent) => {
+    67→    e.preventDefault();
+    68→    setReservationSubmitting(true);
+    69→    setReservationError('');
+    70→    try {
+    71→      // Validate form before submission
+    72→      if (!reservationForm.name?.trim() || !reservationForm.phone?.trim() || !reservationForm.date || !reservationForm.time) {
+    73→        throw new Error('Please fill in all required fields (Name, Phone, Date, Time)');
+    74→      }
+    75→      const res = await fetch('/api/reservations', {
+    76→        method: 'POST',
+    77→        headers: { 'Content-Type': 'application/json' },
+    78→        body: JSON.stringify(reservationForm),
+    79→      });
+    80→      const data = await res.json();
+    81→      if (!res.ok) {
+    82→        throw new Error(data.message || data.error || 'Reservation failed');
+    83→      }
+    84→      // Handle both old and new API response formats
+    85→      const reservation = data.data || data;
+    86→      setReservationResult({
+    87→        code: reservation.code,
+    88→        tableNumber: reservation.table?.number || 0,
+    89→        tableArea: reservation.table?.area || '',
+    90→      });
+    91→      setReservationSuccess(true);
+    92→      setActiveReservation({
+    93→        id: reservation.id,
+    94→        code: reservation.code,
+    95→        name: reservation.name,
+    96→        phone: reservation.phone,
+    97→        date: reservation.date,
+    98→        time: reservation.time,
+    99→        guests: reservation.guests,
+   100→        status: reservation.status,
+   101→        tableId: reservation.tableId,
+   102→        table: reservation.table,
+   103→      });
+   104→      // Refresh tables
+   105→      const tablesRes = await fetch('/api/tables');
+   106→      if (tablesRes.ok) {
+   107→        const tablesData = await tablesRes.json();
+   108→        setTables(Array.isArray(tablesData) ? tablesData : []);
+   109→      }
+   110→    } catch (err: any) {
+   111→      setReservationError(err.message || 'Failed to create reservation');
+   112→    } finally {
+   113→      setReservationSubmitting(false);
+   114→    }
+   115→  };
+   116→
+   117→  return (
+   118→    <AnimatePresence>
+   119→      {showReservation && (
+   120→        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+   121→          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+   122→          onClick={() => { setShowReservation(false); setReservationSuccess(false); setReservationResult(null); }}>
+   123→          <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+   124→            onClick={e => e.stopPropagation()}
+   125→            className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+   126→            <div className="p-6">
+   127→              <div className="flex items-center justify-between mb-6">
+   128→                <div>
+   129→                  <h2 className="font-semibold text-lg">Reserve a Table</h2>
+   130→                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">A table will be auto-assigned to you</p>
+   131→                </div>
+   132→                <button onClick={() => { setShowReservation(false); setReservationSuccess(false); setReservationResult(null); }} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+   133→                  <X className="w-5 h-5" />
+   134→                </button>
+   135→              </div>
+   136→              {reservationSuccess && reservationResult ? (
+   137→                <div className="text-center py-6">
+   138→                  <div className="w-14 h-14 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-4">
+   139→                    <Check className="w-7 h-7 text-[#27AE60]" />
+   140→                  </div>
+   141→                  <p className="font-semibold text-lg">Reservation Confirmed!</p>
+   142→                  <p className="text-sm text-[var(--color-muted-foreground)] mt-1 mb-4">Your table has been assigned</p>
+   143→                  <div className="bg-[var(--color-primary)]/5 border-2 border-[var(--color-primary)]/20 rounded-xl p-5 mb-4">
+   144→                    <p className="text-xs text-[var(--color-muted-foreground)] mb-2">Your Reservation Code</p>
+   145→                    <div className="flex items-center justify-center gap-2">
+   146→                      <p className="text-4xl font-bold font-mono tracking-[0.3em] text-[var(--color-primary)]">{reservationResult.code}</p>
+   147→                      <button onClick={() => navigator.clipboard?.writeText(reservationResult.code)} className="p-2 hover:bg-[var(--color-border)] rounded-lg transition-colors" title="Copy code">
+   148→                        <Copy className="w-5 h-5 text-[var(--color-muted-foreground)]" />
+   149→                      </button>
+   150→                    </div>
+   151→                    <p className="text-xs text-[var(--color-muted-foreground)] mt-2">Save this code! Use it to view your reservation and order from your table anytime.</p>
+   152→                  </div>
+   153→                  <div className="bg-[var(--color-secondary)] rounded-xl p-4 mb-4">
+   154→                    <div className="flex items-center justify-center gap-3">
+   155→                      <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
+   156→                        <Users className="w-5 h-5 text-[var(--color-primary)]" />
+   157→                      </div>
+   158→                      <div className="text-left">
+   159→                        <p className="text-sm font-semibold">Table {reservationResult.tableNumber}</p>
+   160→                        <p className="text-xs text-[var(--color-muted-foreground)]">{AREA_LABELS[reservationResult.tableArea] || reservationResult.tableArea}</p>
+   161→                      </div>
+   162→                    </div>
+   163→                  </div>
+   164→                  <div className="bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/20 rounded-xl p-3 mb-4 text-left">
+   165→                    <p className="text-xs font-medium text-[var(--color-foreground)]">How to use your code:</p>
+   166→                    <ol className="text-xs text-[var(--color-muted-foreground)] mt-1 space-y-1 list-decimal list-inside">
+   167→                      <li>Enter your 6-digit code on the reservations page</li>
+   168→                      <li>Your table and current orders will appear</li>
+   169→                      <li>Add items from the menu to your order</li>
+   170→                      <li>Click &quot;Bill Request&quot; when you&apos;re done</li>
+   171→                    </ol>
+   172→                  </div>
+   173→                  <button onClick={() => {
+   174→                    setShowReservation(false);
+   175→                    setReservationSuccess(false);
+   176→                    setReservationResult(null);
+   177→                    setReservationForm({ name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '' });
+   178→                    const table = tables.find(t => t.number === reservationResult.tableNumber);
+   179→                    if (table) setSelectedTable(table);
+   180→                  }} className="w-full py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+   181→                    Start Ordering
+   182→                  </button>
+   183→                </div>
+   184→              ) : (
+   185→                <form onSubmit={submitReservation} className="space-y-4">
+   186→                  <div className="bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/20 rounded-xl p-3">
+   187→                    <p className="text-xs text-[var(--color-foreground)]">After confirmation, you&apos;ll receive a <strong>6-digit code</strong> to access your table and order. Save this code — you&apos;ll need it each time you visit!</p>
+   188→                  </div>
+   189→                  <div>
+   190→                    <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Name *</label>
+   191→                    <input type="text" required value={reservationForm.name} onChange={e => setReservationForm(p => ({ ...p, name: e.target.value }))}
+   192→                      className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+   193→                  </div>
+   194→                  <div>
+   195→                    <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Phone *</label>
+   196→                    <input type="tel" required value={reservationForm.phone} onChange={e => setReservationForm(p => ({ ...p, phone: e.target.value }))}
+   197→                      className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+   198→                  </div>
+   199→                  <div className="grid grid-cols-2 gap-3">
+   200→                    <div>
+   201→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Date *</label>
+   202→                      <input type="date" required value={reservationForm.date} min={new Date().toISOString().split('T')[0]} onChange={e => setReservationForm(p => ({ ...p, date: e.target.value }))}
+   203→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+   204→                    </div>
+   205→                    <div>
+   206→                      <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Time *</label>
+   207→                      <input type="time" required value={reservationForm.time} onChange={e => setReservationForm(p => ({ ...p, time: e.target.value }))}
+   208→                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]" />
+   209→                    </div>
+   210→                  </div>
+   211→                  <div>
+   212→                    <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Guests</label>
+   213→                    <select value={reservationForm.guests} onChange={e => setReservationForm(p => ({ ...p, guests: e.target.value }))}
+   214→                      className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+   215→                      {[1,2,3,4,5,6,7,8,10,12,15,20].map(n => <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>)}
+   216→                    </select>
+   217→                  </div>
+   218→                  <div>
+   219→                    <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Occasion</label>
+   220→                    <select value={reservationForm.occasion} onChange={e => setReservationForm(p => ({ ...p, occasion: e.target.value }))}
+   221→                      className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] bg-white">
+   222→                      <option value="">Select (optional)</option>
+   223→                      <option value="birthday">Birthday</option>
+   224→                      <option value="anniversary">Anniversary</option>
+   225→                      <option value="corporate">Corporate</option>
+   226→                      <option value="casual">Casual</option>
+   227→                    </select>
+   228→                  </div>
+   229→                  <button type="submit" disabled={reservationSubmitting}
+   230→                    className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+   231→                    {reservationSubmitting ? <><RefreshCw className="w-4 h-4 animate-spin" /> Confirming...</> : <><CalendarDays className="w-4 h-4" /> Confirm Reservation</>}
+   232→                  </button>
+   233→                  {reservationError && (
+   234→                    <div className="bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/20 rounded-xl p-3 text-center">
+   235→                      <p className="text-sm text-[var(--color-destructive)]">{reservationError}</p>
+   236→                    </div>
+   237→                  )}
+   238→                </form>
+   239→              )}
+   240→            </div>
+   241→          </motion.div>
+   242→        </motion.div>
+   243→      )}
+   244→    </AnimatePresence>
+   245→  );
+   246→}
+   247→
+   248→// ==========================================
+   249→// LOOKUP RESERVATION MODAL
+   250→// ==========================================
+   251→export function LookupModal() {
+   252→  const {
+   253→    showLookupModal, setShowLookupModal,
+   254→    lookupCode, setLookupCode,
+   255→    lookupLoading, lookupError, setLookupError,
+   256→    lookupReservationByCode,
+   257→  } = useApp();
+   258→
+   259→  const inputRef = useRef<HTMLInputElement>(null);
+   260→
+   261→  const handleLookup = async (code?: string) => {
+   262→    const codeToUse = code || lookupCode;
+   263→    if (!codeToUse.trim() || codeToUse.trim().length !== 6) return;
+   264→    const success = await lookupReservationByCode(codeToUse);
+   265→    if (success) {
+   266→      setShowLookupModal(false);
+   267→    }
+   268→  };
+   269→
+   270→  const handleCodeChange = (value: string) => {
+   271→    // Only allow digits
+   272→    const digits = value.replace(/\D/g, '').slice(0, 6);
+   273→    setLookupCode(digits);
+   274→    setLookupError('');
+   275→    // Auto-submit when 6 digits are entered
+   276→    if (digits.length === 6) {
+   277→      setTimeout(() => handleLookup(digits), 100);
+   278→    }
+   279→  };
+   280→
+   281→  // Focus input when modal opens
+   282→  useEffect(() => {
+   283→    if (showLookupModal) {
+   284→      setTimeout(() => inputRef.current?.focus(), 200);
+   285→    }
+   286→  }, [showLookupModal]);
+   287→
+   288→  return (
+   289→    <AnimatePresence>
+   290→      {showLookupModal && (
+   291→        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+   292→          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+   293→          onClick={() => { setShowLookupModal(false); setLookupError(''); }}>
+   294→          <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+   295→            onClick={e => e.stopPropagation()}
+   296→            className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+   297→            <div className="p-6">
+   298→              <div className="flex items-center justify-between mb-6">
+   299→                <div>
+   300→                  <h2 className="font-semibold text-lg">My Reservation</h2>
+   301→                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">Enter your reservation code to view your table and order</p>
+   302→                </div>
+   303→                <button onClick={() => { setShowLookupModal(false); setLookupError(''); }} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+   304→                  <X className="w-5 h-5" />
+   305→                </button>
+   306→              </div>
+   307→              <div className="space-y-4">
+   308→                <div className="bg-[var(--color-secondary)] rounded-xl p-4 flex items-center gap-3">
+   309→                  <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
+   310→                    <Ticket className="w-5 h-5 text-[var(--color-accent)]" />
+   311→                  </div>
+   312→                  <div>
+   313→                    <p className="text-sm font-medium">Have a reservation code?</p>
+   314→                    <p className="text-xs text-[var(--color-muted-foreground)]">Enter the 6-digit code you received when you reserved</p>
+   315→                  </div>
+   316→                </div>
+   317→                <div>
+   318→                  <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Reservation Code</label>
+   319→                  <input
+   320→                    ref={inputRef}
+   321→                    type="text"
+   322→                    inputMode="numeric"
+   323→                    pattern="\d{6}"
+   324→                    value={lookupCode}
+   325→                    onChange={e => handleCodeChange(e.target.value)}
+   326→                    onPaste={e => {
+   327→                      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+   328→                      if (pasted.length === 6) {
+   329→                        setLookupCode(pasted);
+   330→                        setTimeout(() => handleLookup(pasted), 100);
+   331→                      } else {
+   332→                        setLookupCode(pasted);
+   333→                      }
+   334→                    }}
+   335→                    placeholder="Enter 6-digit code"
+   336→                    maxLength={6}
+   337→                    className="w-full px-4 py-3 border border-[var(--color-border)] rounded-xl text-lg font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
+   338→                    onKeyDown={e => { if (e.key === 'Enter') handleLookup(); }}
+   339→                  />
+   340→                  <div className="flex items-center justify-center gap-1 mt-2">
+   341→                    {[0,1,2,3,4,5].map(i => (
+   342→                      <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i < lookupCode.length ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
+   343→                    ))}
+   344→                  </div>
+   345→                </div>
+   346→                <div className="flex items-center gap-2 justify-center">
+   347→                  <span className="text-xs text-[var(--color-muted-foreground)] bg-[var(--color-secondary)] px-2.5 py-1 rounded-full">Test code: 777777 (Table 7)</span>
+   348→                </div>
+   349→                {lookupError && (
+   350→                  <div className="bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)]/20 rounded-xl p-3 text-center">
+   351→                    <p className="text-sm text-[var(--color-destructive)]">{lookupError}</p>
+   352→                  </div>
+   353→                )}
+   354→                <button
+   355→                  onClick={() => handleLookup()}
+   356→                  disabled={lookupLoading || lookupCode.length !== 6}
+   357→                  className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+   358→                >
+   359→                  {lookupLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
+   360→                  {lookupLoading ? 'Looking up...' : 'Find My Reservation'}
+   361→                </button>
+   362→              </div>
+   363→            </div>
+   364→          </motion.div>
+   365→        </motion.div>
+   366→      )}
+   367→    </AnimatePresence>
+   368→  );
+   369→}
+   370→
+   371→// ==========================================
+   372→// CART SIDEBAR
+   373→// ==========================================
+   374→export function CartSidebar() {
+   375→  const {
+   376→    cart, setCart, showCart, setShowCart,
+   377→    selectedTable,
+   378→    orderSubmitting,
+   379→    orderSuccess,
+   380→    setShowLookupModal,
+   381→    submitOrder,
+   382→  } = useApp();
+   383→
+   384→  const cartTotal = cart.reduce((sum, c) => sum + c.menuItem.price * c.quantity, 0);
+   385→  const cartCount = cart.reduce((sum, c) => sum + c.quantity, 0);
+   386→
+   387→  const removeFromCart = (itemId: string) => {
+   388→    setCart(cart.filter(c => c.menuItem.id !== itemId));
+   389→  };
+   390→
+   391→  const updateCartQty = (itemId: string, delta: number) => {
+   392→    setCart(cart.map(c => {
+   393→      if (c.menuItem.id !== itemId) return c;
+   394→      const newQty = c.quantity + delta;
+   395→      if (newQty <= 0) return c;
+   396→      return { ...c, quantity: newQty };
+   397→    }).filter(c => c.quantity > 0));
+   398→  };
+   399→
+   400→  return (
+   401→    <AnimatePresence>
+   402→      {showCart && (
+   403→        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+   404→          className="fixed inset-0 z-50 bg-black/50" onClick={() => setShowCart(false)}>
+   405→          <motion.div variants={slideInRight} initial="hidden" animate="visible" exit="exit"
+   406→            onClick={e => e.stopPropagation()}
+   407→            className="absolute right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
+   408→            <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
+   409→              <div>
+   410→                <h2 className="font-semibold text-lg">Your Order</h2>
+   411→                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+   412→                  {selectedTable ? `Table ${selectedTable.number}` : 'No table selected'}
+   413→                </p>
+   414→              </div>
+   415→              <button onClick={() => setShowCart(false)} className="p-1.5 hover:bg-[var(--color-secondary)] rounded-lg transition-colors">
+   416→                <X className="w-5 h-5" />
+   417→              </button>
+   418→            </div>
+   419→            <div className="flex-1 overflow-y-auto p-5">
+   420→              {cart.length === 0 ? (
+   421→                <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+   422→                  <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-30" />
+   423→                  <p className="text-sm">Your cart is empty</p>
+   424→                  <p className="text-xs mt-1">Add items from the menu to get started</p>
+   425→                </div>
+   426→              ) : (
+   427→                <div className="space-y-3">
+   428→                  {cart.map(item => (
+   429→                    <div key={item.menuItem.id} className="flex items-start gap-3 p-3 bg-[var(--color-secondary)]/50 rounded-xl">
+   430→                      <div className={`mt-1 ${item.menuItem.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} />
+   431→                      <div className="flex-1 min-w-0">
+   432→                        <p className="text-sm font-medium leading-snug">{item.menuItem.name}</p>
+   433→                        <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">{fmt(item.menuItem.price)}</p>
+   434→                      </div>
+   435→                      <div className="flex items-center gap-1.5">
+   436→                        <button onClick={() => updateCartQty(item.menuItem.id, -1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+   437→                          <Minus className="w-3 h-3" />
+   438→                        </button>
+   439→                        <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+   440→                        <button onClick={() => updateCartQty(item.menuItem.id, 1)} className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-secondary)] transition-colors">
+   441→                          <Plus className="w-3 h-3" />
+   442→                        </button>
+   443→                        <button onClick={() => removeFromCart(item.menuItem.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-destructive)] hover:bg-red-50 transition-colors ml-1">
+   444→                          <Trash2 className="w-3.5 h-3.5" />
+   445→                        </button>
+   446→                      </div>
+   447→                    </div>
+   448→                  ))}
+   449→                </div>
+   450→              )}
+   451→            </div>
+   452→            {cart.length > 0 && (
+   453→              <div className="border-t border-[var(--color-border)] p-5">
+   454→                <div className="flex items-center justify-between mb-4">
+   455→                  <span className="text-sm text-[var(--color-muted-foreground)]">Subtotal</span>
+   456→                  <span className="text-lg font-bold">{fmt(cartTotal)}</span>
+   457→                </div>
+   458→                {!selectedTable ? (
+   459→                  <button onClick={() => { setShowCart(false); setShowLookupModal(true); }} className="w-full py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+   460→                    <Key className="w-4 h-4" /> Enter Reservation Code
+   461→                  </button>
+   462→                ) : (
+   463→                  <button onClick={submitOrder} disabled={orderSubmitting}
+   464→                    className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
+   465→                    {orderSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+   466→                    {orderSubmitting ? 'Placing Order...' : 'Place Order'}
+   467→                  </button>
+   468→                )}
+   469→              </div>
+   470→            )}
+   471→          </motion.div>
+   472→        </motion.div>
+   473→      )}
+   474→    </AnimatePresence>
+   475→  );
+   476→}
+   477→
+   478→// ==========================================
+   479→// BILL MODAL
+   480→// ==========================================
+   481→export function BillModal() {
+   482→  const {
+   483→    showBill, setShowBill, billData, setBillData,
+   484→    selectedTable, endSession,
+   485→  } = useApp();
+   486→
+   487→  const settleBill = async () => {
+   488→    if (!billData || !selectedTable) return;
+   489→    try {
+   490→      const billId = (billData as Record<string, unknown>).billId as string;
+   491→      if (billId) {
+   492→        await fetch('/api/bill', {
+   493→          method: 'PATCH',
+   494→          headers: { 'Content-Type': 'application/json' },
+   495→          body: JSON.stringify({ billId }),
+   496→        });
+   497→      } else {
+   498→        const orders = (billData as Record<string, unknown>).orders as { id: string }[];
+   499→        for (const order of orders) {
+   500→          await fetch('/api/orders', {
+   501→            method: 'PATCH',
+   502→            headers: { 'Content-Type': 'application/json' },
+   503→            body: JSON.stringify({ orderId: order.id, status: 'billed' }),
+   504→          });
+   505→        }
+   506→      }
+   507→      setShowBill(false);
+   508→      setBillData(null);
+   509→      endSession();
+   510→    } catch (err) {
+   511→      console.error(err);
+   512→    }
+   513→  };
+   514→
+   515→  return (
+   516→    <AnimatePresence>
+   517→      {showBill && billData && (
+   518→        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+   519→          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+   520→          onClick={() => setShowBill(false)}>
+   521→          <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="exit"
+   522→            onClick={e => e.stopPropagation()}
+   523→            className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+   524→            <div className="bg-[var(--color-primary)] text-white p-6 text-center">
+   525→              <p className="font-[var(--font-display)] text-xl font-bold">High Spirits Cafe</p>
+   526→              <p className="text-xs text-white/60 mt-1">Koregaon Park, Pune</p>
+   527→              <div className="mt-3 flex items-center justify-center gap-2">
+   528→                <span className="px-3 py-1 bg-white/15 rounded-full text-sm font-medium">Table {(billData as Record<string, unknown>).tableNumber}</span>
+   529→                <span className="px-3 py-1 bg-white/15 rounded-full text-xs">{AREA_LABELS[(billData as Record<string, unknown>).tableArea as string] || ''}</span>
+   530→              </div>
+   531→            </div>
+   532→            <div className="p-5">
+   533→              <div className="space-y-2 mb-4">
+   534→                {((billData as Record<string, unknown>).items as { name: string; isVeg: boolean; quantity: number; price: number; total: number; status: string }[]).map((item, idx) => (
+   535→                  <div key={idx} className="flex items-start gap-2 text-sm">
+   536→                    <div className={`mt-1.5 ${item.isVeg ? 'veg-indicator' : 'nonveg-indicator'}`} style={{ flexShrink: 0 }} />
+   537→                    <div className="flex-1 min-w-0">
+   538→                      <span className="font-medium">{item.name}</span>
+   539→                      <span className="text-[var(--color-muted-foreground)] ml-1">×{item.quantity}</span>
+   540→                    </div>
+   541→                    <span className="text-[var(--color-muted-foreground)] whitespace-nowrap">{fmt(item.total)}</span>
+   542→                  </div>
+   543→                ))}
+   544→              </div>
+   545→              <div className="border-t border-dashed border-[var(--color-border)] pt-3 space-y-1.5">
+   546→                <div className="flex items-center justify-between text-sm">
+   547→                  <span className="text-[var(--color-muted-foreground)]">Subtotal</span>
+   548→                  <span>{fmt((billData as Record<string, unknown>).subtotal as number)}</span>
+   549→                </div>
+   550→                <div className="flex items-center justify-between text-sm">
+   551→                  <span className="text-[var(--color-muted-foreground)]">GST (5%)</span>
+   552→                  <span>{fmt((billData as Record<string, unknown>).gst as number)}</span>
+   553→                </div>
+   554→                <div className="flex items-center justify-between text-base font-bold pt-2 border-t border-[var(--color-border)]">
+   555→                  <span>Total</span>
+   556→                  <span>{fmt((billData as Record<string, unknown>).total as number)}</span>
+   557→                </div>
+   558→              </div>
+   559→            </div>
+   560→            <div className="p-5 pt-0 flex gap-2">
+   561→              <button onClick={() => setShowBill(false)} className="flex-1 py-2.5 border border-[var(--color-border)] rounded-xl text-sm font-medium hover:bg-[var(--color-secondary)] transition-colors">
+   562→                Close
+   563→              </button>
+   564→              <button onClick={settleBill} className="flex-1 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+   565→                Settle Bill
+   566→              </button>
+   567→            </div>
+   568→          </motion.div>
+   569→        </motion.div>
+   570→      )}
+   571→    </AnimatePresence>
+   572→  );
+   573→}
+   574→
+   575→// ==========================================
+   576→// TABLE BAR (shows when a table is selected)
+   577→// ==========================================
+   578→export function TableBar() {
+   579→  const {
+   580→    selectedTable, activeReservation,
+   581→    billRequested, billRequesting,
+   582→    requestBill, fetchBill, endSession,
+   583→  } = useApp();
+   584→
+   585→  if (!selectedTable) return null;
+   586→
+   587→  return (
+   588→    <AnimatePresence>
+   589→      <motion.div
+   590→        initial={{ height: 0, opacity: 0 }}
+   591→        animate={{ height: 'auto', opacity: 1 }}
+   592→        exit={{ height: 0, opacity: 0 }}
+   593→        className="bg-[var(--color-primary)]/5 border-b border-[var(--color-primary)]/10 overflow-hidden"
+   594→      >
+   595→        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2">
+   596→          <div className="flex items-center gap-2">
+   597→            <span className="text-xs text-[var(--color-muted-foreground)]">Dining at</span>
+   598→            <span className="text-sm font-semibold text-[var(--color-primary)]">Table {selectedTable.number}</span>
+   599→            <span className="text-xs text-[var(--color-muted-foreground)]">· {AREA_LABELS[selectedTable.area]}</span>
+   600→            {activeReservation && (
+   601→              <span className="text-xs text-[var(--color-accent)] font-medium ml-1">· Code: {activeReservation.code}</span>
+   602→            )}
+   603→          </div>
+   604→          <div className="flex items-center gap-2">
+   605→            {!billRequested ? (
+   606→              <button onClick={requestBill} disabled={billRequesting} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-50">
+   607→                {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+   608→                {billRequesting ? 'Requesting...' : 'Bill Request'}
+   609→              </button>
+   610→            ) : (
+   611→              <button onClick={() => fetchBill(selectedTable.id)} className="px-3 py-1 bg-[var(--color-primary)] text-white rounded-md text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5">
+   612→                <Receipt className="w-3.5 h-3.5" /> View bill
+   613→              </button>
+   614→            )}
+   615→            <button onClick={endSession} className="px-3 py-1 bg-[var(--color-secondary)] rounded-md text-xs font-medium hover:bg-[var(--color-border)] transition-colors">
+   616→              End Session
+   617→            </button>
+   618→          </div>
+   619→        </div>
+   620→      </motion.div>
+   621→    </AnimatePresence>
+   622→  );
+   623→}
+   624→
+   625→// ==========================================
+   626→// FLOATING CART BUTTON
+   627→// ==========================================
+   628→export function FloatingCartButton() {
+   629→  const { cart, selectedTable, setShowCart } = useApp();
+   630→  const cartCount = cart.reduce((sum, c) => sum + c.quantity, 0);
+   631→  const cartTotal = cart.reduce((sum, c) => sum + c.menuItem.price * c.quantity, 0);
+   632→
+   633→  if (cartCount === 0 || !selectedTable) return null;
+   634→
+   635→  return (
+   636→    <AnimatePresence>
+   637→      <motion.button
+   638→        initial={{ scale: 0, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0, y: 20 }}
+   639→        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+   640→        onClick={() => setShowCart(true)}
+   641→        className="fixed bottom-6 right-6 z-40 bg-[var(--color-primary)] text-white px-5 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+   642→        <ShoppingBag className="w-5 h-5" />
+   643→        <span className="font-semibold text-sm">{cartCount} items</span>
+   644→        <span className="text-xs text-white/70">· {fmt(cartTotal)}</span>
+   645→      </motion.button>
+   646→    </AnimatePresence>
+   647→  );
+   648→}
+   649→
+   650→// ==========================================
+   651→// ORDER SUCCESS TOAST
+   652→// ==========================================
+   653→export function OrderSuccessToast() {
+   654→  const { orderSuccess } = useApp();
+   655→  return (
+   656→    <AnimatePresence>
+   657→      {orderSuccess && (
+   658→        <motion.div initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+   659→          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#27AE60] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
+   660→          <Check className="w-5 h-5" />
+   661→          <span className="font-medium text-sm">Order placed! Your waiter will bring it shortly.</span>
+   662→        </motion.div>
+   663→      )}
+   664→    </AnimatePresence>
+   665→  );
+   666→}
+   667→
