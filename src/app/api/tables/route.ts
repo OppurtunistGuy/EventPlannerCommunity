@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 // GET /api/tables - Fetch all tables
 export async function GET() {
   try {
+    console.log('[TABLES] Fetching all tables');
     const tables = await db.table.findMany({
       orderBy: { number: 'asc' },
       include: {
@@ -19,9 +20,10 @@ export async function GET() {
         },
       },
     });
-    return NextResponse.json(tables);
+    console.log(`[TABLES] Loaded ${tables.length} tables`);
+    return NextResponse.json({ success: true, data: tables, message: 'Tables loaded' });
   } catch (error) {
-    console.error('Tables fetch error:', error);
-    return NextResponse.json({ error: 'Failed to fetch tables' }, { status: 500 });
+    console.error('[TABLES] Fetch error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch tables', message: 'Unable to load tables' }, { status: 500 });
   }
 }

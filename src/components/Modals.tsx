@@ -38,8 +38,11 @@ export function ReservationModal() {
 
   useEffect(() => {
     fetch('/api/tables')
-      .then(r => r.ok ? r.json() : [])
-      .then(data => setTables(Array.isArray(data) ? data : []))
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(data => {
+        const tablesData = data.data || data;
+        setTables(Array.isArray(tablesData) ? tablesData : []);
+      })
       .catch(() => {});
   }, []);
 
@@ -83,10 +86,15 @@ export function ReservationModal() {
         tableId: reservation.tableId,
         table: reservation.table,
       });
+      // Set the selected table from the reservation response
+      if (reservation.table) {
+        setSelectedTable(reservation.table);
+      }
       // Refresh tables
       const tablesRes = await fetch('/api/tables');
       if (tablesRes.ok) {
-        const tablesData = await tablesRes.json();
+        const tablesJson = await tablesRes.json();
+        const tablesData = tablesJson.data || tablesJson;
         setTables(Array.isArray(tablesData) ? tablesData : []);
       }
     } catch (err: any) {
@@ -157,8 +165,7 @@ export function ReservationModal() {
                     setReservationSuccess(false);
                     setReservationResult(null);
                     setReservationForm({ name: '', phone: '', email: '', date: '', time: '', guests: '2', occasion: '', message: '' });
-                    const table = tables.find(t => t.number === reservationResult.tableNumber);
-                    if (table) setSelectedTable(table);
+                    // The selectedTable was already set when the reservation was created
                   }} className="w-full py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
                     Start Ordering
                   </button>

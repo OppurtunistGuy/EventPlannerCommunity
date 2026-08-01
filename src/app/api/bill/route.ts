@@ -191,7 +191,7 @@ export async function PATCH(request: Request) {
     const { billId } = body;
 
     if (!billId) {
-      return NextResponse.json({ error: 'Bill ID is required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Bill ID is required', message: 'Bill ID is required' }, { status: 400 });
     }
 
     const bill = await db.bill.update({
@@ -216,9 +216,11 @@ export async function PATCH(request: Request) {
       });
     }
 
-    return NextResponse.json(bill);
+    console.log(`[BILL] Settled bill ${bill.id}, table freed`);
+
+    return NextResponse.json({ success: true, data: bill, message: 'Bill settled successfully' });
   } catch (error) {
-    console.error('Bill settle error:', error);
-    return NextResponse.json({ error: 'Failed to settle bill' }, { status: 500 });
+    console.error('[BILL] Settle error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to settle bill', message: 'Unable to settle bill. Please try again.' }, { status: 500 });
   }
 }

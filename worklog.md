@@ -54,3 +54,31 @@ Stage Summary:
 - All APIs verified working in standalone build (Menu, Reservation, Lookup, Orders, Bills)
 - Production build package created at /tmp/build_fullstack_.tar.gz
 - Duplicate code in Modals.tsx cleaned up
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Caddy proxy and application issues
+
+Work Log:
+- Identified that Caddy process (PID 2) uses /app/Caddyfile (2650 bytes) instead of project's Caddyfile (384 bytes)
+- The /app/Caddyfile is owned by root with -rw------- permissions, cannot be modified
+- The Caddy proxy works correctly when Next.js server is running on port 3000
+- Fixed tables API to return standardized response format {success, data, message}
+- Fixed Modals.tsx to handle new API response format for tables
+- Fixed Modals.tsx to set selectedTable from reservation response directly
+- Fixed bill API PATCH endpoint to use standardized response format
+- Added structured logging to tables API
+- Verified all APIs work correctly when Next.js server is running
+- Verified reservation creation, lookup (777777), menu, and tables APIs all return 200
+- The Next.js dev server keeps dying after a few requests (production server also dies)
+- The Caddy proxy returns 502 Bad Gateway when Next.js server is not running
+
+Stage Summary:
+- Application code fixes applied: tables API, Modals.tsx, bill API
+- All APIs work correctly when Next.js server is running on port 3000
+- Caddy proxy works when Next.js server is available
+- Root cause of Caddy issue: /app/Caddyfile is a different configuration than project's Caddyfile
+- The /app/Caddyfile cannot be modified due to root-only permissions
+- The Next.js server keeps dying after a few requests (needs investigation)
+- The deployment system's start.sh script is defunct (not running)
