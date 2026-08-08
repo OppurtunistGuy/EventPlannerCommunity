@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Menu as MenuIcon, X, Key, CalendarDays, RefreshCw, FileText, Receipt,
-  Home, UtensilsCrossed, BookOpen, Camera, MapPin, Info, ToggleLeft, ToggleRight,
+  UtensilsCrossed, MapPin, Music, Info, LogOut,
 } from 'lucide-react';
 import { useBusiness } from '@/lib/business-config';
 import { useApp } from '@/lib/app-context';
@@ -14,8 +14,9 @@ import { useApp } from '@/lib/app-context';
 export default function Navigation() {
   const {
     selectedTable, billRequested, billRequesting,
-    requestBill, fetchBill,
+    requestBill, fetchBill, endSession,
     setShowLookupModal, setShowReservation,
+    activeReservation,
   } = useApp();
 
   const [scrolled, setScrolled] = useState(false);
@@ -29,14 +30,23 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const navLinks = [
-    { href: '/', label: 'Home', icon: Home },
+  // State A: No active reservation — marketing mode
+  const navLinksBrowsing = [
     { href: '/menu', label: 'Menu', icon: UtensilsCrossed },
-    { href: '/reservations', label: 'Reservations', icon: BookOpen },
-    { href: '/gallery', label: 'Gallery', icon: Camera },
+    { href: '/about', label: "What's On", icon: Music },
+    { href: '/contact', label: 'Visit', icon: MapPin },
     { href: '/about', label: 'About', icon: Info },
-    { href: '/contact', label: 'Contact', icon: MapPin },
   ];
+
+  // State B: Active reservation — dining mode
+  const navLinksDining = [
+    { href: '/menu', label: 'Menu', icon: UtensilsCrossed },
+    { href: '/about', label: "What's On", icon: Music },
+    { href: '/contact', label: 'Visit', icon: MapPin },
+  ];
+
+  const isDining = !!selectedTable;
+  const navLinks = isDining ? navLinksDining : navLinksBrowsing;
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -53,23 +63,30 @@ export default function Navigation() {
     setMobileNavOpen(false);
   };
 
+  const handleEndSession = () => {
+    endSession();
+    setMobileNavOpen(false);
+  };
+
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-sm`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-1.5">
             <span className="font-[var(--font-display)] text-xl font-bold tracking-tight text-[var(--color-primary)]">
               High Spirits
             </span>
+            <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)] mt-1">Cafe</span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map(link => {
               const Icon = link.icon;
               return (
                 <Link
-                  key={link.href}
+                  key={link.href + link.label}
                   href={link.href}
                   className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                     isActive(link.href)
@@ -86,50 +103,55 @@ export default function Navigation() {
 
           {/* Right side actions */}
           <div className="flex items-center gap-2">
-            {/* Demo/Live Toggle */}
-            <button
-              onClick={() => setIsDemo(!isDemo)}
-              className={`hidden sm:flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-all ${
-                isDemo
-                  ? 'border-amber-400/50 bg-amber-50 text-amber-700'
-                  : 'border-green-500/50 bg-green-50 text-green-700'
-              }`}
-              title={isDemo ? 'Demo Mode — showing dummy info' : 'Live Mode — showing real info'}
-            >
-              {isDemo ? <ToggleLeft className="w-3 h-3" /> : <ToggleRight className="w-3 h-3" />}
-              {isDemo ? 'DEMO' : 'LIVE'}
-            </button>
-
-            {selectedTable && !billRequested && (
-              <motion.button
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                onClick={handleBillRequest}
-                disabled={billRequesting}
-                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {billRequesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
-                {billRequesting ? 'Requesting...' : 'Bill Request'}
-              </motion.button>
-            )}
-            {selectedTable && billRequested && (
-              <motion.button
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                onClick={handleViewBill}
-                className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
-              >
-                <Receipt className="w-3.5 h-3.5" /> View bill
-              </motion.button>
+            {/* Dining session indicator */}
+            {isDining && selectedTable && (
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                  Table {selectedTable.number}
+                </span>
+                {!billRequested && (
+                  <button
+                    onClick={handleBillRequest}
+                    disabled={billRequesting}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {billRequesting ? <RefreshCw className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
+                    Bill
+                  </button>
+                )}
+                {billRequested && (
+                  <button
+                    onClick={handleViewBill}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+                  >
+                    <Receipt className="w-3 h-3" /> Bill
+                  </button>
+                )}
+              </div>
             )}
 
-            <button onClick={() => setShowLookupModal(true)} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white transition-all">
-              <Key className="w-3.5 h-3.5" /> My Reservation
-            </button>
-            <button onClick={() => setShowReservation(true)} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-all">
-              <CalendarDays className="w-3.5 h-3.5" /> Reserve
-            </button>
+            {/* My Reservation — secondary action */}
+            {!isDining && (
+              <button onClick={() => setShowLookupModal(true)} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white transition-all">
+                <Key className="w-3.5 h-3.5" /> My Reservation
+              </button>
+            )}
 
+            {/* Reserve a Table — primary CTA (only when not dining) */}
+            {!isDining && (
+              <button onClick={() => setShowReservation(true)} className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-4 py-1.5 rounded-full bg-[var(--color-primary)] text-white hover:opacity-90 transition-all">
+                <CalendarDays className="w-3.5 h-3.5" /> Reserve
+              </button>
+            )}
+
+            {/* End Session (when dining) */}
+            {isDining && (
+              <button onClick={handleEndSession} className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-[var(--color-destructive)]/30 text-[var(--color-destructive)] hover:bg-[var(--color-destructive)] hover:text-white transition-all">
+                <LogOut className="w-3 h-3" /> End
+              </button>
+            )}
+
+            {/* Mobile hamburger */}
             <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden p-1.5 text-[var(--color-foreground)]">
               <MenuIcon className="w-5 h-5" />
             </button>
@@ -151,11 +173,19 @@ export default function Navigation() {
                 <button onClick={() => setMobileNavOpen(false)}><X className="w-5 h-5" /></button>
               </div>
 
+              {/* Mobile dining session info */}
+              {isDining && selectedTable && (
+                <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-xl p-3">
+                  <p className="text-sm font-semibold text-[var(--color-primary)]">Table {selectedTable.number} · {activeReservation?.code}</p>
+                  <p className="text-xs text-[var(--color-muted-foreground)]">Indoor · Dining</p>
+                </div>
+              )}
+
               {navLinks.map(link => {
                 const Icon = link.icon;
                 return (
                   <Link
-                    key={link.href}
+                    key={link.href + link.label}
                     href={link.href}
                     onClick={() => setMobileNavOpen(false)}
                     className={`flex items-center gap-3 text-left text-base font-medium transition-colors ${
@@ -170,36 +200,46 @@ export default function Navigation() {
               })}
 
               <div className="border-t border-[var(--color-border)] pt-4 flex flex-col gap-3">
-                <button onClick={() => { setShowLookupModal(true); setMobileNavOpen(false); }} className="flex items-center gap-3 text-left text-base font-medium text-[var(--color-accent)]">
-                  <Key className="w-4 h-4" /> My Reservation
-                </button>
-                <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="flex items-center gap-3 text-left text-base font-medium text-[var(--color-primary)]">
-                  <CalendarDays className="w-4 h-4" /> Reserve a Table
-                </button>
-                {selectedTable && !billRequested && (
-                  <button onClick={handleBillRequest} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
-                    <FileText className="w-4 h-4" /> Bill Request
-                  </button>
+                {!isDining && (
+                  <>
+                    <button onClick={() => { setShowLookupModal(true); setMobileNavOpen(false); }} className="flex items-center gap-3 text-left text-base font-medium text-[var(--color-accent)]">
+                      <Key className="w-4 h-4" /> My Reservation
+                    </button>
+                    <button onClick={() => { setShowReservation(true); setMobileNavOpen(false); }} className="w-full py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
+                      <CalendarDays className="w-4 h-4" /> Reserve a Table
+                    </button>
+                  </>
                 )}
-                {selectedTable && billRequested && (
-                  <button onClick={handleViewBill} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
-                    <Receipt className="w-4 h-4" /> View My Bill
-                  </button>
+                {isDining && (
+                  <>
+                    {!billRequested && (
+                      <button onClick={handleBillRequest} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
+                        <FileText className="w-4 h-4" /> Request Bill
+                      </button>
+                    )}
+                    {billRequested && (
+                      <button onClick={handleViewBill} className="flex items-center gap-3 text-sm font-medium text-[var(--color-primary)]">
+                        <Receipt className="w-4 h-4" /> View Bill
+                      </button>
+                    )}
+                    <button onClick={handleEndSession} className="flex items-center gap-3 text-sm font-medium text-[var(--color-destructive)]">
+                      <LogOut className="w-4 h-4" /> End Session
+                    </button>
+                  </>
                 )}
               </div>
 
-              {/* Demo/Live Toggle in mobile */}
-              <div className="border-t border-[var(--color-border)] pt-4">
+              {/* Demo toggle — internal/development only */}
+              <div className="mt-auto border-t border-[var(--color-border)] pt-4">
                 <button
                   onClick={() => setIsDemo(!isDemo)}
-                  className={`flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg border transition-all w-full justify-center ${
+                  className={`flex items-center gap-2 text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-all ${
                     isDemo
                       ? 'border-amber-400/50 bg-amber-50 text-amber-700'
                       : 'border-green-500/50 bg-green-50 text-green-700'
                   }`}
                 >
-                  {isDemo ? <ToggleLeft className="w-3.5 h-3.5" /> : <ToggleRight className="w-3.5 h-3.5" />}
-                  {isDemo ? 'DEMO MODE' : 'LIVE MODE'}
+                  {isDemo ? 'DEV: DEMO' : 'DEV: LIVE'}
                 </button>
               </div>
             </motion.div>

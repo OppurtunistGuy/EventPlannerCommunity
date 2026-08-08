@@ -10,7 +10,7 @@
   --color-primary-foreground: #FFFFFF;
   --color-secondary: #F0EDE6;
   --color-secondary-foreground: #1A1A1A;
-  --color-accent: #C8956C;
+  --color-accent: #D4956A;
   --color-accent-foreground: #FFFFFF;
   --color-muted: #E8E4DB;
   --color-muted-foreground: #7A7568;
@@ -51,10 +51,10 @@
   .hero-overlay {
     background: linear-gradient(
       180deg,
-      rgba(45, 58, 46, 0.0) 0%,
-      rgba(45, 58, 46, 0.15) 30%,
-      rgba(45, 58, 46, 0.55) 65%,
-      rgba(45, 58, 46, 0.82) 100%
+      rgba(0, 0, 0, 0.0) 0%,
+      rgba(0, 0, 0, 0.05) 20%,
+      rgba(0, 0, 0, 0.35) 55%,
+      rgba(0, 0, 0, 0.7) 100%
     );
   }
 
