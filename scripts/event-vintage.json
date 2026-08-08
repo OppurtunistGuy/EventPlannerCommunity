@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "query": "vintage retro bar drinks budget cocktails casual night out",
+  "count": 1,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/290680b25f1b.jpg",
+      "caption": "A dimly lit bar interior with hanging Edison bulbs, shelves of liquor, and a long counter. suitable for background image",
+      "source": "Cuboh",
+      "original_width": "6144px",
+      "original_height": "8192px"
+    }
+  ]
+}

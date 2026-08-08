@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
   UtensilsCrossed, CalendarDays, Music, Mic, PartyPopper, Sun,
-  RefreshCw, Clock, MapPin, ArrowUp, Phone, Navigation as NavIcon,
+  Clock, MapPin, ArrowUp, Phone, Navigation as NavIcon,
 } from 'lucide-react';
 import { useBusiness } from '@/lib/business-config';
 import { useApp } from '@/lib/app-context';
@@ -15,6 +15,16 @@ import Footer from '@/components/Footer';
 import { ReservationModal, LookupModal, CartSidebar, BillModal, FloatingCartButton, OrderSuccessToast } from '@/components/Modals';
 
 const HERO_IMG = 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/6916d4147cb7.jpg';
+
+function getEventIcon(type: string) {
+  switch (type) {
+    case 'live': return Music;
+    case 'open-mic': return Mic;
+    case 'themed': return PartyPopper;
+    case 'dj': return Sun;
+    default: return Music;
+  }
+}
 
 export default function HomePage() {
   const { info } = useBusiness();
@@ -116,66 +126,109 @@ export default function HomePage() {
               <div className="divider mx-auto mt-4" />
             </motion.div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {events.slice(0, 3).map((event, idx) => (
-                <motion.div key={event.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.08 }}
-                  className="bg-white rounded-xl border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-3 mb-2">
-                    <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)]/8 flex items-center justify-center flex-shrink-0">
-                      {event.type === 'live' && <Music className="w-4 h-4 text-[var(--color-primary)]" />}
-                      {event.type === 'open-mic' && <Mic className="w-4 h-4 text-[var(--color-primary)]" />}
-                      {event.type === 'themed' && <PartyPopper className="w-4 h-4 text-[var(--color-primary)]" />}
-                      {event.type === 'dj' && <Sun className="w-4 h-4 text-[var(--color-primary)]" />}
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {events.slice(0, 3).map((event, idx) => {
+                const Icon = getEventIcon(event.type);
+                const hasImage = event.image && event.image.length > 0;
+                return (
+                  <motion.div key={event.id} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-30px' }} variants={fadeUp} transition={{ delay: idx * 0.08 }}
+                    className="!bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden hover:shadow-md transition-shadow group">
+                    {/* Image area */}
+                    <div className="relative h-44 overflow-hidden bg-[var(--color-primary)]/5">
+                      {hasImage ? (
+                        <img src={event.image!} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Icon className="w-8 h-8 text-[var(--color-primary)]/30" />
+                        </div>
+                      )}
+                      {event.isFeatured && (
+                        <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider bg-white/90 text-[var(--color-foreground)] px-2.5 py-1 rounded-full backdrop-blur-sm">
+                          Featured
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-[var(--color-foreground)] text-sm leading-snug">{event.title}</h3>
-                      {event.isFeatured && <span className="inline-block mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">Featured</span>}
+                    {/* Content */}
+                    <div className="p-5">
+                      <h3 className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--color-foreground)] mb-1.5">{event.title}</h3>
+                      <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed mb-3 line-clamp-2">{event.description}</p>
+                      <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)] pt-3 border-t border-[var(--color-border)]">
+                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {event.date}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.time}</span>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed mb-2 line-clamp-2">{event.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)]">
-                    <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {event.date}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.time}</span>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
 
-            <div className="text-center mt-6">
-              <Link href="/whats-on" className="text-sm font-medium text-[var(--color-primary)] hover:underline">View all events →</Link>
+            <div className="text-center mt-8">
+              <Link href="/whats-on" className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors group">
+                View all events
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* ===== VISIT SECTION ===== */}
+      {/* ===== VISIT US SECTION ===== */}
       <section className="py-12 sm:py-16 bg-[var(--color-secondary)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="text-center mb-8">
-            <p className="section-label">Visit</p>
-            <h2 className="section-heading text-3xl sm:text-4xl mt-2">Come by tonight.</h2>
-            <div className="divider mx-auto mt-4" />
-          </motion.div>
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Left: Text */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="lg:col-span-5 space-y-6">
+              <div>
+                <p className="section-label mb-3">Visit Us</p>
+                <h2 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-foreground)] leading-[1.15]">
+                  Come by tonight.
+                </h2>
+              </div>
 
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-            className="max-w-lg mx-auto text-center">
-            <p className="font-[var(--font-display)] text-xl font-bold text-[var(--color-foreground)]">High Spirits Cafe</p>
-            <p className="text-sm text-[var(--color-muted-foreground)] mt-1">Koregaon Park, Pune</p>
-            <div className="flex items-center justify-center gap-2 mt-3 text-sm text-[var(--color-foreground)]">
-              <Clock className="w-4 h-4 text-[var(--color-primary)]" />
-              <span className="font-medium">Open Today · 12 PM – 1 AM</span>
-            </div>
-            <div className="flex items-center justify-center gap-3 mt-6">
-              <a href={info.googleMaps} target="_blank" rel="noopener noreferrer"
-                className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2">
-                <NavIcon className="w-4 h-4" /> Get Directions
-              </a>
-              <a href={info.phoneTel}
-                className="px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-xl text-sm font-semibold hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2">
-                <Phone className="w-4 h-4" /> Call Us
-              </a>
-            </div>
-          </motion.div>
+              <div className="space-y-3">
+                <p className="font-semibold text-[var(--color-foreground)] text-lg">{info.name}</p>
+                <p className="text-sm text-[var(--color-muted-foreground)]">{info.address}</p>
+
+                <a
+                  href={info.googleMaps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-accent)] hover:text-[var(--color-primary)] transition-colors mt-2"
+                >
+                  <NavIcon className="w-4 h-4" /> Get Directions
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </a>
+              </div>
+            </motion.div>
+
+            {/* Center: Image */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="lg:col-span-4 rounded-2xl overflow-hidden shadow-lg h-56 sm:h-72 lg:h-80">
+              <img
+                src="/images/visit-gallery-1.png"
+                alt="High Spirits Cafe exterior"
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              />
+            </motion.div>
+
+            {/* Right: Details */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="lg:col-span-3 space-y-6 lg:pl-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-muted-foreground)] mb-1">Open Today</p>
+                <p className="text-lg font-semibold text-[var(--color-foreground)]">12 PM – 1 AM</p>
+              </div>
+
+              <div className="space-y-3">
+                <a href={info.phoneTel} className="flex items-center gap-3 text-[var(--color-foreground)] hover:text-[var(--color-primary)] transition-colors">
+                  <Phone className="w-4 h-4 text-[var(--color-primary)]" />
+                  <span className="text-sm">{info.phone}</span>
+                </a>
+                <a href={info.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-[var(--color-foreground)] hover:text-[var(--color-primary)] transition-colors">
+                  <Music className="w-4 h-4 text-[var(--color-primary)]" />
+                  <span className="text-sm">@highspiritscafe</span>
+                </a>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 

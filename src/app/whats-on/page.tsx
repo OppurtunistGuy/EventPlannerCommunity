@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowUp, CalendarDays, Clock, MapPin, ArrowRight,
-  Music, Mic, PartyPopper, Sun, ChevronDown,
+  Music, Mic, PartyPopper, Sun, ChevronDown, Tag, Star,
 } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 import { EventData, fadeUp } from '@/lib/shared';
@@ -15,12 +15,12 @@ import { ReservationModal, LookupModal, CartSidebar, BillModal, TableBar, Floati
 const HERO_IMG = '/images/hero-whats-on.png';
 
 const CATEGORIES = [
-  { key: 'all', label: 'All Events' },
-  { key: 'live', label: 'Live Music' },
-  { key: 'open-mic', label: 'Open Mic' },
-  { key: 'dj', label: 'DJ Nights' },
-  { key: 'themed', label: 'Offers' },
-  { key: 'special', label: 'Specials' },
+  { key: 'all', label: 'All Events', icon: CalendarDays },
+  { key: 'live', label: 'Live Music', icon: Music },
+  { key: 'open-mic', label: 'Open Mic', icon: Mic },
+  { key: 'dj', label: 'DJ Nights', icon: Sun },
+  { key: 'themed', label: 'Offers', icon: Tag },
+  { key: 'special', label: 'Specials', icon: Star },
 ];
 
 const TIME_FILTERS = [
@@ -73,20 +73,16 @@ export default function WhatsOnPage() {
 
   // Filter events
   const filteredEvents = events.filter((event) => {
-    // Category filter
     if (activeCategory !== 'all') {
       if (activeCategory === 'special' && event.type !== 'special') return false;
       if (activeCategory !== 'special' && event.type !== activeCategory) return false;
     }
-    // Time filter — since events are recurring ("Every Saturday", etc.), show all for "All Upcoming"
-    // For other time filters, we still show recurring events as they happen every week
     return true;
   });
 
   const featuredEvents = filteredEvents.filter(e => e.isFeatured);
   const moreEvents = filteredEvents.filter(e => !e.isFeatured);
 
-  // If no featured flag exists, treat first 2-3 as featured
   const displayFeatured = featuredEvents.length > 0 ? featuredEvents : filteredEvents.slice(0, 3);
   const displayMore = featuredEvents.length > 0 ? moreEvents : filteredEvents.slice(3);
 
@@ -118,19 +114,23 @@ export default function WhatsOnPage() {
       <section className="bg-[var(--color-background)] border-b border-[var(--color-border)] sticky top-16 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.key}
-                onClick={() => setActiveCategory(cat.key)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  activeCategory === cat.key
-                    ? 'bg-[var(--color-primary)] text-white'
-                    : 'bg-[var(--color-secondary)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+            {CATEGORIES.map((cat) => {
+              const CatIcon = cat.icon;
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => setActiveCategory(cat.key)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    activeCategory === cat.key
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'bg-[var(--color-secondary)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+                  }`}
+                >
+                  <CatIcon className="w-3.5 h-3.5" />
+                  {cat.label}
+                </button>
+              );
+            })}
 
             {/* Time filter dropdown */}
             <div className="relative ml-auto flex-shrink-0">
@@ -138,6 +138,7 @@ export default function WhatsOnPage() {
                 onClick={() => setTimeDropdownOpen(!timeDropdownOpen)}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-[var(--color-secondary)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] transition-all"
               >
+                <CalendarDays className="w-3.5 h-3.5" />
                 {TIME_FILTERS.find(t => t.key === activeTime)?.label}
                 <ChevronDown className={`w-4 h-4 transition-transform ${timeDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -175,16 +176,19 @@ export default function WhatsOnPage() {
       {displayFeatured.length > 0 && (
         <section className="py-12 sm:py-16 bg-[var(--color-background)]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="mb-8">
-              <p className="section-label mb-2">THIS WEEK</p>
-              <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold text-[var(--color-foreground)] leading-[1.15]">
-                Featured Events
-              </h2>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="flex items-center justify-between mb-8">
+              <div>
+                <p className="section-label mb-2">THIS WEEK</p>
+                <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold text-[var(--color-foreground)] leading-[1.15]">
+                  Featured This Week
+                </h2>
+              </div>
             </motion.div>
 
             <div className="space-y-5">
               {displayFeatured.map((event, idx) => {
                 const Icon = getEventIcon(event.type);
+                const hasImage = event.image && event.image.length > 0;
                 return (
                   <motion.div
                     key={event.id}
@@ -193,13 +197,23 @@ export default function WhatsOnPage() {
                     viewport={{ once: true, margin: '-30px' }}
                     variants={fadeUp}
                     transition={{ delay: idx * 0.08 }}
-                    className="grid md:grid-cols-5 gap-5 bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden hover:shadow-md transition-shadow"
+                    className="grid md:grid-cols-12 gap-0 bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden hover:shadow-md transition-shadow"
                   >
-                    {/* Image placeholder / icon area */}
-                    <div className="md:col-span-2 relative h-48 md:h-auto bg-[var(--color-primary)]/5 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
-                        <Icon className="w-7 h-7 text-[var(--color-primary)]" />
-                      </div>
+                    {/* Image area */}
+                    <div className="md:col-span-5 relative h-52 md:h-auto bg-[var(--color-primary)]/5 overflow-hidden">
+                      {hasImage ? (
+                        <img
+                          src={event.image!}
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-16 h-16 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
+                            <Icon className="w-7 h-7 text-[var(--color-primary)]" />
+                          </div>
+                        </div>
+                      )}
                       {event.isFeatured && (
                         <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider bg-[var(--color-accent)] text-white px-2.5 py-1 rounded-full">
                           Featured
@@ -207,15 +221,16 @@ export default function WhatsOnPage() {
                       )}
                     </div>
                     {/* Content */}
-                    <div className="md:col-span-3 p-5 sm:p-6 flex flex-col justify-center">
+                    <div className="md:col-span-7 p-5 sm:p-6 flex flex-col justify-center">
                       <div className="flex items-center gap-2 mb-3">
+                        <Icon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
                         <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--color-secondary)] text-[var(--color-primary)] px-2.5 py-1 rounded-full">
                           {getCategoryBadge(event.type)}
                         </span>
                       </div>
                       <h3 className="font-[family-name:var(--font-display)] text-xl sm:text-2xl font-bold text-[var(--color-foreground)] mb-2">{event.title}</h3>
                       <p className="text-sm text-[var(--color-muted-foreground)] leading-relaxed mb-4">{event.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)] mb-4">
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--color-muted-foreground)] mb-4">
                         <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> {event.date}</span>
                         <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {event.time}</span>
                         <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> High Spirits Cafe</span>
@@ -239,16 +254,19 @@ export default function WhatsOnPage() {
       {displayMore.length > 0 && (
         <section className="py-12 sm:py-16 bg-[var(--color-secondary)]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="mb-8">
-              <p className="section-label mb-2">MORE EVENTS</p>
-              <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold text-[var(--color-foreground)] leading-[1.15]">
-                More Upcoming
-              </h2>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} className="flex items-center justify-between mb-8">
+              <div>
+                <p className="section-label mb-2">MORE EVENTS</p>
+                <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold text-[var(--color-foreground)] leading-[1.15]">
+                  More Upcoming
+                </h2>
+              </div>
             </motion.div>
 
             <div className="space-y-3">
               {displayMore.map((event, idx) => {
                 const Icon = getEventIcon(event.type);
+                const hasImage = event.image && event.image.length > 0;
                 return (
                   <motion.div
                     key={event.id}
@@ -261,21 +279,29 @@ export default function WhatsOnPage() {
                     onClick={() => setShowReservation(true)}
                   >
                     {/* Thumbnail */}
-                    <div className="w-11 h-11 rounded-lg bg-[var(--color-primary)]/8 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-[var(--color-primary)]" />
-                    </div>
-                    {/* Date */}
-                    <div className="flex-shrink-0 w-20 sm:w-24">
-                      <p className="text-xs font-semibold text-[var(--color-foreground)]">{event.date}</p>
+                    <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--color-primary)]/5">
+                      {hasImage ? (
+                        <img src={event.image!} alt={event.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Icon className="w-5 h-5 text-[var(--color-primary)]" />
+                        </div>
+                      )}
                     </div>
                     {/* Category badge */}
                     <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-[var(--color-secondary)] text-[var(--color-primary)] px-2 py-0.5 rounded-full flex-shrink-0">
                       {getCategoryBadge(event.type)}
                     </span>
-                    {/* Title */}
-                    <h4 className="flex-1 min-w-0 text-sm font-semibold text-[var(--color-foreground)] truncate">{event.title}</h4>
-                    {/* Time */}
-                    <span className="hidden md:inline text-xs text-[var(--color-muted-foreground)] flex-shrink-0">{event.time}</span>
+                    {/* Title + subtitle */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-[var(--color-foreground)] truncate">{event.title}</h4>
+                      <p className="text-xs text-[var(--color-muted-foreground)] truncate">{event.description}</p>
+                    </div>
+                    {/* Date + Time */}
+                    <div className="hidden md:flex flex-col items-end flex-shrink-0 text-xs text-[var(--color-muted-foreground)]">
+                      <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {event.date}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.time}</span>
+                    </div>
                     {/* Arrow */}
                     <ArrowRight className="w-4 h-4 text-[var(--color-muted-foreground)] flex-shrink-0" />
                   </motion.div>
@@ -290,7 +316,7 @@ export default function WhatsOnPage() {
       {filteredEvents.length === 0 && (
         <section className="py-20 bg-[var(--color-background)]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-            <p className="text-[var(--color-muted-foreground)]">No events found for this filter. Check back soon!</p>
+            <p className="text-[var(--color-muted-foreground)]">No events found for this selection.</p>
           </div>
         </section>
       )}
@@ -300,7 +326,7 @@ export default function WhatsOnPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}>
             <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold text-white leading-[1.15] mb-2">
-              GREAT NIGHTS START HERE.
+              Great nights start here.
             </h2>
             <p className="text-white/60 text-sm mb-6">Book your table and be part of it.</p>
             <button

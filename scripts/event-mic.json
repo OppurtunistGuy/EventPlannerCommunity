@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "query": "open mic night microphone stand spotlight stage comedy poetry",
+  "count": 2,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/aca6131491be.jpg",
+      "caption": "A promotional image for an \"Open Mic\" event featuring a microphone on a stand against a dark background with red bokeh lights. The image contains the text: SMALL WORLD, FIND YOUR SPOTLIGHT, OPEN MIC. suitable for background image",
+      "source": "BookMyShow",
+      "original_width": "2520px",
+      "original_height": "1260px"
+    },
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/e6a5ffe60e43.jpg",
+      "caption": "A close-up of a microphone on a stand with a blurred, colorful background. suitable for background image",
+      "source": "Unsplash",
+      "original_width": "3000px",
+      "original_height": "2000px"
+    }
+  ]
+}

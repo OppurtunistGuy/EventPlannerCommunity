@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "query": "DJ night club electronic music turntables purple neon lights dancing",
+  "count": 2,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/a0ef8f287806.jpg",
+      "caption": "A bright pink neon lollipop sign with spiral patterns on a dark background. suitable for background image",
+      "source": "NeonsignLife",
+      "original_width": "2560px",
+      "original_height": "2560px"
+    },
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/e949597e0402.jpg",
+      "caption": "The image contains watermarks and logos. Text: dreamstime, dreamstime.com, ID 364085971 © Wolfhound911.",
+      "source": "Dreamstime.com",
+      "original_width": "1600px",
+      "original_height": "1156px"
+    }
+  ]
+}

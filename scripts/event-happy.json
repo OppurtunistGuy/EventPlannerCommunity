@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "query": "cocktail bar happy hour drinks bartender craft cocktails warm amber lighting",
+  "count": 2,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/fa86a08f40b2.jpg",
+      "caption": "A collage of four images showcasing creative cocktails and a floral arrangement in a bar setting.",
+      "source": "Clumsy Girl Travels",
+      "original_width": "2560px",
+      "original_height": "2146px"
+    },
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/adbf6f7a2de8.jpg",
+      "caption": "A bartender prepares a drink in a dimly lit, traditional-style bar with a red sign reading \"晚性見相\".",
+      "source": "Bon Appetit",
+      "original_width": "2304px",
+      "original_height": "1296px"
+    }
+  ]
+}

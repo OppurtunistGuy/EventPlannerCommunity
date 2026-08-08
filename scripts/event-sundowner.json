@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "query": "sunday sundowner acoustic sunset terrace chill outdoor seating",
+  "count": 1,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/1fbd9160638a.jpeg",
+      "caption": "A rooftop cafe at sunset with tables, chairs, and a service counter. suitable for background image",
+      "source": "Lifestyle Asia",
+      "original_width": "2560px",
+      "original_height": "2560px"
+    }
+  ]
+}

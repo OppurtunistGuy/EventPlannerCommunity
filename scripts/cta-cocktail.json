@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "query": "cocktail clink glasses cheers celebration warm lighting nightlife",
+  "count": 1,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/43bccbd78ff0.jpg",
+      "caption": "The image contains watermarks (alamy) and text: \"Image ID: 3BK4F2P www.alamy.com\".",
+      "source": "Alamy",
+      "original_width": "1040px",
+      "original_height": "1390px"
+    }
+  ]
+}

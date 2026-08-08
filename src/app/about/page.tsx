@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
   Music, UtensilsCrossed, Wine, Users, ArrowUp, CalendarDays,
+  ExternalLink,
 } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 import { fadeUp } from '@/lib/shared';
@@ -18,42 +19,43 @@ const EXPERIENCE_STAGE = '/images/experience-stage.png';
 const EXPERIENCE_BAR = '/images/experience-bar.png';
 const EXPERIENCE_TERRACE = '/images/experience-terrace.png';
 const EXPERIENCE_CROWD = '/images/experience-crowd.png';
+const CTA_IMG = '/images/cta-cocktail.png';
 
 const DIFFERENT_ITEMS = [
   {
     icon: Music,
     title: 'LIVE MUSIC',
-    description: 'From local indie bands to big-name acts, the stage is always live. Saturday nights at High Spirits are legendary for a reason.',
+    description: 'From indie bands to open mics, the stage is where the night comes alive.',
   },
   {
     icon: UtensilsCrossed,
     title: 'GOOD FOOD',
-    description: 'Konkani Paneer Chilli, Neapolitan pizzas, and bar snacks that go way beyond the basics. Food that surprises you.',
+    description: "A menu crafted for every mood, from sharing plates to late-night cravings.",
   },
   {
     icon: Wine,
     title: 'GREAT DRINKS',
-    description: 'Signature cocktails at honest prices, craft beers, and the cheapest happy hour in Koregaon Park. Bottoms up.',
+    description: 'Signature cocktails, timeless classics and a bar that never runs out of stories.',
   },
   {
     icon: Users,
     title: 'GOOD COMPANY',
-    description: 'Walk in as a stranger, walk out as family. That\'s the High Spirits promise. No pretension, just great vibes.',
+    description: "Whether it's friends, family or new faces — you'll always feel at home.",
   },
 ];
 
 const EXPERIENCE_ITEMS = [
-  { image: EXPERIENCE_STAGE, title: 'THE STAGE', description: 'Where the magic happens. Our intimate stage has hosted some of the best acts in the country.' },
-  { image: EXPERIENCE_BAR, title: 'THE BAR', description: 'Craft cocktails, cold beers, and bartenders who know your name. The heart of the house.' },
-  { image: EXPERIENCE_TERRACE, title: 'THE TERRACE', description: 'Open-air seating under the Pune sky. Perfect for sundowners and late-night conversations.' },
-  { image: EXPERIENCE_CROWD, title: 'THE CROWD', description: 'Artists, entrepreneurs, students, and regulars — everyone finds their corner at High Spirits.' },
+  { image: EXPERIENCE_STAGE, title: 'THE STAGE', description: 'Where the music brings us together.' },
+  { image: EXPERIENCE_BAR, title: 'THE BAR', description: 'Where conversations begin.' },
+  { image: EXPERIENCE_TERRACE, title: 'THE TERRACE', description: 'Breezy evenings and better conversations.' },
+  { image: EXPERIENCE_CROWD, title: 'THE CROWD', description: 'You come for the music. You stay for the people.' },
 ];
 
 const TIMELINE_ITEMS = [
   { year: '2005', title: 'Founded', description: 'Two friends, one dream — a place where music and community come together.' },
   { year: '2008', title: 'Live Music Begins', description: 'Saturday Night Live is born. The stage becomes the soul of High Spirits.' },
   { year: '2012', title: 'Vintage Nights', description: 'Tuesday & Thursday budget booze nights become a Koregaon Park institution.' },
-  { year: '2018', title: 'Open Mic Launches', description: 'Wednesday Open Mic gives Pune\'s talent a stage and a spotlight.' },
+  { year: '2018', title: 'Open Mic Launches', description: "Wednesday Open Mic gives Pune's talent a stage and a spotlight." },
   { year: 'TODAY', title: 'Still Creating', description: 'Still creating nights worth remembering. The story continues.' },
 ];
 
@@ -107,13 +109,10 @@ export default function AboutPage() {
                 It started with music.
               </h2>
               <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
-                In 2005, two friends had a simple idea: create a place where the music is always live, the drinks never stop flowing, and everyone feels like a regular. That place became High Spirits — a corner of Koregaon Park that turned into Pune&apos;s longest-running nightlife institution.
-              </p>
-              <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-4">
-                What makes us different? We don&apos;t do pretension. We do great cocktails at honest prices, live music that makes you stay past midnight, and food that surprises you — from Konkani Paneer Chilli to Neapolitan pizzas. Our Vintage Nights on Tuesdays and Thursdays have become legendary, and our Saturday gigs are the worst-kept secret in the city.
+                In 2005, High Spirits Cafe began as a dream to create a space where people could come together over good food, great drinks and the kind of music that stays with you.
               </p>
               <p className="text-[var(--color-muted-foreground)] leading-relaxed mb-6">
-                Walk in as a stranger, walk out as family. That&apos;s the High Spirits promise.
+                From a small corner in Koregaon Park to one of Pune&apos;s most loved nightlife destinations, the heart has remained the same — make every night worth remembering.
               </p>
               <span className="inline-block font-[family-name:var(--font-display)] text-sm font-semibold text-[var(--color-accent)] uppercase tracking-wider">Since 2005.</span>
             </motion.div>
@@ -150,11 +149,11 @@ export default function AboutPage() {
                   transition={{ delay: idx * 0.1 }}
                   className="text-center"
                 >
-                  <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-5">
+                  <div className="w-14 h-14 rounded-full border-2 border-white/20 flex items-center justify-center mx-auto mb-5">
                     <Icon className="w-6 h-6 text-[var(--color-accent)]" />
                   </div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-white mb-3">{item.title}</h3>
-                  <p className="text-white/60 text-sm leading-relaxed">{item.description}</p>
+                  <p className="text-white/60 text-sm leading-relaxed max-w-[220px] mx-auto">{item.description}</p>
                 </motion.div>
               );
             })}
@@ -187,7 +186,7 @@ export default function AboutPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <h3 className="absolute bottom-3 left-4 text-sm font-bold uppercase tracking-wider text-white">{item.title}</h3>
                 </div>
-                <div className="p-4">
+                <div className="p-4 text-center">
                   <p className="text-[var(--color-muted-foreground)] text-sm leading-relaxed">{item.description}</p>
                 </div>
               </motion.div>
@@ -269,28 +268,52 @@ export default function AboutPage() {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="py-16 sm:py-20 bg-[var(--color-primary)]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}>
-            <h2 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl font-bold text-white leading-[1.15] mb-3">
-              COME BE A PART OF THE STORY
-            </h2>
-            <p className="text-white/60 text-base mb-8">Good nights are waiting.</p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link
-                href="/menu"
-                className="px-6 py-3 border border-white/30 text-white rounded-xl font-semibold text-sm hover:bg-white/10 transition-all flex items-center gap-2"
-              >
-                View Menu
-              </Link>
-              <button
-                onClick={() => setShowReservation(true)}
-                className="px-6 py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
-              >
-                <CalendarDays className="w-4 h-4" /> Reserve a Table
-              </button>
-            </div>
-          </motion.div>
+      <section className="bg-[var(--color-primary)]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 min-h-[280px]">
+            {/* Left: Image */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={fadeUp}
+              className="relative h-56 lg:h-auto overflow-hidden"
+            >
+              <img
+                src={CTA_IMG}
+                alt="Cocktails at High Spirits"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/20" />
+            </motion.div>
+            {/* Right: Content */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={fadeUp}
+              className="flex flex-col justify-center p-10 sm:p-14"
+            >
+              <h2 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl font-bold text-white leading-[1.15] mb-3">
+                Come be a part of the story.
+              </h2>
+              <p className="text-white/60 text-base mb-8">Good nights are waiting.</p>
+              <div className="flex flex-wrap items-center gap-4">
+                <Link
+                  href="/menu"
+                  className="px-6 py-3 border border-white/30 text-white rounded-xl font-semibold text-sm hover:bg-white/10 transition-all flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" /> View Menu
+                </Link>
+                <button
+                  onClick={() => setShowReservation(true)}
+                  className="px-6 py-3 bg-[var(--color-accent)] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
+                >
+                  <CalendarDays className="w-4 h-4" /> Reserve a Table
+                </button>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 

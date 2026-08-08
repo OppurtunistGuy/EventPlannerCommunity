@@ -14,7 +14,7 @@ export interface MenuCategory {
 
 export interface EventData {
   id: string; title: string; description: string; date: string;
-  time: string; type: string; isFeatured: boolean;
+  time: string; type: string; image: string | null; isFeatured: boolean;
 }
 
 export interface TableInfo {

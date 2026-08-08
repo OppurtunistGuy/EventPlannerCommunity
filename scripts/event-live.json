@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "query": "live music concert stage performance band playing guitar warm lighting nightclub",
+  "count": 2,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/346373125029.jpeg",
+      "caption": "A band performs on a dimly lit stage under a disco ball for an audience.",
+      "source": "San Diego Union-Tribune",
+      "original_width": "2000px",
+      "original_height": "1500px"
+    },
+    {
+      "original_url": "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/88f27f77f245.jpg",
+      "caption": "A large crowd watches a concert inside a red tent with bright stage lights and screens. suitable for background image",
+      "source": "Honeycombers",
+      "original_width": "1400px",
+      "original_height": "1000px"
+    }
+  ]
+}
