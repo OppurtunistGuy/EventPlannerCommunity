@@ -109,3 +109,33 @@ Stage Summary:
 - Caddy proxy on port 81 working correctly
 - Updated .zscripts/dev.sh to use production server (standalone build + watchdog + double-fork)
 - dev.sh will survive container restarts via /start.sh mechanism
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Redesign About, Visit, and What's On pages based on design prototypes
+
+Work Log:
+- Analyzed 4 uploaded images (3 page prototypes + final landing page) using VLM
+- Read all ! requirement docs (About_HighSpirit.md, Visit_HighSpirit.md, What'sOn-HighSpirit.md)
+- Explored current codebase: identified /about does double duty (story + events), /contact is Visit, no /whats-on or /visit routes
+- Redesigned /about page with 6 sections: Hero, Our Story, What Makes Us Different, The Experience, Our Journey, Final CTA
+- Created new /visit route with 6 sections: Hero, Find Us, Opening Hours+Contact, Good to Know, A Few Looks Inside, Reservation CTA
+- Created new /whats-on route with 5 sections: Hero, Filter Bar (working category + time filters), Featured This Week, More Upcoming, CTA
+- Updated Navigation.tsx: What's On → /whats-on, Visit → /visit, About → /about (was all /about before)
+- Updated Footer.tsx: same route corrections
+- Updated Homepage: "View all events →" links to /whats-on (was /about)
+- All pages include existing modals (Reservation, Lookup, Cart, Bill), TableBar, FloatingCartButton
+- Rebuilt production build successfully
+- Restarted server with double-fork daemon pattern
+- Verified all 8 page routes and 4 API endpoints return HTTP 200
+- Verified Caddy proxy returns 200
+- Verified4 verified new page content: "More than" on About, "Come by tonight" on Visit, "Live music" on What's On
+
+Stage Summary:
+- 3 pages redesigned matching design prototypes with High Spirits design system
+- 2 new routes created: /visit and /whats-on
+- Navigation routing fixed: all 3 items now have distinct routes
+- All existing functionality preserved: reservations, menu, ordering, bill, cart, session
+- Server stable: PID 3371, PPID 1, uptime 30+ seconds
+- Build passes, all endpoints return 200

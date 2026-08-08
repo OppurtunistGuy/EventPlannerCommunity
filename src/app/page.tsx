@@ -142,7 +142,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center mt-6">
-              <Link href="/about" className="text-sm font-medium text-[var(--color-primary)] hover:underline">View all events →</Link>
+              <Link href="/whats-on" className="text-sm font-medium text-[var(--color-primary)] hover:underline">View all events →</Link>
             </div>
           </div>
         </section>

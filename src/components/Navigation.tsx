@@ -33,16 +33,16 @@ export default function Navigation() {
   // State A: No active reservation — marketing mode
   const navLinksBrowsing = [
     { href: '/menu', label: 'Menu', icon: UtensilsCrossed },
-    { href: '/about', label: "What's On", icon: Music },
-    { href: '/contact', label: 'Visit', icon: MapPin },
+    { href: '/whats-on', label: "What's On", icon: Music },
+    { href: '/visit', label: 'Visit', icon: MapPin },
     { href: '/about', label: 'About', icon: Info },
   ];
 
   // State B: Active reservation — dining mode
   const navLinksDining = [
     { href: '/menu', label: 'Menu', icon: UtensilsCrossed },
-    { href: '/about', label: "What's On", icon: Music },
-    { href: '/contact', label: 'Visit', icon: MapPin },
+    { href: '/whats-on', label: "What's On", icon: Music },
+    { href: '/visit', label: 'Visit', icon: MapPin },
   ];
 
   const isDining = !!selectedTable;
