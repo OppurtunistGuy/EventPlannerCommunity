@@ -514,7 +514,7 @@ export function BillModal() {
               <p className="font-[var(--font-display)] text-xl font-bold">High Spirits Cafe</p>
               <p className="text-xs text-white/60 mt-1">Koregaon Park, Pune</p>
               <div className="mt-3 flex items-center justify-center gap-2">
-                <span className="px-3 py-1 bg-white/15 rounded-full text-sm font-medium">Table {(billData as Record<string, unknown>).tableNumber}</span>
+                <span className="px-3 py-1 bg-white/15 rounded-full text-sm font-medium">Table {String((billData as Record<string, unknown>).tableNumber || '')}</span>
                 <span className="px-3 py-1 bg-white/15 rounded-full text-xs">{AREA_LABELS[(billData as Record<string, unknown>).tableArea as string] || ''}</span>
               </div>
             </div>

@@ -12,7 +12,7 @@ interface AppState {
   selectedTable: TableInfo | null;
   setSelectedTable: (t: TableInfo | null) => void;
   cart: CartItem[];
-  setCart: (c: CartItem[]) => void;
+  setCart: (c: CartItem[] | ((prev: CartItem[]) => CartItem[])) => void;
   showCart: boolean;
   setShowCart: (v: boolean) => void;
   showBill: boolean;

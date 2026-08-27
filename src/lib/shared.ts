@@ -111,17 +111,17 @@ export function getTimeLeft(): string {
 // Animation variants
 export const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 export const slideInRight = {
   hidden: { x: 360, opacity: 0 },
-  visible: { x: 0, opacity: 1, transition: { type: 'spring', damping: 28, stiffness: 300 } },
-  exit: { x: 360, opacity: 0, transition: { duration: 0.25, ease: 'easeIn' } },
+  visible: { x: 0, opacity: 1, transition: { type: 'spring' as const, damping: 28, stiffness: 300 } },
+  exit: { x: 360, opacity: 0, transition: { duration: 0.25, ease: 'easeIn' as const } },
 };
 
 export const scaleIn = {
   hidden: { scale: 0.9, opacity: 0 },
-  visible: { scale: 1, opacity: 1, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
+  visible: { scale: 1, opacity: 1, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const } },
   exit: { scale: 0.9, opacity: 0, transition: { duration: 0.15 } },
 };

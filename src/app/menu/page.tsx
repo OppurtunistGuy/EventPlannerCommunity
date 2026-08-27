@@ -53,8 +53,8 @@ export default function MenuPage() {
         if (menuResponse && typeof menuResponse === 'object' && !Array.isArray(menuResponse) && !data.error) {
           setMenuData(menuResponse);
           // Auto-expand first category on each tab
-          const firstCat = Object.values(menuResponse).flat().find((c: MenuCategory) => c.items?.length > 0);
-          if (firstCat) setExpandedCategories(new Set([firstCat.slug]));
+          const firstCat = (Object.values(menuResponse).flat() as unknown as MenuCategory[]).find(c => c && c.items && c.items.length > 0);
+          if (firstCat && firstCat.slug) setExpandedCategories(new Set([firstCat.slug]));
         } else {
           setDataError(data?.error || data?.message || 'Failed to load menu data');
         }
